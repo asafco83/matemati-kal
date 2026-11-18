@@ -36,13 +36,25 @@ html {
 }
 
 /* צבע המסלול מגיע במשתנה --tc; הגוון הבהיר נגזר ממנו */
+/* על רקע צבעוני, מסגרת התרגיל נגזרת מצבע הרקע עצמו ולא מצבע המסלול */
 .tint {
   background: color-mix(in srgb, var(--tc) 13%, white);
+  --mi-bg: color-mix(in srgb, var(--tc) 5%, white);
+  --mi-line: color-mix(in srgb, var(--tc) 32%, white);
+}
+
+/* תיבת "שימו לב" ורמז */
+.note {
+  background: #fff3bf;
+  --mi-bg: #fffaf0;
+  --mi-line: #ead27a;
 }
 
 .marker {
   background: var(--color-marker);
   padding: 0 4px;
+  --mi-bg: #fff6c2;
+  --mi-line: #d8b400;
 }
 
 .hide-scrollbar {
@@ -70,8 +82,8 @@ html {
   margin: 0.1em 0.3em;
   padding: 0 0.4em;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--tc, #5b6475) 7%, white);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tc, #5b6475) 22%, white);
+  background: var(--mi-bg, color-mix(in srgb, var(--tc, #5b6475) 7%, white));
+  box-shadow: inset 0 0 0 1px var(--mi-line, color-mix(in srgb, var(--tc, #5b6475) 22%, white));
   line-height: 1.55;
   white-space: nowrap;
 }

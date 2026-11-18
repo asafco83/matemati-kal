@@ -241,7 +241,7 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
               </p>
             )}
             {showHint && !locked && (
-              <aside className="pop mt-4 flex max-w-[560px] flex-wrap items-baseline gap-x-4 gap-y-1 rounded-2xl bg-[#fff3bf] px-5 py-4">
+              <aside className="pop mt-4 flex max-w-[560px] flex-wrap items-baseline gap-x-4 gap-y-1 note rounded-2xl px-5 py-4">
                 <strong className="font-display text-[17px] font-semibold">רמז</strong>
                 <p className="min-w-0 flex-[1_1_260px] text-lg leading-relaxed">
                   <Rich text={q.hint} />

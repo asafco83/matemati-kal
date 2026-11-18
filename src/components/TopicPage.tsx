@@ -92,7 +92,7 @@ function Learn({ topic, color, onNext }: { topic: Topic; color: string; onNext: 
           ))}
         </ol>
       </section>
-      <aside className="flex flex-wrap items-baseline gap-x-5 gap-y-1.5 rounded-2xl bg-[#fff3bf] px-6 py-4 shadow-[0_1px_3px_rgba(29,36,51,0.12)]">
+      <aside className="flex flex-wrap items-baseline gap-x-5 gap-y-1.5 note rounded-2xl px-6 py-4 shadow-[0_1px_3px_rgba(29,36,51,0.12)]">
         <strong className="font-display text-[19px] font-semibold">שימו לב</strong>
         <ul className="flex min-w-0 flex-[1_1_320px] list-disc flex-col gap-1 ps-5 text-lg leading-relaxed">
           {lesson.tips.map((t, i) => (
