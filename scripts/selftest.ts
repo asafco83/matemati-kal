@@ -58,7 +58,11 @@ function checkQuestion(where: string, q: Question) {
     if (a.labels.length !== a.values.length) fail(where, 'מספר התוויות שונה ממספר הערכים');
     if (!checkAnswer(a, a.values.map(String), null)) fail(where, `התשובה ${a.values} לא עוברת בדיקה`);
     if (!a.ordered && !checkAnswer(a, [...a.values].reverse().map(String), null)) fail(where, 'סדר הפוך לא התקבל');
-  } else if (a.correct < 0 || a.correct >= a.options.length) fail(where, 'אינדקס תשובה שגוי');
+  } else {
+    if (a.correct < 0 || a.correct >= a.options.length) fail(where, 'אינדקס תשובה שגוי');
+    if (new Set(a.options).size !== a.options.length) fail(where, `אפשרויות כפולות: ${a.options.join(' | ')}`);
+    a.options.forEach((o) => checkTex(where, o));
+  }
 }
 
 const ids = new Set<string>();

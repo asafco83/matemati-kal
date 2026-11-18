@@ -208,7 +208,8 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
             </div>
           ) : (
             <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-4">
-              <div dir="ltr" className="flex flex-wrap items-center gap-4">
+              {/* תוויות בעברית (מונה, מכנה) נקראות מימין לשמאל; x ו-y נשארים משמאל לימין */}
+              <div dir={ans.type === 'multi' && ans.labels.some((l) => /[\u0590-\u05FF]/.test(l)) ? 'rtl' : 'ltr'} className="flex flex-wrap items-center gap-4">
                 {(ans.type === 'number' ? [''] : ans.labels).map((label, i) => (
                   <label key={i} className="flex items-center gap-3 font-display text-[30px] font-medium">
                     {label && <span>{label} =</span>}

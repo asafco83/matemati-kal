@@ -1,5 +1,6 @@
 import type { SoonTopic, Topic, Track } from '../lib/types';
 import { elementaryTopics } from './elementary';
+import { elementaryTopics2 } from './elementary2';
 import { highTopics } from './high';
 import { middleTopics } from './middle';
 
@@ -14,7 +15,7 @@ export const tracks: Track[] = [
   { id: 'data', short: 'הסתברות', title: 'הסתברות וסטטיסטיקה', icon: '🎲', color: '#0d9488' },
 ];
 
-export const topics: Topic[] = [...elementaryTopics, ...middleTopics, ...highTopics];
+export const topics: Topic[] = [...elementaryTopics, ...elementaryTopics2, ...middleTopics, ...highTopics];
 
 const soon = (track: string, list: [string, string, number, number][]): SoonTopic[] =>
   list.map(([id, title, a, b]) => ({ id, track, title, grades: [a, b], soon: true }));
@@ -22,17 +23,9 @@ const soon = (track: string, list: [string, string, number, number][]): SoonTopi
 /** נושאים שמתוכננים ועדיין לא נכתבו. מוצגים באפור עם התווית "בקרוב" */
 export const soonTopics: SoonTopic[] = [
   ...soon('numbers', [
-    ['place-value', 'המבנה העשרוני', 1, 3],
-    ['long-mult', 'כפל במאונך', 3, 5],
-    ['long-division', 'חילוק ארוך', 4, 6],
-    ['divisibility', 'סימני התחלקות, ראשוניים ופריקים', 5, 6],
-    ['negatives', 'מספרים שליליים', 6, 7],
     ['powers-roots', 'חזקות ושורשים', 7, 9],
   ]),
   ...soon('fractions', [
-    ['fractions-intro', 'מהו שבר? צמצום והרחבה', 3, 5],
-    ['fractions-mult', 'כפל וחילוק שברים', 5, 6],
-    ['decimals', 'מספרים עשרוניים', 4, 6],
     ['ratio', 'יחס ופרופורציה', 6, 8],
   ]),
   ...soon('geometry', [
