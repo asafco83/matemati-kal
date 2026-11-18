@@ -122,6 +122,18 @@ button:disabled {
   animation: pop 0.18s ease-out;
 }
 
+/* הסימן ✔ נכתב כמו בעט: התחלה איטית ומשיכה מהירה למעלה */
+@keyframes tick-pen {
+  from { stroke-dashoffset: 1.1; }
+  to { stroke-dashoffset: 0; }
+}
+
+.tick-pen {
+  stroke-dasharray: 1 2;
+  animation: tick-pen 0.42s cubic-bezier(0.55, 0, 0.75, 0.6) 0.12s backwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pop { animation: none; }
+  .tick-pen { animation: none; }
 }

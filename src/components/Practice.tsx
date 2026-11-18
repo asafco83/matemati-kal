@@ -4,7 +4,7 @@ import type { Level, Question, Topic } from '../lib/types';
 import { checkAnswer, isFilled } from '../lib/util';
 import { FigureView } from './FigureView';
 import { Rich, Tex } from './Tex';
-import { CheckIcon, PrimaryButton, Segmented, StarIcon } from './ui';
+import { PrimaryButton, Tick, Segmented, StarIcon } from './ui';
 
 type Phase = 'asking' | 'wrong' | 'correct' | 'revealed';
 
@@ -218,8 +218,8 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
 
           <div aria-live="polite">
             {phase === 'correct' && (
-              <p className="pop tint mt-5 inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-display text-xl font-semibold" style={{ color }}>
-                <CheckIcon />
+              <p className="pop tint mt-5 inline-flex items-center gap-2.5 rounded-full px-5 py-2.5 font-display text-xl font-semibold" style={{ color }}>
+                <Tick size={28} draw />
                 {tries === 1 ? 'נכון מאוד!' : 'נכון! הצלחתם לתקן.'}
               </p>
             )}

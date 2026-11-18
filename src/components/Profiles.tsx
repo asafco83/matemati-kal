@@ -3,7 +3,7 @@ import { signIn, signOutUser, useAuth } from '../lib/cloud';
 import { go } from '../lib/nav';
 import { addProfile, deleteProfile, PROFILE_COLORS, selectProfile, totals, useStore } from '../lib/store';
 import { GRADE_NAMES } from '../lib/types';
-import { Avatar, CheckIcon, Logo, StarIcon, StepNum } from './ui';
+import { Avatar, Logo, StarIcon, StepNum, Tick } from './ui';
 
 function BareHeader({ end }: { end?: React.ReactNode }) {
   return (
@@ -90,7 +90,7 @@ export function Welcome() {
               </span>
             </div>
             <p className="tint flex items-center gap-2 self-center rounded-full px-4 py-2 font-display text-lg font-semibold" style={{ ['--tc' as string]: pink, color: pink }}>
-              <CheckIcon size={20} />
+              <Tick size={24} />
               נכון מאוד!
             </p>
           </div>
