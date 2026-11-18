@@ -20,7 +20,10 @@ export function texToHtml(tex: string, display = false, n: Notation = 'secondary
   let t = applyNotation(tex, n);
   // שבר בתוך שורה מוצג בגודל מלא, כדי שהמונה והמכנה יהיו קריאים
   if (!display) t = t.replace(/\\frac(?![a-zA-Z])/g, '\\dfrac');
-  return katex.renderToString(t, { displayMode: display, throwOnError: false, strict: false });
+  // התיבה של המספר החסר מצוירת ב-CSS, כדי שתהיה בגובה הספרות וממורכזת אליהן
+  return katex
+    .renderToString(t, { displayMode: display, throwOnError: false, strict: false })
+    .replaceAll('<span class="mord amsrm">□</span>', '<span class="mord blank-box"></span>');
 }
 
 /** ביטוי מתמטי בודד */

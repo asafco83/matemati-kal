@@ -72,6 +72,17 @@ html {
   font-size: 1.12em;
 }
 
+/* תיבת המספר החסר: בגובה הספרות ובאמצען */
+.katex .blank-box {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 0.62em;
+  height: 0.72em;
+  border: 0.065em solid currentColor;
+  border-radius: 0.1em;
+  vertical-align: -0.04em;
+}
+
 /* רווחים צפופים יותר סביב + − × = כדי שהתרגיל ייקרא כיחידה אחת */
 .katex .mspace[style*="0.2222em"] {
   margin-right: 0.14em !important;
