@@ -97,7 +97,7 @@ html {
 .mi {
   display: inline-block;
   margin: 0.1em 0.3em;
-  padding: 0 0.4em;
+  padding: 0.5em;
   border-radius: 8px;
   background: var(--mi-bg, color-mix(in srgb, var(--tc, #5b6475) 3%, white));
   box-shadow: inset 0 0 0 1px var(--mi-line, color-mix(in srgb, var(--tc, #5b6475) 10%, white));
