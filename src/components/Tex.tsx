@@ -32,6 +32,23 @@ export const Tex = memo(function Tex({ tex, display = false }: { tex: string; di
   return <span dir="ltr" className={display ? 'block' : 'inline-block'} dangerouslySetInnerHTML={{ __html: texToHtml(tex, display, n) }} />;
 });
 
+/**
+ * מה שמקלידים בתיבת התשובה נכתב בין גרשיים הפוכים (`1 1/2`).
+ * הוא מוצג משמאל לימין ובמסגרת של מקש, כדי שהסדר לא יתהפך בתוך משפט בעברית.
+ */
+function typed(text: string) {
+  if (!text.includes('`')) return text;
+  return text.split('`').map((p, i) =>
+    i % 2 === 1 ? (
+      <kbd key={i} dir="ltr" className="typed">
+        {p}
+      </kbd>
+    ) : (
+      p
+    ),
+  );
+}
+
 /** טקסט בעברית שמשולבת בו מתמטיקה בין סימני $...$ */
 export const Rich = memo(function Rich({ text }: { text: string }) {
   const n = useContext(NotationContext);
@@ -44,7 +61,7 @@ export const Rich = memo(function Rich({ text }: { text: string }) {
         i % 2 === 1 ? (
           <span key={i} dir="ltr" className={onlyMath ? 'inline-block' : /^[.,:;!?)]/.test(parts[i + 1] ?? '') ? 'mi mi-p' : 'mi'} dangerouslySetInnerHTML={{ __html: texToHtml(p, false, n) }} />
         ) : (
-          <Fragment key={i}>{p}</Fragment>
+          <Fragment key={i}>{typed(p)}</Fragment>
         ),
       )}
     </>

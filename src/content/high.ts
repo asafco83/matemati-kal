@@ -368,7 +368,7 @@ const trigRight: Topic = {
       return {
         text: `כתבו את $\\${fn} \\alpha$ כשבר, לפי המשולש:`,
         figure: { type: 'rtri', bottom: `${a}`, left: `${o}`, hyp: `${h}`, angle: 'α' },
-        answer: { type: 'number', value: n / d, tol: 0.005, placeholder: 'למשל 3/5' },
+        answer: { type: 'number', value: n / d, tol: 0.005, placeholder: '3/5' },
         hint: 'sin הוא מול חלקי יתר, cos הוא ליד חלקי יתר, tan הוא מול חלקי ליד.',
         solution: [
           `הניצב שמול הזווית הוא ${o}, הניצב שליד הוא ${a}, והיתר הוא ${h}.`,
@@ -637,7 +637,7 @@ const probability: Topic = {
         const n = r + b;
         return {
           text: `בשקית ${r} כדורים אדומים ו-${b} כדורים כחולים. מוציאים כדור אחד באקראי. מה הסיכוי שהוא אדום?`,
-          answer: { type: 'number', value: r / n, placeholder: 'למשל 3/8' },
+          answer: { type: 'number', value: r / n, placeholder: '3/8' },
           hint: 'כמה כדורים אדומים יש, מתוך כמה כדורים בסך הכול?',
           solution: [`סך הכול: $${r} + ${b} = ${n}$ כדורים`, `רצויים: ${r} אדומים`, `$P = ${rawFrac(r, n)}${gcd(r, n) > 1 ? ` = ${fracTex(r, n)}` : ''}$`],
         };
@@ -652,7 +652,7 @@ const probability: Topic = {
       ] as const);
       return {
         text: `מטילים קוביית משחק רגילה. מה הסיכוי לקבל ${desc}?`,
-        answer: { type: 'number', value: cnt / 6, placeholder: 'למשל 1/6' },
+        answer: { type: 'number', value: cnt / 6, placeholder: '1/6' },
         hint: 'בקובייה 6 תוצאות אפשריות. כמה מהן מתאימות?',
         solution: [`סך הכול 6 תוצאות.`, `תוצאות רצויות: ${list}. כלומר ${cnt}.`, `$P = ${rawFrac(cnt, 6)}${cnt > 1 ? ` = ${fracTex(cnt, 6)}` : ''}$`],
       };
@@ -663,7 +663,7 @@ const probability: Topic = {
       if (Math.random() < 0.5) {
         return {
           text: `${bag} מה הסיכוי שהכדור אינו כחול?`,
-          answer: { type: 'number', value: (n - b) / n, placeholder: 'למשל 3/8' },
+          answer: { type: 'number', value: (n - b) / n, placeholder: '3/8' },
           hint: 'אפשר לחשב את הסיכוי לכחול ולהחסיר מ-1, או לספור את הכדורים שאינם כחולים.',
           solution: [
             `סך הכול: $${r} + ${b} + ${g} = ${n}$ כדורים`,
@@ -674,7 +674,7 @@ const probability: Topic = {
       }
       return {
         text: `${bag} מה הסיכוי שהכדור אדום או ירוק?`,
-        answer: { type: 'number', value: (r + g) / n, placeholder: 'למשל 3/8' },
+        answer: { type: 'number', value: (r + g) / n, placeholder: '3/8' },
         hint: 'כדור לא יכול להיות גם אדום וגם ירוק, אז מחברים את ההסתברויות.',
         solution: [
           `סך הכול: $${n}$ כדורים`,
@@ -688,7 +688,7 @@ const probability: Topic = {
     if (kind === 1) {
       return {
         text: `${bag} מוציאים כדור, מחזירים אותו, ומוציאים כדור נוסף. מה הסיכוי ששני הכדורים אדומים?`,
-        answer: { type: 'number', value: (r * r) / (m * m), placeholder: 'למשל 4/25' },
+        answer: { type: 'number', value: (r * r) / (m * m), placeholder: '4/25' },
         hint: 'ההוצאה היא עם החזרה, אז הסיכוי זהה בשתי ההוצאות. כופלים.',
         solution: [
           `הסיכוי לאדום בכל הוצאה: $${rawFrac(r, m)}$`,
@@ -701,7 +701,7 @@ const probability: Topic = {
       const den = m * (m - 1);
       return {
         text: `${bag} מוציאים שני כדורים בזה אחר זה, בלי החזרה. מה הסיכוי ששני הכדורים אדומים?`,
-        answer: { type: 'number', value: num / den, placeholder: 'למשל 3/10' },
+        answer: { type: 'number', value: num / den, placeholder: '3/10' },
         hint: 'אחרי ההוצאה הראשונה נשארו פחות כדורים, וגם פחות אדומים.',
         solution: [
           `הוצאה ראשונה: $${rawFrac(r, m)}$`,
@@ -714,7 +714,7 @@ const probability: Topic = {
     const den = m * (m - 1);
     return {
       text: `${bag} מוציאים שני כדורים בזה אחר זה, בלי החזרה. מה הסיכוי שהראשון אדום והשני כחול?`,
-      answer: { type: 'number', value: num / den, placeholder: 'למשל 3/10' },
+      answer: { type: 'number', value: num / den, placeholder: '3/10' },
       hint: 'אחרי שיצא אדום, מספר הכחולים לא השתנה, אבל סך הכדורים קטן ב-1.',
       solution: [
         `הראשון אדום: $${rawFrac(r, m)}$`,

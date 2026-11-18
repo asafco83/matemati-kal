@@ -280,7 +280,7 @@ const fractionsAdd: Topic = {
     ],
     tips: [
       'טעות נפוצה: לחבר גם את המכנים. $\\frac{1}{2} + \\frac{1}{3}$ אינו $\\frac{2}{5}$!',
-      'כותבים שבר עם לוכסן: 5/6. מספר מעורב כותבים עם רווח: 1 1/2.',
+      'כותבים שבר עם לוכסן: `5/6`. מספר מעורב כותבים עם רווח בין השלם לשבר: `1 1/2`.',
     ],
   },
   generate(level) {
@@ -345,7 +345,7 @@ const fractionsAdd: Topic = {
     return {
       text: 'חשבו וכתבו את התוצאה כשבר:',
       latex: `${rawFrac(n1, d1)} ${op} ${rawFrac(n2, d2)}`,
-      answer: { type: 'number', value: rn / m, placeholder: 'למשל 3/4' },
+      answer: { type: 'number', value: rn / m, placeholder: '3/4' },
       hint:
         d1 === d2
           ? 'המכנים שווים: מחברים או מחסרים את המונים, והמכנה נשאר.'

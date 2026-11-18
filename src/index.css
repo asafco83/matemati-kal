@@ -72,6 +72,22 @@ html {
   font-size: 1.12em;
 }
 
+/* מה שמקלידים בתיבת התשובה, כמו `1 1/2` */
+.typed {
+  display: inline-block;
+  margin: 0 0.15em;
+  padding: 0 0.45em;
+  border-radius: 6px;
+  background: white;
+  border: 1.5px solid #c9c5b9;
+  border-bottom-width: 3px;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  line-height: 1.5;
+  unicode-bidi: isolate;
+  white-space: pre;
+}
+
 /* תיבת המספר החסר: בגובה הספרות ובאמצען */
 .katex .blank-box {
   display: inline-block;
