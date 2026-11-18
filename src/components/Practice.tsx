@@ -221,7 +221,7 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
                         disabled={locked}
                         placeholder={ans.type === 'number' ? (ans.placeholder ?? '') : ''}
                         aria-label={label || 'התשובה שלך'}
-                        className="h-16 w-28 rounded-[14px] border-[2.5px] bg-white text-center font-display text-[30px] placeholder:text-lg placeholder:text-[#9a978e] disabled:bg-white"
+                        className={`h-16 w-28 rounded-[14px] border-[2.5px] bg-white text-center font-display text-[30px] placeholder:text-lg placeholder:text-[#9a978e] disabled:bg-white ${fracTex(fields[i] ?? '') ? 'frac-input' : ''}`}
                         style={{
                           borderColor: inputBorder,
                           // כשהוקלד שבר, מציגים אותו כשבר אמיתי מעל הטקסט

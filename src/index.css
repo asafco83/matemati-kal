@@ -88,6 +88,13 @@ html {
   white-space: pre;
 }
 
+/* תיבת תשובה שמוצג בה שבר: הטקסט המוקלד שקוף גם כשמסמנים אותו,
+   והסימון מופיע כרקע עדין מאחורי השבר */
+.frac-input::selection {
+  color: transparent;
+  background: color-mix(in srgb, var(--tc, #4f46e5) 22%, white);
+}
+
 /* תיבת המספר החסר: בגובה הספרות ובאמצען */
 .katex .blank-box {
   display: inline-block;
