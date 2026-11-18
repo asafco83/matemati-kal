@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@import "katex/dist/katex.min.css";
+
+@theme {
+  --font-sans: "Rubik", "Heebo", "Arial Hebrew", Arial, sans-serif;
+}
+
+html {
+  background: #f5f5fb;
+  color: #1f2340;
+}
+
+.katex {
+  font-size: 1.12em;
+}
+
+.q-latex .katex {
+  font-size: clamp(1.7rem, 6vw, 2.6rem);
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+@keyframes pop {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.pop {
+  animation: pop 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pop { animation: none; }
+}
