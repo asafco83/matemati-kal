@@ -4,6 +4,8 @@ import { algebraTopics2 } from './algebra2';
 import { elementaryTopics2 } from './elementary2';
 import { geometryDataTopics } from './geometryData';
 import { highTopics } from './high';
+import { highTopics2 } from './high2';
+import { highTopics3 } from './high3';
 import { middleTopics } from './middle';
 
 export const tracks: Track[] = [
@@ -17,43 +19,10 @@ export const tracks: Track[] = [
   { id: 'data', short: 'הסתברות', title: 'הסתברות וסטטיסטיקה', icon: '🎲', color: '#0d9488' },
 ];
 
-export const topics: Topic[] = [...elementaryTopics, ...elementaryTopics2, ...geometryDataTopics, ...middleTopics, ...algebraTopics2, ...highTopics];
-
-const soon = (track: string, list: [string, string, number, number][]): SoonTopic[] =>
-  list.map(([id, title, a, b]) => ({ id, track, title, grades: [a, b], soon: true }));
+export const topics: Topic[] = [...elementaryTopics, ...elementaryTopics2, ...geometryDataTopics, ...middleTopics, ...algebraTopics2, ...highTopics, ...highTopics2, ...highTopics3];
 
 /** נושאים שמתוכננים ועדיין לא נכתבו. מוצגים באפור עם התווית "בקרוב" */
-export const soonTopics: SoonTopic[] = [
-  ...soon('numbers', [
-  ]),
-  ...soon('fractions', [
-  ]),
-  ...soon('geometry', [
-    ['similarity', 'דמיון משולשים', 9, 10],
-    ['analytic', 'גאומטריה אנליטית', 10, 12],
-  ]),
-  ...soon('algebra', [
-    ['sequences', 'סדרה חשבונית והנדסית', 10, 11],
-  ]),
-  ...soon('functions', [
-    ['parabola', 'הפונקציה הריבועית (פרבולה)', 9, 10],
-    ['exponential', 'פונקציה מעריכית וגדילה ודעיכה', 10, 11],
-    ['logarithms', 'לוגריתמים', 11, 12],
-  ]),
-  ...soon('trig', [
-    ['sine-cosine-law', 'משפט הסינוסים ומשפט הקוסינוסים', 10, 11],
-    ['unit-circle', 'מעגל היחידה וזהויות', 11, 12],
-    ['trig-3d', 'טריגונומטריה במרחב', 11, 12],
-  ]),
-  ...soon('calculus', [
-    ['investigation', 'חקירת פונקציה', 11, 12],
-    ['optimization', 'בעיות קיצון', 11, 12],
-    ['integrals', 'אינטגרלים ושטחים', 12, 12],
-  ]),
-  ...soon('data', [
-    ['tree-diagram', 'דיאגרמת עץ והסתברות מותנית', 10, 11],
-    ['normal', 'התפלגות נורמלית', 11, 12],
-  ]),
-];
+/** נושאים שעדיין בהכנה. כרגע כולם מוכנים */
+export const soonTopics: SoonTopic[] = [];
 
 export const topicById = (id: string) => topics.find((t) => t.id === id);

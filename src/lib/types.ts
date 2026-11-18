@@ -5,7 +5,9 @@ export type Figure =
   | { type: 'rect'; w: string; h: string }
   | { type: 'rtri'; bottom?: string; left?: string; hyp?: string; angle?: string }
   | { type: 'tri'; angles: [string, string, string]; ext?: string }
-  | { type: 'graph'; lines: { m: number; b: number }[]; points?: [number, number][] }
+  | { type: 'graph'; lines: { m: number; b: number }[]; points?: [number, number][]; curves?: [number, number][][]; range?: number }
+  /** משולש עם שמות קודקודים: A למטה משמאל, B למטה מימין, C למעלה. a מול A וכו' */
+  | { type: 'triS'; a?: string; b?: string; c?: string; A?: string; B?: string; C?: string }
   | { type: 'fracbar'; parts: number; filled: number }
   | { type: 'array'; rows: number; cols: number }
   | { type: 'numline'; from: number; to: number; jumps?: number[]; start?: number }

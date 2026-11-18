@@ -232,9 +232,28 @@ export function FigureView({ fig }: { fig: Figure }) {
         </svg>
       );
     }
+    case 'triS': {
+      const A = [35, 140];
+      const B = [255, 140];
+      const C = [170, 25];
+      return (
+        <svg viewBox="0 0 290 170" className="mx-auto w-full max-w-[290px]" role="img" aria-label="משולש" style={{ direction: 'ltr' }}>
+          <polygon points={`${A} ${B} ${C}`} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          <Label x={22} y={150} bold>A</Label>
+          <Label x={268} y={150} bold>B</Label>
+          <Label x={170} y={12} bold>C</Label>
+          {fig.c && <Label x={145} y={157}>{fig.c}</Label>}
+          {fig.a && <Label x={225} y={78} anchor="start">{fig.a}</Label>}
+          {fig.b && <Label x={92} y={76} anchor="end">{fig.b}</Label>}
+          {fig.A && <Label x={70} y={128}>{fig.A}</Label>}
+          {fig.B && <Label x={222} y={128}>{fig.B}</Label>}
+          {fig.C && <Label x={170} y={52}>{fig.C}</Label>}
+        </svg>
+      );
+    }
     case 'graph': {
-      const R = 8; // טווח הצירים: מ-8- עד 8
-      const S = 15;
+      const R = fig.range ?? 8; // טווח הצירים: מ-R- עד R
+      const S = 120 / R;
       const P = (x: number, y: number) => [140 + x * S, 140 - y * S];
       const colors = ['#4f46e5', '#db2777'];
       return (
@@ -246,7 +265,7 @@ export function FigureView({ fig }: { fig: Figure }) {
             <g key={v}>
               <line x1={P(v, 0)[0]} y1="20" x2={P(v, 0)[0]} y2="260" stroke="#e5e7eb" strokeWidth="1" />
               <line x1="20" y1={P(0, v)[1]} x2="260" y2={P(0, v)[1]} stroke="#e5e7eb" strokeWidth="1" />
-              {v !== 0 && v % 2 === 0 && (
+              {v !== 0 && v % Math.max(1, Math.round(R / 4)) === 0 && (
                 <>
                   <text x={P(v, 0)[0]} y="153" textAnchor="middle" fontSize="9" fill="#6b7280">{v}</text>
                   <text x="134" y={P(0, v)[1] + 3} textAnchor="end" fontSize="9" fill="#6b7280">{v}</text>
@@ -264,6 +283,9 @@ export function FigureView({ fig }: { fig: Figure }) {
               const [x2, y2] = P(R, ln.m * R + ln.b);
               return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors[i % 2]} strokeWidth="2.5" />;
             })}
+            {(fig.curves ?? []).map((c, i) => (
+              <polyline key={`c${i}`} points={c.map(([x, y]) => P(x, Math.max(-3 * R, Math.min(3 * R, y))).join(',')).join(' ')} fill="none" stroke={colors[(fig.lines.length + i) % 2]} strokeWidth="2.5" strokeLinejoin="round" />
+            ))}
             {(fig.points ?? []).map(([x, y], i) => (
               <circle key={i} cx={P(x, y)[0]} cy={P(x, y)[1]} r="4.5" fill={ACCENT} stroke="#fff" strokeWidth="1.5" />
             ))}
