@@ -39,17 +39,10 @@ npm run build    # בנייה לתיקיית dist
 
 1. ב-Firebase Console, בפרויקט `matemati-kal`: להפעיל **Authentication** עם ספק Google, וליצור **Firestore Database**.
 2. ב-Project settings, להוסיף Web app ולהעתיק את `apiKey`, `messagingSenderId` ו-`appId` אל `src/firebaseConfig.ts`.
-3. לפרוס:
-
-```bash
-npm install -g firebase-tools
-firebase login
-npm run build
-firebase deploy
-```
-
-הפקודה האחרונה מעלה את האתר ל-Firebase Hosting וגם את כללי האבטחה שב-`firestore.rules`
-(כל משתמש קורא וכותב רק את המסמך של עצמו).
+3. כל דחיפה לענף `main` נפרסת אוטומטית ל-Firebase Hosting דרך GitHub Actions (`.github/workflows/deploy.yml`).
+   נדרש סוד אחד במאגר, `FIREBASE_SERVICE_ACCOUNT`: מפתח JSON של חשבון שירות עם התפקיד Firebase Hosting Admin.
+4. כללי האבטחה של Firestore נמצאים ב-`firestore.rules`, ומדביקים אותם ב-Firebase Console
+   (כל משתמש קורא וכותב רק את המסמך של עצמו).
 
 ## הוספת נושא
 
