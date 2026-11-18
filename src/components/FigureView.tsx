@@ -209,6 +209,29 @@ export function FigureView({ fig }: { fig: Figure }) {
         </svg>
       );
     }
+    case 'parallel': {
+      // ישרים ב-y=55 וב-y=135, חותך שעולה ימינה
+      const X = [180, 120];
+      const Y = [55, 135];
+      const off = { tl: [-30, -16], tr: [26, -16], bl: [-26, 18], br: [30, 18] } as const;
+      return (
+        <svg viewBox="0 0 300 190" className="mx-auto w-full max-w-[300px]" role="img" aria-label="ישרים מקבילים וחותך" style={{ direction: 'ltr' }}>
+          {Y.map((y) => (
+            <g key={y}>
+              <line x1="20" y1={y} x2="280" y2={y} stroke={INK} strokeWidth="2.5" />
+              <path d={`M${262} ${y - 6} l8 6 l-8 6`} fill="none" stroke={INK} strokeWidth="2" />
+            </g>
+          ))}
+          <line x1="75" y1="195" x2="225" y2="-5" stroke={INK} strokeWidth="2.5" />
+          {fig.marks.map((m, i) => (
+            <g key={i}>
+              <circle cx={X[m.at] + off[m.q][0]} cy={Y[m.at] + off[m.q][1]} r="15" fill={m.label === '?' ? 'color-mix(in srgb, var(--tc, #b3261e) 15%, white)' : '#fff3bf'} />
+              <Label x={X[m.at] + off[m.q][0]} y={Y[m.at] + off[m.q][1]}>{m.label}</Label>
+            </g>
+          ))}
+        </svg>
+      );
+    }
     case 'graph': {
       const R = 8; // טווח הצירים: מ-8- עד 8
       const S = 15;

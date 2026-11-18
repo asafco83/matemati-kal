@@ -18,7 +18,9 @@ export type Figure =
   | { type: 'box'; a: string; b: string; c: string }
   | { type: 'polygon'; n: number; side?: string }
   /** דיאגרמת עמודות */
-  | { type: 'bars'; labels: string[]; values: number[]; step: number };
+  | { type: 'bars'; labels: string[]; values: number[]; step: number }
+  /** שני ישרים מקבילים וחותך. at: 0 = הצומת העליון, 1 = התחתון. q: הרביע של הזווית */
+  | { type: 'parallel'; marks: { at: 0 | 1; q: 'tl' | 'tr' | 'bl' | 'br'; label: string }[] };
 
 export type Answer =
   /** מספר אחד (מקבל גם שבר כמו 3/4) */

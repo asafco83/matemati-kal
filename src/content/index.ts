@@ -1,5 +1,6 @@
 import type { SoonTopic, Topic, Track } from '../lib/types';
 import { elementaryTopics } from './elementary';
+import { algebraTopics2 } from './algebra2';
 import { elementaryTopics2 } from './elementary2';
 import { geometryDataTopics } from './geometryData';
 import { highTopics } from './high';
@@ -16,7 +17,7 @@ export const tracks: Track[] = [
   { id: 'data', short: 'הסתברות', title: 'הסתברות וסטטיסטיקה', icon: '🎲', color: '#0d9488' },
 ];
 
-export const topics: Topic[] = [...elementaryTopics, ...elementaryTopics2, ...geometryDataTopics, ...middleTopics, ...highTopics];
+export const topics: Topic[] = [...elementaryTopics, ...elementaryTopics2, ...geometryDataTopics, ...middleTopics, ...algebraTopics2, ...highTopics];
 
 const soon = (track: string, list: [string, string, number, number][]): SoonTopic[] =>
   list.map(([id, title, a, b]) => ({ id, track, title, grades: [a, b], soon: true }));
@@ -28,18 +29,10 @@ export const soonTopics: SoonTopic[] = [
   ...soon('fractions', [
   ]),
   ...soon('geometry', [
-    ['parallel-lines', 'ישרים מקבילים וזוויות', 7, 8],
-    ['congruence', 'חפיפת משולשים', 8, 9],
     ['similarity', 'דמיון משולשים', 9, 10],
     ['analytic', 'גאומטריה אנליטית', 10, 12],
   ]),
   ...soon('algebra', [
-    ['like-terms', 'ביטויים אלגבריים וכינוס איברים', 7, 7],
-    ['expand', 'פתיחת סוגריים', 7, 8],
-    ['inequalities', 'אי-שוויונות', 8, 9],
-    ['systems', 'מערכת משוואות בשני נעלמים', 8, 9],
-    ['short-mult', 'נוסחאות הכפל המקוצר', 8, 9],
-    ['word-problems', 'בעיות מילוליות', 7, 10],
     ['sequences', 'סדרה חשבונית והנדסית', 10, 11],
   ]),
   ...soon('functions', [

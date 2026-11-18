@@ -1,0 +1,797 @@
+import type { Step, Topic } from '../lib/types';
+import { L, par, pick, ri, sgn } from '../lib/util';
+
+/* ---------- עזרים ---------- */
+
+/** מקדם של x: 1 → x, ‏-1 → -x */
+const cx = (k: number, v = 'x') => (k === 1 ? v : k === -1 ? `-${v}` : `${k}${v}`);
+/** איבר עם סימן לפניו, לשרשור: + 3x, - x */
+const term = (k: number, v = 'x') => (k < 0 ? `- ${cx(-k, v)}` : `+ ${cx(k, v)}`);
+const nz = (lo: number, hi: number) => {
+  let v = ri(lo, hi);
+  while (v === 0) v = ri(lo, hi);
+  return v;
+};
+const COEF = 'מקדם x';
+const FREE = 'מספר חופשי';
+
+/* ---------- ביטויים אלגבריים וכינוס איברים ---------- */
+
+const likeTerms: Topic = {
+  id: 'like-terms',
+  track: 'algebra',
+  title: 'ביטויים אלגבריים וכינוס איברים',
+  grades: [7, 7],
+  icon: '🧩',
+  summary: 'מחברים רק איברים דומים: איקסים עם איקסים, מספרים עם מספרים.',
+  levels: ['איברים עם x', 'איקסים ומספרים', 'הצבה בביטוי'],
+  lesson: {
+    intro: 'ביטוי אלגברי משלב מספרים ואותיות, כמו $3x + 5$. האות $x$ מחליפה מספר שעוד לא ידוע, או שיכול להשתנות.',
+    sections: [
+      {
+        title: 'איברים דומים',
+        body: 'איברים דומים הם איברים עם אותו חלק של אותיות: $3x$ ו-$5x$ דומים, ו-$4$ ו-$7$ דומים. אבל $3x$ ו-$4$ אינם דומים. כמו תפוחים ואגסים: אפשר לספור תפוחים עם תפוחים.',
+      },
+      {
+        title: 'כינוס',
+        body: 'מחברים את המקדמים של האיברים הדומים: $3x + 5x = 8x$, כי 3 איקסים ועוד 5 איקסים הם 8 איקסים. $7x - x = 6x$, כי $x$ לבד הוא $1x$.',
+      },
+      {
+        title: 'הצבה',
+        body: 'כדי לחשב ערך של ביטוי, מציבים מספר במקום האות. אם $x = 4$, אז $3x + 5 = 3 \\times 4 + 5 = 17$. קודם כדאי לכנס, ורק אחר כך להציב.',
+      },
+    ],
+    method: ['מסמנים כל איבר יחד עם הסימן שלפניו.', 'מקבצים איברים דומים.', 'מחברים את המקדמים של כל קבוצה.', 'כותבים את הביטוי המכונס: קודם האיקסים, אחר כך המספר.'],
+    examples: [
+      {
+        problem: 'כנסו: $4x + 7 - x + 2$',
+        steps: [{ tex: '4x - x + 7 + 2', why: 'מקבצים: איקסים יחד, מספרים יחד' }, { tex: '3x + 9', why: '$4 - 1 = 3$, ו-$7 + 2 = 9$' }],
+      },
+    ],
+    tips: ['הסימן שייך לאיבר שאחריו: ב-$5 - 2x$, האיבר הוא $-2x$.', 'את $3x + 4$ אי אפשר לכנס יותר. זו לא $7x$.'],
+  },
+  generate(level) {
+    if (level === 1) {
+      const ks = [nz(1, 9), nz(-6, 9), nz(-6, 9)];
+      const expr = `${cx(ks[0])} ${term(ks[1])} ${term(ks[2])}`;
+      const sum = ks[0] + ks[1] + ks[2];
+      return {
+        text: 'כנסו. מה המקדם של x?',
+        latex: L`${expr} = \square x`,
+        answer: { type: 'number', value: sum },
+        hint: 'מחברים את המקדמים, עם הסימנים שלהם.',
+        solution: [{ tex: `${ks[0]} ${sgn(ks[1])} ${sgn(ks[2])} = ${sum}`, why: 'מחברים את המקדמים' }, { tex: `${expr} = ${cx(sum)}` }],
+      };
+    }
+    const a = nz(1, 8);
+    const c = nz(-6, 8);
+    const b = nz(-9, 9);
+    const d = nz(-9, 9);
+    const expr = `${cx(a)} ${sgn(b)} ${term(c)} ${sgn(d)}`;
+    const k = a + c;
+    const m = b + d;
+    const grouped = `${cx(a)} ${term(c)} ${sgn(b)} ${sgn(d)}`;
+    const result = k === 0 ? `${m}` : m === 0 ? cx(k) : `${cx(k)} ${sgn(m)}`;
+    if (level === 2)
+      return {
+        text: 'כנסו את הביטוי:',
+        latex: expr,
+        answer: { type: 'multi', labels: [COEF, FREE], values: [k, m], ordered: true },
+        hint: 'קבצו איקסים לחוד ומספרים לחוד.',
+        solution: [
+          { tex: grouped, why: 'מקבצים איברים דומים' },
+          { tex: result, why: `איקסים: $${a} ${sgn(c)} = ${k}$, מספרים: $${b} ${sgn(d)} = ${m}$` },
+        ],
+      };
+    const x = nz(-5, 6);
+    const val = k * x + m;
+    return {
+      text: `מה ערך הביטוי כאשר $x = ${x}$?`,
+      latex: expr,
+      answer: { type: 'number', value: val },
+      hint: 'קודם כנסו, אחר כך הציבו.',
+      solution: [
+        { tex: `${expr} = ${result}`, why: 'מכנסים' },
+        { tex: k === 0 ? `${m}` : `${k} \\times ${par(x)} ${sgn(m)} = ${k * x} ${sgn(m)} = ${val}`, why: `מציבים $x = ${x}$` },
+      ],
+    };
+  },
+};
+
+/* ---------- פתיחת סוגריים ---------- */
+
+const expand: Topic = {
+  id: 'expand',
+  track: 'algebra',
+  title: 'פתיחת סוגריים',
+  grades: [7, 8],
+  icon: '📭',
+  summary: 'חוק הפילוג: המספר שבחוץ כופל כל איבר שבפנים.',
+  levels: ['מספר חיובי בחוץ', 'מינוס בחוץ', 'סוגריים כפול סוגריים'],
+  lesson: {
+    intro: 'כשמספר עומד לפני סוגריים, הוא כופל כל אחד מהאיברים שבתוכם. זה נקרא חוק הפילוג.',
+    sections: [
+      {
+        title: 'חוק הפילוג',
+        body: '$3(x + 4) = 3 \\times x + 3 \\times 4 = 3x + 12$. אפשר לחשוב על זה כמו 3 שקיות, ובכל אחת $x$ ועוד 4.',
+      },
+      {
+        title: 'מינוס לפני הסוגריים',
+        body: 'המינוס משנה את הסימן של כל איבר בפנים: $-2(x - 5) = -2x + 10$, כי מינוס כפול מינוס הוא פלוס.',
+      },
+      {
+        title: 'סוגריים כפול סוגריים',
+        body: 'כל איבר בסוגריים הראשונים כופל כל איבר בשניים: $(x + 2)(x + 3) = x^2 + 3x + 2x + 6 = x^2 + 5x + 6$.',
+      },
+    ],
+    method: ['כופלים את מה שבחוץ באיבר הראשון שבפנים.', 'כופלים את מה שבחוץ באיבר השני, עם הסימן.', 'בסוגריים כפול סוגריים: 4 מכפלות, ואז מכנסים.'],
+    examples: [
+      {
+        problem: 'פתחו: $-4(2x - 3)$',
+        steps: [{ tex: '-4 \\times 2x + (-4) \\times (-3)', why: 'מינוס 4 כופל כל איבר' }, { tex: '-8x + 12' }],
+      },
+      {
+        problem: 'פתחו: $(x + 5)(x - 2)$',
+        steps: [{ tex: 'x^2 - 2x + 5x - 10', why: 'כל איבר כפול כל איבר' }, { tex: 'x^2 + 3x - 10', why: 'מכנסים: $-2x + 5x = 3x$' }],
+      },
+    ],
+    tips: ['לא שוכחים לכפול גם את האיבר השני: $3(x + 4)$ אינו $3x + 4$.', 'מינוס לפני סוגריים הופך את כל הסימנים שבפנים.'],
+  },
+  generate(level) {
+    if (level < 3) {
+      const a = level === 1 ? ri(2, 9) : -ri(1, 9);
+      const p = ri(1, 9);
+      const b = nz(-9, 9);
+      const inner = `${cx(p)} ${sgn(b)}`;
+      const outer = a === -1 ? '-' : `${a}`;
+      return {
+        text: 'פתחו סוגריים:',
+        latex: `${outer}(${inner})`,
+        answer: { type: 'multi', labels: [COEF, FREE], values: [a * p, a * b], ordered: true },
+        hint: level === 1 ? 'המספר שבחוץ כופל כל איבר שבפנים.' : 'מינוס כפול מינוס הוא פלוס, ומינוס כפול פלוס הוא מינוס.',
+        solution: [
+          { tex: L`${par(a)} \times ${cx(p)} + ${par(a)} \times ${par(b)}`, why: `${a} כופל כל איבר שבפנים` },
+          { tex: `${cx(a * p)} ${sgn(a * b)}` },
+        ],
+      };
+    }
+    const a = nz(-7, 7);
+    const b = nz(-7, 7);
+    return {
+      text: 'פתחו סוגריים וכנסו:',
+      latex: `(x ${sgn(a)})(x ${sgn(b)}) = x^2 + \\square x + \\square`,
+      answer: { type: 'multi', labels: [COEF, FREE], values: [a + b, a * b], ordered: true },
+      hint: 'כל איבר בסוגריים הראשונים כופל כל איבר בשניים: 4 מכפלות.',
+      solution: [
+        { tex: `x^2 ${term(b)} ${term(a)} ${sgn(a * b)}`, why: `$x \\cdot x$, ‏$x \\cdot ${par(b)}$, ‏$${a} \\cdot x$, ‏$${a} \\cdot ${par(b)}$` },
+        { tex: a + b === 0 ? `x^2 ${sgn(a * b)}` : `x^2 ${term(a + b)} ${sgn(a * b)}`, why: `מכנסים: $${b} ${sgn(a)} = ${a + b}$` },
+      ],
+    };
+  },
+};
+
+/* ---------- אי-שוויונות ---------- */
+
+const ineqOptions = (v: number, sym: '>' | '<') => {
+  const other = sym === '>' ? '<' : '>';
+  return [`$x ${sym} ${v}$`, `$x ${other} ${v}$`, `$x ${sym} ${-v}$`, `$x ${other} ${-v}$`];
+};
+
+const inequalities: Topic = {
+  id: 'inequalities',
+  track: 'algebra',
+  title: 'אי-שוויונות',
+  grades: [8, 9],
+  icon: '↔️',
+  summary: 'כמו משוואה, חוץ מכלל אחד: כופלים או מחלקים בשלילי, הסימן מתהפך.',
+  levels: ['בלי היפוך', 'עם היפוך', 'x בשני האגפים'],
+  lesson: {
+    intro: 'אי-שוויון כמו $x > 3$ אומר שיש הרבה פתרונות: כל מספר שגדול מ-3. פותרים אותו כמעט כמו משוואה.',
+    sections: [
+      {
+        title: 'מה מותר',
+        body: 'מותר להוסיף ולהחסיר אותו מספר משני האגפים, וגם לכפול ולחלק במספר חיובי. הסימן לא משתנה: $2x + 1 > 7$ ⟵ $2x > 6$ ⟵ $x > 3$.',
+      },
+      {
+        title: 'הכלל החשוב',
+        body: 'כשכופלים או מחלקים במספר שלילי, הסימן מתהפך. למשל $-2x > 6$: מחלקים ב-$-2$ ומקבלים $x < -3$. בדיקה: $x = -4$ נותן $-2 \\times (-4) = 8$, ו-$8 > 6$. נכון.',
+      },
+      {
+        title: 'על ציר המספרים',
+        body: '$x > 3$ הוא כל מה שמימין ל-3 (בלי 3 עצמו). $x \\le 3$ כולל גם את 3.',
+      },
+    ],
+    method: ['מעבירים איברים כמו במשוואה.', 'מחלקים במקדם של $x$.', 'אם המקדם שלילי, הופכים את כיוון הסימן.', 'בודקים עם מספר אחד מתוך התשובה.'],
+    examples: [
+      {
+        problem: 'פתרו: $5 - 3x < 17$',
+        steps: [{ tex: '5 - 3x < 17', op: '- 5' }, { tex: '-3x < 12', op: '\\div (-3)', why: 'מחלקים בשלילי: הסימן מתהפך' }, { tex: 'x > -4' }],
+      },
+    ],
+    tips: ['רק כפל או חילוק בשלילי הופכים את הסימן. חיסור של מספר לא הופך.', 'בדיקה עם מספר אחד מגלה מיד אם שכחתם להפוך.'],
+  },
+  generate(level) {
+    const x0 = nz(-8, 9);
+    if (level === 1) {
+      const a = ri(2, 7);
+      const b = nz(-9, 9);
+      const sym = pick(['>', '<'] as const);
+      return {
+        text: `פתרו את אי-השוויון. השלימו: $x ${sym} \\square$`,
+        latex: `${a}x ${sgn(b)} ${sym} ${a * x0 + b}`,
+        answer: { type: 'number', value: x0 },
+        hint: 'פותרים כמו משוואה. המקדם חיובי, אז הסימן לא מתהפך.',
+        solution: [
+          { tex: `${a}x ${sgn(b)} ${sym} ${a * x0 + b}`, op: b > 0 ? `- ${b}` : `+ ${-b}` },
+          { tex: `${a}x ${sym} ${a * x0}`, op: L`\div ${a}`, why: 'מחלקים בחיובי: הסימן נשאר' },
+          { tex: `x ${sym} ${x0}` },
+        ],
+      };
+    }
+    const sym = pick(['>', '<'] as const);
+    const flip = sym === '>' ? '<' : '>';
+    if (level === 2) {
+      const a = -ri(2, 7);
+      const b = nz(-9, 9);
+      const opts = ineqOptions(x0, flip);
+      return {
+        text: 'פתרו את אי-השוויון:',
+        latex: `${a}x ${sgn(b)} ${sym} ${a * x0 + b}`,
+        answer: { type: 'choice', options: opts, correct: 0 },
+        hint: 'המקדם של x שלילי. מה קורה לסימן כשמחלקים בשלילי?',
+        solution: [
+          { tex: `${a}x ${sgn(b)} ${sym} ${a * x0 + b}`, op: b > 0 ? `- ${b}` : `+ ${-b}` },
+          { tex: `${a}x ${sym} ${a * x0}`, op: L`\div (${a})`, why: 'מחלקים בשלילי: הסימן מתהפך' },
+          { tex: `x ${flip} ${x0}` },
+          `בודקים עם $x = ${x0 + (flip === '>' ? 1 : -1)}$: $${a} \\times ${par(x0 + (flip === '>' ? 1 : -1))} ${sgn(b)} = ${a * (x0 + (flip === '>' ? 1 : -1)) + b}$, ואכן $${a * (x0 + (flip === '>' ? 1 : -1)) + b} ${sym} ${a * x0 + b}$`,
+        ],
+      };
+    }
+    // x בשני האגפים, מקדם סופי שלילי
+    const c = ri(2, 6);
+    const a = c - ri(1, 4);
+    const k = a - c;
+    const b = nz(-9, 9);
+    const d = k * x0 + b;
+    const opts = ineqOptions(x0, flip);
+    return {
+      text: 'פתרו את אי-השוויון:',
+      latex: `${cx(a) === '0x' ? '' : cx(a)} ${sgn(b)} ${sym} ${cx(c)} ${sgn(d)}`.replace(/^ \+ /, '').trim(),
+      answer: { type: 'choice', options: opts, correct: 0 },
+      hint: 'מעבירים את האיקסים שמאלה. אם המקדם יוצא שלילי, הסימן מתהפך בחילוק.',
+      solution: [
+        { tex: `${a === 0 ? '' : cx(a)} ${a === 0 ? b : sgn(b)} ${sym} ${cx(c)} ${sgn(d)}`.trim(), op: `- ${cx(c)}` },
+        { tex: `${cx(k)} ${sgn(b)} ${sym} ${d}`, op: b > 0 ? `- ${b}` : `+ ${-b}` },
+        { tex: `${cx(k)} ${sym} ${d - b}`, op: L`\div (${k})`, why: 'מחלקים בשלילי: הסימן מתהפך' },
+        { tex: `x ${flip} ${x0}` },
+      ],
+    };
+  },
+};
+
+/* ---------- מערכת משוואות ---------- */
+
+const systems: Topic = {
+  id: 'systems',
+  track: 'algebra',
+  title: 'מערכת משוואות בשני נעלמים',
+  grades: [8, 9],
+  icon: '🔗',
+  summary: 'שתי משוואות, שני נעלמים: שיטת החיבור ושיטת ההצבה.',
+  levels: ['חיבור משוואות', 'הצבה', 'הכפלה וחיבור'],
+  lesson: {
+    intro: 'כשיש שני נעלמים, $x$ ו-$y$, צריך שתי משוואות. הרעיון: להיפטר מאחד הנעלמים ולקבל משוואה רגילה עם נעלם אחד.',
+    sections: [
+      {
+        title: 'שיטת החיבור',
+        body: 'אם ב-$y$ יש מקדמים נגדיים, מחברים את המשוואות וה-$y$ נעלם: $(x + y) + (x - y) = 10 + 2$, כלומר $2x = 12$.',
+      },
+      {
+        title: 'שיטת ההצבה',
+        body: 'אם אחת המשוואות כבר אומרת $y = \\ldots$, מציבים את זה במשוואה השנייה במקום $y$.',
+      },
+      {
+        title: 'הכפלה לפני חיבור',
+        body: 'אם המקדמים לא נגדיים, כופלים משוואה במספר כך שיהיו. ב-$2x + y = 7$ ו-$x - 3y = 7$: כופלים את הראשונה ב-3 ומקבלים $6x + 3y = 21$. עכשיו חיבור מעלים את $y$.',
+      },
+    ],
+    method: ['בוחרים נעלם להיפטר ממנו.', 'מחברים, מחסרים או מציבים.', 'פותרים את המשוואה עם הנעלם האחד.', 'מציבים בחזרה כדי למצוא את הנעלם השני.', 'בודקים בשתי המשוואות.'],
+    examples: [
+      {
+        problem: 'פתרו: $x + y = 10$, ‏$x - y = 2$',
+        steps: [{ tex: '2x = 12', why: 'מחברים את המשוואות: $y$ ו-$-y$ מתבטלים' }, { tex: 'x = 6' }, { tex: '6 + y = 10', why: 'מציבים במשוואה הראשונה' }, { tex: 'y = 4' }],
+      },
+    ],
+    tips: ['תמיד בודקים בשתי המשוואות, לא רק באחת.', 'כשכופלים משוואה, כופלים את כל האיברים שלה, גם את המספר באגף ימין.'],
+  },
+  generate(level) {
+    const x = nz(-6, 8);
+    const y = nz(-6, 8);
+    const sys = (r1: string, r2: string) => L`\begin{cases} ${r1} \\ ${r2} \end{cases}`;
+    const ans = { type: 'multi' as const, labels: ['x', 'y'], values: [x, y], ordered: true };
+    if (level === 1) {
+      const e1 = `x + y = ${x + y}`;
+      const e2 = `x - y = ${x - y}`;
+      return {
+        text: 'פתרו את מערכת המשוואות:',
+        latex: sys(e1, e2),
+        answer: ans,
+        hint: 'חברו את המשוואות: ה-y יתבטל.',
+        solution: [
+          { tex: `2x = ${2 * x}`, op: L`\div 2`, why: `מחברים: $(x + y) + (x - y) = ${x + y} ${sgn(x - y)}$` },
+          { tex: `x = ${x}` },
+          { tex: `${x} + y = ${x + y}`, op: `${x > 0 ? '-' : '+'} ${Math.abs(x)}`, why: 'מציבים במשוואה הראשונה' },
+          { tex: `y = ${y}` },
+          `בודקים במשוואה השנייה: $${x} - ${par(y)} = ${x - y}$`,
+        ],
+      };
+    }
+    if (level === 2) {
+      let m = nz(-3, 3);
+      let a = ri(1, 4);
+      let c = nz(-3, 4);
+      while (y - m * x === 0 || a + c * m === 0) {
+        m = nz(-3, 3);
+        a = ri(1, 4);
+        c = nz(-3, 4);
+      }
+      const b = y - m * x;
+      const rhs = a * x + c * y;
+      const sub = `${cx(a)} ${c < 0 ? '-' : '+'} ${Math.abs(c) === 1 ? '' : Math.abs(c)}(${cx(m)} ${sgn(b)})`;
+      const k = a + c * m;
+      return {
+        text: 'פתרו את מערכת המשוואות:',
+        latex: sys(`y = ${cx(m)} ${sgn(b)}`, `${cx(a)} ${term(c, 'y')} = ${rhs}`),
+        answer: ans,
+        hint: 'הציבו את y מהמשוואה הראשונה בשנייה.',
+        solution: [
+          { tex: `${sub} = ${rhs}`, why: 'מציבים את $y$ מהמשוואה הראשונה' },
+          { tex: `${cx(a)} ${term(c * m)} ${sgn(c * b)} = ${rhs}`, why: 'פותחים סוגריים' },
+          { tex: `${cx(k)} ${sgn(c * b)} = ${rhs}`, op: c * b > 0 ? `- ${c * b}` : `+ ${-c * b}` },
+          { tex: `${cx(k)} = ${rhs - c * b}`, ...(k === 1 ? {} : { op: L`\div ${par(k)}` }) },
+          { tex: `x = ${x}` },
+          { tex: L`y = ${m} \times ${par(x)} ${sgn(b)} = ${y}`, why: 'מציבים בחזרה' },
+        ],
+      };
+    }
+    const a1 = ri(1, 4);
+    const b1 = ri(1, 3);
+    const a2 = ri(1, 4);
+    const k = ri(2, 4);
+    const b2 = -b1 * k;
+    const r1 = a1 * x + b1 * y;
+    const r2 = a2 * x + b2 * y;
+    const sumA = a1 * k + a2;
+    return {
+      text: 'פתרו את מערכת המשוואות:',
+      latex: sys(`${cx(a1)} ${term(b1, 'y')} = ${r1}`, `${cx(a2)} ${term(b2, 'y')} = ${r2}`),
+      answer: ans,
+      hint: `כפלו את המשוואה הראשונה ב-${k}, כך שהמקדמים של y יהיו נגדיים.`,
+      solution: [
+        { tex: `${cx(a1 * k)} ${term(b1 * k, 'y')} = ${r1 * k}`, why: `כופלים את המשוואה הראשונה ב-${k}` },
+        { tex: `${cx(sumA)} = ${r1 * k + r2}`, op: L`\div ${sumA}`, why: `מחברים עם המשוואה השנייה: $${cx(b1 * k, 'y')}$ ו-$${cx(b2, 'y')}$ מתבטלים` },
+        { tex: `x = ${x}` },
+        { tex: L`${a1} \times ${par(x)} ${term(b1, 'y')} = ${r1}`, why: 'מציבים במשוואה הראשונה' },
+        { tex: `${cx(b1, 'y')} = ${r1 - a1 * x}`, ...(b1 === 1 ? {} : { op: L`\div ${b1}` }) },
+        { tex: `y = ${y}` },
+      ],
+    };
+  },
+};
+
+/* ---------- נוסחאות הכפל המקוצר ---------- */
+
+const shortMult: Topic = {
+  id: 'short-mult',
+  track: 'algebra',
+  title: 'נוסחאות הכפל המקוצר',
+  grades: [8, 9],
+  icon: '⚡',
+  summary: 'שלוש נוסחאות שחוסכות עבודה: ריבוע סכום, ריבוע הפרש, והפרש ריבועים.',
+  levels: ['ריבוע סכום', 'ריבוע הפרש', 'חישוב בראש'],
+  lesson: {
+    intro: 'יש שלוש מכפלות שחוזרות כל כך הרבה, שכדאי לזכור את התוצאה שלהן בעל פה.',
+    sections: [
+      {
+        title: 'ריבוע סכום',
+        body: '$(a + b)^2 = a^2 + 2ab + b^2$. למשל $(x + 3)^2 = x^2 + 6x + 9$. האיבר האמצעי הוא פעמיים המכפלה.',
+      },
+      {
+        title: 'ריבוע הפרש',
+        body: '$(a - b)^2 = a^2 - 2ab + b^2$. למשל $(x - 5)^2 = x^2 - 10x + 25$. האיבר האחרון תמיד חיובי.',
+      },
+      {
+        title: 'הפרש ריבועים',
+        body: '$(a + b)(a - b) = a^2 - b^2$. האיברים האמצעיים מתבטלים. זה עוזר גם בחשבון: $49 \\times 51 = (50 - 1)(50 + 1) = 2500 - 1 = 2499$.',
+      },
+    ],
+    method: ['מזהים איזו נוסחה מתאימה.', 'מזהים מה $a$ ומה $b$.', 'מציבים בנוסחה ומחשבים כל איבר.'],
+    examples: [
+      {
+        problem: 'פתחו: $(x + 4)^2$',
+        steps: [{ tex: 'x^2 + 2 \\cdot x \\cdot 4 + 4^2', why: 'ריבוע סכום: $a = x$, ‏$b = 4$' }, { tex: 'x^2 + 8x + 16' }],
+      },
+      {
+        problem: 'חשבו בראש: $31^2$',
+        steps: [{ tex: '(30 + 1)^2 = 900 + 60 + 1', why: '$30^2 = 900$, ‏$2 \\cdot 30 \\cdot 1 = 60$, ‏$1^2 = 1$' }, { tex: '961' }],
+      },
+    ],
+    tips: ['$(x + 3)^2$ אינו $x^2 + 9$. שוכחים את האיבר האמצעי.', 'בריבוע הפרש, רק האיבר האמצעי שלילי.'],
+  },
+  generate(level) {
+    const b = ri(1, 9);
+    if (level < 3) {
+      const minus = level === 2;
+      return {
+        text: 'פתחו לפי נוסחת הכפל המקוצר:',
+        latex: `(x ${minus ? '-' : '+'} ${b})^2 = x^2 ${minus ? '-' : '+'} \\square x + \\square`,
+        answer: { type: 'multi', labels: [minus ? 'המקדם (בלי המינוס)' : COEF, FREE], values: [2 * b, b * b], ordered: true },
+        hint: minus ? 'ריבוע הפרש: $a^2 - 2ab + b^2$' : 'ריבוע סכום: $a^2 + 2ab + b^2$',
+        solution: [
+          { tex: `x^2 ${minus ? '-' : '+'} 2 \\cdot x \\cdot ${b} + ${b}^2`, why: `${minus ? 'ריבוע הפרש' : 'ריבוע סכום'}: $a = x$, ‏$b = ${b}$` },
+          { tex: `x^2 ${minus ? '-' : '+'} ${2 * b}x + ${b * b}` },
+        ],
+      };
+    }
+    const base = pick([20, 30, 40, 50, 60, 70, 80, 90]);
+    const d = ri(1, 3);
+    if (Math.random() < 0.5) {
+      return {
+        text: 'חשבו בעזרת הפרש ריבועים:',
+        latex: L`${base - d} \times ${base + d}`,
+        answer: { type: 'number', value: base * base - d * d },
+        hint: `כתבו כ-$(${base} - ${d})(${base} + ${d})$.`,
+        solution: [
+          { tex: `(${base} - ${d})(${base} + ${d}) = ${base}^2 - ${d}^2`, why: 'הפרש ריבועים' },
+          { tex: `${base * base} - ${d * d} = ${base * base - d * d}` },
+        ],
+      };
+    }
+    const n = base + d;
+    return {
+      text: 'חשבו בעזרת ריבוע סכום:',
+      latex: `${n}^2`,
+      answer: { type: 'number', value: n * n },
+      hint: `כתבו כ-$(${base} + ${d})^2$.`,
+      solution: [
+        { tex: L`(${base} + ${d})^2 = ${base}^2 + 2 \cdot ${base} \cdot ${d} + ${d}^2`, why: 'ריבוע סכום' },
+        { tex: `${base * base} + ${2 * base * d} + ${d * d} = ${n * n}` },
+      ],
+    };
+  },
+};
+
+/* ---------- בעיות מילוליות ---------- */
+
+const NAMES = ['דני', 'נועה', 'יואב', 'מאיה', 'עומר', 'תמר'];
+const FEM = new Set(['נועה', 'מאיה', 'תמר']);
+/** פועל או תואר לפי המין של השם */
+const gv = (name: string, m: string, f: string) => (FEM.has(name) ? f : m);
+
+const wordProblems: Topic = {
+  id: 'word-problems',
+  track: 'algebra',
+  title: 'בעיות מילוליות',
+  grades: [7, 10],
+  icon: '📝',
+  summary: 'מתרגמים סיפור למשוואה: מסמנים נעלם, בונים משוואה ופותרים.',
+  levels: ['חשבתי על מספר', 'גילים ומספרים עוקבים', 'קניות'],
+  lesson: {
+    intro: 'בבעיה מילולית, החלק הקשה הוא לא הפתרון אלא התרגום: להפוך משפטים בעברית למשוואה.',
+    sections: [
+      {
+        title: 'מסמנים נעלם',
+        body: 'בוחרים מה לא ידוע ומסמנים אותו ב-$x$. כותבים במילים: "$x$ = הגיל של נועה". אם יש עוד כמויות, כותבים אותן בעזרת $x$.',
+      },
+      {
+        title: 'מילים שהופכות לפעולות',
+        body: '"גדול ב-4": $x + 4$. "פי 3": $3x$. "סכום": חיבור. "הפרש": חיסור. "מספרים עוקבים": $x$, $x + 1$, $x + 2$.',
+      },
+      {
+        title: 'בונים משוואה',
+        body: 'מחפשים בסיפור שני דברים ששווים זה לזה, ושמים ביניהם $=$. פותרים, ובסוף בודקים שהתשובה מתאימה לסיפור.',
+      },
+    ],
+    method: ['מסמנים את הנעלם ב-$x$.', 'מבטאים את שאר הכמויות בעזרת $x$.', 'בונים משוואה.', 'פותרים.', 'עונים במילים ובודקים בסיפור.'],
+    examples: [
+      {
+        problem: 'סכום שלושה מספרים עוקבים הוא 48. מהו הקטן?',
+        steps: [
+          'מסמנים: הקטן הוא $x$, ואחריו $x + 1$ ו-$x + 2$.',
+          { tex: 'x + (x + 1) + (x + 2) = 48' },
+          { tex: '3x + 3 = 48', op: '- 3' },
+          { tex: '3x = 45', op: '\\div 3' },
+          { tex: 'x = 15' },
+          'בודקים: $15 + 16 + 17 = 48$',
+        ],
+      },
+    ],
+    tips: ['לפני שפותרים, קוראים שוב את השאלה: מה בדיוק שאלו?', 'בדיקה בסיפור תופסת טעויות בתרגום.'],
+  },
+  generate(level) {
+    const name = pick(NAMES);
+    if (level === 1) {
+      const x = ri(2, 15);
+      const a = ri(2, 6);
+      const b = ri(1, 20);
+      const plus = Math.random() < 0.5 || a * x - b <= 0;
+      const r = plus ? a * x + b : a * x - b;
+      return {
+        text: `${name} ${gv(name, 'חשב', 'חשבה')} על מספר, ${gv(name, 'כפל', 'כפלה')} אותו ב-${a}, ${plus ? gv(name, 'הוסיף', 'הוסיפה') : gv(name, 'הוריד', 'הורידה')} ${b}, ${gv(name, 'וקיבל', 'וקיבלה')} ${r}. על איזה מספר ${gv(name, 'חשב', 'חשבה')}?`,
+        answer: { type: 'number', value: x },
+        hint: 'סמנו את המספר ב-x וכתבו את כל מה שעשו לו.',
+        solution: [
+          'מסמנים: המספר הוא $x$.',
+          { tex: `${a}x ${plus ? '+' : '-'} ${b} = ${r}`, op: plus ? `- ${b}` : `+ ${b}` },
+          { tex: `${a}x = ${a * x}`, op: L`\div ${a}` },
+          { tex: `x = ${x}` },
+          `בודקים: $${a} \\times ${x} ${plus ? '+' : '-'} ${b} = ${r}$`,
+        ],
+      };
+    }
+    if (level === 2) {
+      if (Math.random() < 0.5) {
+        const x = ri(5, 30);
+        const n = pick([3, 4]);
+        const sum = n * x + (n * (n - 1)) / 2;
+        const terms = Array.from({ length: n }, (_, i) => (i ? `(x + ${i})` : 'x')).join(' + ');
+        return {
+          text: `סכום ${n === 3 ? 'שלושה' : 'ארבעה'} מספרים עוקבים הוא ${sum}. מהו המספר הקטן?`,
+          answer: { type: 'number', value: x },
+          hint: 'מספרים עוקבים: x, x + 1, x + 2...',
+          solution: [
+            `מסמנים: הקטן הוא $x$, והבאים אחריו $x + 1$, $x + 2$${n === 4 ? ', $x + 3$' : ''}.`,
+            { tex: `${terms} = ${sum}` },
+            { tex: `${n}x + ${(n * (n - 1)) / 2} = ${sum}`, op: `- ${(n * (n - 1)) / 2}` },
+            { tex: `${n}x = ${n * x}`, op: L`\div ${n}` },
+            { tex: `x = ${x}` },
+          ],
+        };
+      }
+      const kid = ri(4, 15);
+      const diff = ri(2, 8);
+      const sum = 2 * kid + diff;
+      const sister = Math.random() < 0.5;
+      const sib = sister ? gv(name, 'אחותו', 'אחותה') : gv(name, 'אחיו', 'אחיה');
+      return {
+        text: `${name} ${gv(name, 'גדול', 'גדולה')} מ${sib} ב-${diff} שנים. סכום הגילים שלהם ${sum}. ${sister ? 'בת' : 'בן'} כמה ${sib}?`,
+        answer: { type: 'number', value: kid },
+        hint: `סמנו את הגיל של ${sib} ב-x. אז הגיל של ${name} הוא x + ${diff}.`,
+        solution: [
+          `מסמנים: הגיל של ${sib} הוא $x$, והגיל של ${name} $x + ${diff}$.`,
+          { tex: `x + (x + ${diff}) = ${sum}` },
+          { tex: `2x + ${diff} = ${sum}`, op: `- ${diff}` },
+          { tex: `2x = ${2 * kid}`, op: L`\div 2` },
+          { tex: `x = ${kid}` },
+          `בודקים: $${kid} + ${kid + diff} = ${sum}$`,
+        ],
+      };
+    }
+    const pen = ri(3, 12);
+    const extra = ri(1, 6);
+    const book = pen + extra;
+    const p = ri(2, 5);
+    const q = ri(2, 5);
+    const total = p * book + q * pen;
+    return {
+      text: `${name} ${gv(name, 'קנה', 'קנתה')} ${p} מחברות ו-${q} עטים ${gv(name, 'ושילם', 'ושילמה')} ${total} ש"ח. מחברת יקרה מעט ב-${extra} ש"ח. כמה עולה עט אחד?`,
+      answer: { type: 'number', value: pen, unit: 'ש"ח' },
+      hint: `סמנו את מחיר העט ב-x. מחיר מחברת: x + ${extra}.`,
+      solution: [
+        `מסמנים: עט עולה $x$, ומחברת $x + ${extra}$.`,
+        { tex: `${p}(x + ${extra}) + ${q}x = ${total}` },
+        { tex: `${p}x + ${p * extra} + ${q}x = ${total}`, why: 'פותחים סוגריים' },
+        { tex: `${p + q}x + ${p * extra} = ${total}`, op: `- ${p * extra}` },
+        { tex: `${p + q}x = ${(p + q) * pen}`, op: L`\div ${p + q}` },
+        { tex: `x = ${pen}` },
+        `בודקים: $${p} \\times ${book} + ${q} \\times ${pen} = ${total}$`,
+      ],
+    };
+  },
+};
+
+/* ---------- ישרים מקבילים וזוויות ---------- */
+
+type Q = 'tl' | 'tr' | 'bl' | 'br';
+const ACUTE: Q[] = ['tr', 'bl'];
+const OPP: Record<Q, Q> = { tl: 'br', br: 'tl', tr: 'bl', bl: 'tr' };
+
+/** שם הקשר בין שתי זוויות, אם יש לו שם */
+function relation(a: { at: 0 | 1; q: Q }, b: { at: 0 | 1; q: Q }): string | null {
+  if (a.at === b.at) return OPP[a.q] === b.q ? 'קודקודיות' : 'צמודות';
+  if (a.q === b.q) return 'מתאימות';
+  const top = a.at === 0 ? a : b;
+  const bot = a.at === 0 ? b : a;
+  if ((top.q === 'bl' && bot.q === 'tr') || (top.q === 'br' && bot.q === 'tl')) return 'מתחלפות';
+  if ((top.q === 'bl' && bot.q === 'tl') || (top.q === 'br' && bot.q === 'tr')) return 'חד-צדדיות';
+  if ((top.q === 'tl' && bot.q === 'br') || (top.q === 'tr' && bot.q === 'bl')) return 'מתחלפות חיצוניות';
+  return null;
+}
+
+const parallelLines: Topic = {
+  id: 'parallel-lines',
+  track: 'geometry',
+  title: 'ישרים מקבילים וזוויות',
+  grades: [7, 8],
+  icon: '🛤️',
+  summary: 'זוויות קודקודיות, צמודות, מתאימות, מתחלפות וחד-צדדיות.',
+  levels: ['בצומת אחד', 'מתאימות ומתחלפות', 'כל הסוגים'],
+  lesson: {
+    intro: 'כשישר חותך שני ישרים מקבילים, נוצרות 8 זוויות. יש רק שני גדלים: זוויות חדות ששוות זו לזו, וזוויות קהות ששוות זו לזו. חדה ועוד קהה הן $180°$.',
+    sections: [
+      {
+        title: 'בצומת אחד',
+        body: 'זוויות קודקודיות (אחת מול השנייה) שוות. זוויות צמודות (אחת ליד השנייה, על אותו ישר) משלימות ל-$180°$.',
+        figure: { type: 'parallel', marks: [{ at: 0, q: 'tr', label: '60°' }, { at: 0, q: 'bl', label: '60°' }, { at: 0, q: 'tl', label: '120°' }] },
+      },
+      {
+        title: 'מתאימות ומתחלפות',
+        body: 'זוויות מתאימות נמצאות באותו מקום בשני הצמתים, והן שוות. זוויות מתחלפות נמצאות בין הישרים, בצדדים שונים של החותך, וגם הן שוות.',
+        figure: { type: 'parallel', marks: [{ at: 0, q: 'bl', label: '60°' }, { at: 1, q: 'bl', label: '60°' }, { at: 1, q: 'tr', label: '60°' }] },
+      },
+      {
+        title: 'חד-צדדיות',
+        body: 'זוויות חד-צדדיות נמצאות בין הישרים, באותו צד של החותך. הן משלימות ל-$180°$.',
+        figure: { type: 'parallel', marks: [{ at: 0, q: 'bl', label: '60°' }, { at: 1, q: 'tl', label: '120°' }] },
+      },
+    ],
+    method: ['מזהים את הקשר בין הזווית הנתונה לזווית המבוקשת.', 'אם שתיהן חדות או שתיהן קהות, הן שוות.', 'אם אחת חדה והשנייה קהה, הן משלימות ל-$180°$.', 'אם אין קשר ישיר, עוברים דרך זווית שלישית.'],
+    examples: [
+      {
+        problem: 'זווית של $70°$ בצומת העליון. מה הזווית המתחלפת לה?',
+        steps: ['זוויות מתחלפות בין ישרים מקבילים שוות.', 'התשובה: $70°$'],
+      },
+    ],
+    tips: ['זוויות שוות כשהן נראות שוות: חדה מול חדה, קהה מול קהה.', 'הכלל עובד רק כשהישרים באמת מקבילים.'],
+  },
+  generate(level) {
+    const qs: Q[] = ['tl', 'tr', 'bl', 'br'];
+    let g: { at: 0 | 1; q: Q };
+    let t: { at: 0 | 1; q: Q };
+    do {
+      g = { at: pick([0, 1] as const), q: pick(qs) };
+      t = level === 1 ? { at: g.at, q: pick(qs) } : { at: (1 - g.at) as 0 | 1, q: pick(qs) };
+      const rel = relation(g, t);
+      const ok =
+        g.q !== t.q || g.at !== t.at
+          ? level === 1
+            ? true
+            : level === 2
+              ? rel === 'מתאימות' || rel === 'מתחלפות'
+              : true
+          : false;
+      if (ok) break;
+    } while (true);
+    const gAcute = ACUTE.includes(g.q);
+    const v = gAcute ? ri(35, 80) : ri(100, 145);
+    const same = gAcute === ACUTE.includes(t.q);
+    const ans = same ? v : 180 - v;
+    const rel = relation(g, t);
+    const solution: Step[] = [];
+    const conclude = same ? `ולכן היא שווה $${ans}°$` : `ולכן היא $180° - ${v}° = ${ans}°$`;
+    if (rel) {
+      solution.push(`הזווית הנתונה והזווית המסומנת ב-? ${rel}.`);
+      solution.push(`זוויות ${rel} ${same ? 'שוות' : 'משלימות ל-$180°$'}, ${conclude}`);
+    } else {
+      const mid = { at: t.at, q: g.q };
+      solution.push(`הזווית המתאימה לזווית הנתונה, בצומת השני, שווה גם היא $${v}°$.`);
+      solution.push(`הזווית המסומנת ב-? והזווית הזו ${relation(mid, t)}, ${conclude}`);
+    }
+    return {
+      text: 'הישרים מקבילים. מה גודל הזווית המסומנת ב-?',
+      figure: { type: 'parallel', marks: [{ ...g, label: `${v}°` }, { ...t, label: '?' }] },
+      answer: { type: 'number', value: ans, unit: 'מעלות' },
+      hint: 'האם שתי הזוויות חדות (או שתיהן קהות)? אם כן הן שוות, ואם לא הן משלימות ל-180°.',
+      solution,
+    };
+  },
+};
+
+/* ---------- חפיפת משולשים ---------- */
+
+const THEOREMS = ['צ.ז.צ', 'ז.צ.ז', 'צ.צ.צ', 'צ.צ.ז'];
+
+const congruence: Topic = {
+  id: 'congruence',
+  track: 'geometry',
+  title: 'חפיפת משולשים',
+  grades: [8, 9],
+  icon: '🔺',
+  summary: 'מתי שני משולשים זהים לגמרי: ארבעת משפטי החפיפה.',
+  levels: ['איזה משפט?', 'מה חסר?', 'צלעות מתאימות'],
+  lesson: {
+    intro: 'שני משולשים חופפים אם אפשר להניח אחד על השני כך שיתכסו בדיוק. לא צריך לבדוק את כל 6 החלקים: מספיק 3 מתאימים, לפי אחד מארבעה משפטים.',
+    sections: [
+      {
+        title: 'צ.ז.צ וז.צ.ז',
+        body: 'צ.ז.צ: שתי צלעות והזווית שביניהן. ז.צ.ז: צלע ושתי הזוויות שלידה. שימו לב: הזווית ב-צ.ז.צ חייבת להיות בין שתי הצלעות.',
+      },
+      {
+        title: 'צ.צ.צ וצ.צ.ז',
+        body: 'צ.צ.צ: שלוש צלעות. צ.צ.ז: שתי צלעות והזווית שמול הגדולה מביניהן.',
+      },
+      {
+        title: 'סדר האותיות',
+        body: 'כשכותבים $\\triangle ABC \\cong \\triangle DEF$, הסדר אומר מי מתאים למי: $A$ ל-$D$, ‏$B$ ל-$E$, ‏$C$ ל-$F$. לכן $AB = DE$, ‏$BC = EF$ ו-$AC = DF$.',
+      },
+    ],
+    method: ['רושמים את הנתונים: אילו צלעות וזוויות שוות.', 'בודקים את סדר החלקים: האם הזווית בין הצלעות?', 'בוחרים את המשפט המתאים.', 'מהחפיפה מסיקים שגם שאר החלקים המתאימים שווים.'],
+    examples: [
+      {
+        problem: 'נתון: $AB = DE$, ‏$\\angle B = \\angle E$, ‏$BC = EF$. לפי איזה משפט המשולשים חופפים?',
+        steps: ['שתי צלעות: $AB$ ו-$BC$, והזווית $B$ שביניהן.', 'לכן לפי צ.ז.צ.'],
+      },
+    ],
+    tips: ['ז.ז.ז אינו משפט חפיפה: משולשים עם אותן זוויות יכולים להיות בגדלים שונים.', 'בכל משפט יש לפחות צלע אחת.'],
+  },
+  generate(level) {
+    const [P, Q2, R] = pick([
+      ['A', 'B', 'C'],
+      ['K', 'L', 'M'],
+      ['P', 'Q', 'R'],
+    ]);
+    const [D, E, F] = pick([
+      ['D', 'E', 'F'],
+      ['X', 'Y', 'Z'],
+      ['S', 'T', 'U'],
+    ]);
+    const s = (a: string, b: string) => `${a}${b}`;
+    const ang = (a: string) => `\\angle ${a}`;
+    if (level === 1) {
+      const th = ri(0, 3);
+      const given = [
+        [`${s(P, Q2)} = ${s(D, E)}`, `${ang(Q2)} = ${ang(E)}`, `${s(Q2, R)} = ${s(E, F)}`],
+        [`${ang(P)} = ${ang(D)}`, `${s(P, Q2)} = ${s(D, E)}`, `${ang(Q2)} = ${ang(E)}`],
+        [`${s(P, Q2)} = ${s(D, E)}`, `${s(Q2, R)} = ${s(E, F)}`, `${s(P, R)} = ${s(D, F)}`],
+        [`${s(P, Q2)} = ${s(D, E)}`, `${s(P, R)} = ${s(D, F)}`, `${ang(Q2)} = ${ang(E)}`, `${s(P, R)} > ${s(P, Q2)}`],
+      ][th];
+      const why = [
+        `שתי צלעות, $${s(P, Q2)}$ ו-$${s(Q2, R)}$, והזווית $${Q2}$ שביניהן: צ.ז.צ`,
+        `הצלע $${s(P, Q2)}$ ושתי הזוויות שלידה, $${P}$ ו-$${Q2}$: ז.צ.ז`,
+        'שלוש צלעות: צ.צ.צ',
+        `שתי צלעות, והזווית $${Q2}$ שמול $${s(P, R)}$, הגדולה מביניהן: צ.צ.ז`,
+      ][th];
+      return {
+        text: `במשולשים $${P}${Q2}${R}$ ו-$${D}${E}${F}$ נתון: $${given.join('$, ‏$')}$. לפי איזה משפט הם חופפים?`,
+        answer: { type: 'choice', options: THEOREMS, correct: th },
+        hint: 'בדקו כמה צלעות וכמה זוויות נתונות, ואם הזווית נמצאת בין הצלעות.',
+        solution: [why],
+      };
+    }
+    if (level === 2) {
+      const th = pick([0, 1] as const);
+      if (th === 0) {
+        const opts = [`$${ang(Q2)} = ${ang(E)}$`, `$${ang(P)} = ${ang(D)}$`, `$${ang(R)} = ${ang(F)}$`, `$${s(P, R)} = ${s(D, F)}$`];
+        return {
+          text: `נתון: $${s(P, Q2)} = ${s(D, E)}$ ו-$${s(Q2, R)} = ${s(E, F)}$. איזה נתון נוסף יוכיח חפיפה לפי צ.ז.צ?`,
+          answer: { type: 'choice', options: opts, correct: 0 },
+          hint: 'ב-צ.ז.צ הזווית חייבת להיות בין שתי הצלעות הנתונות.',
+          solution: [`הצלעות $${s(P, Q2)}$ ו-$${s(Q2, R)}$ נפגשות בקודקוד $${Q2}$.`, `לכן צריך את הזווית שביניהן: $${ang(Q2)} = ${ang(E)}$`],
+        };
+      }
+      const opts = [`$${s(P, Q2)} = ${s(D, E)}$`, `$${s(Q2, R)} = ${s(E, F)}$`, `$${s(P, R)} = ${s(D, F)}$`, `$${ang(R)} = ${ang(F)}$`];
+      return {
+        text: `נתון: $${ang(P)} = ${ang(D)}$ ו-$${ang(Q2)} = ${ang(E)}$. איזה נתון נוסף יוכיח חפיפה לפי ז.צ.ז?`,
+        answer: { type: 'choice', options: opts, correct: 0 },
+        hint: 'ב-ז.צ.ז הצלע חייבת להיות בין שתי הזוויות הנתונות.',
+        solution: [`הזוויות $${P}$ ו-$${Q2}$ נמצאות בשני הקצוות של הצלע $${s(P, Q2)}$.`, `לכן צריך: $${s(P, Q2)} = ${s(D, E)}$`],
+      };
+    }
+    const sides = [ri(3, 12), ri(3, 12), ri(3, 12)];
+    const pairs: [string, string][] = [
+      [s(P, Q2), s(D, E)],
+      [s(Q2, R), s(E, F)],
+      [s(P, R), s(D, F)],
+    ];
+    const i = ri(0, 2);
+    const known = pairs.filter((_, k) => k !== i).map(([a], k) => `$${a} = ${sides[[0, 1, 2].filter((z) => z !== i)[k]]}$`);
+    return {
+      text: `נתון: $\\triangle ${P}${Q2}${R} \\cong \\triangle ${D}${E}${F}$, ‏${known.join(', ')}, ו-$${pairs[i][0]} = ${sides[i]}$. מה אורך $${pairs[i][1]}$?`,
+      answer: { type: 'number', value: sides[i] },
+      hint: 'לפי סדר האותיות: הצלע במשולש השני מתאימה לצלע באותו מקום במשולש הראשון.',
+      solution: [`לפי סדר האותיות, $${pairs[i][1]}$ מתאימה ל-$${pairs[i][0]}$.`, `במשולשים חופפים צלעות מתאימות שוות: $${pairs[i][1]} = ${pairs[i][0]} = ${sides[i]}$`],
+    };
+  },
+};
+
+export const algebraTopics2: Topic[] = [likeTerms, expand, inequalities, systems, shortMult, wordProblems, parallelLines, congruence];
