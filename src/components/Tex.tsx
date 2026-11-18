@@ -49,9 +49,6 @@ function typed(text: string) {
   );
 }
 
-/** משתנה או מספר בודד (x, ‏2x, ‏15) לא צריך מסגרת: הוא קורא כמו מילה במשפט */
-const isTiny = (tex: string) => /^-?\d*[a-zA-Z]?$/.test(tex.trim()) && tex.trim().length <= 3;
-
 /** טקסט בעברית שמשולבת בו מתמטיקה בין סימני $...$ */
 export const Rich = memo(function Rich({ text }: { text: string }) {
   const n = useContext(NotationContext);
@@ -62,7 +59,7 @@ export const Rich = memo(function Rich({ text }: { text: string }) {
     <>
       {parts.map((p, i) =>
         i % 2 === 1 ? (
-          <span key={i} dir="ltr" className={onlyMath || isTiny(p) ? 'inline-block' : /^[.,:;!?)]/.test(parts[i + 1] ?? '') ? 'mi mi-p' : 'mi'} dangerouslySetInnerHTML={{ __html: texToHtml(p, false, n) }} />
+          <span key={i} dir="ltr" className={onlyMath ? 'inline-block' : /^[.,:;!?)]/.test(parts[i + 1] ?? '') ? 'mi mi-p' : 'mi'} dangerouslySetInnerHTML={{ __html: texToHtml(p, false, n) }} />
         ) : (
           <Fragment key={i}>{typed(p)}</Fragment>
         ),
