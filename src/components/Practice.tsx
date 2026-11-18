@@ -306,10 +306,9 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
           <div aria-live="polite">
             {phase === "correct" && (
               <p
-                className="pop tint mt-5 inline-flex items-center gap-2.5 rounded-full px-5 py-2.5 font-display text-xl font-semibold"
+                className="pop tint mt-5 inline-flex items-center rounded-full px-5 py-2.5 font-display text-xl font-semibold"
                 style={{ color }}
               >
-                <Tick size={28} draw />
                 {tries === 1 ? "נכון מאוד!" : "נכון! הצלחתם לתקן."}
               </p>
             )}
@@ -432,7 +431,7 @@ function Solution({ q, color }: { q: Question; color: string }) {
 /** ✔ גדול שנכתב על פינת התשובה, כמו סימון של מורה במחברת */
 function TeacherTick({ color }: { color: string }) {
   return (
-    <span className="pointer-events-none absolute -right-7 -top-8 drop-shadow-[0_1px_0_white]">
+    <span className="pointer-events-none absolute -right-4 -top-5 drop-shadow-[0_1px_0_white]">
       <Tick size={54} color={color} draw />
     </span>
   );
