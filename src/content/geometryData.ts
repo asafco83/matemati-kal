@@ -1,0 +1,727 @@
+import type { Step, Topic } from '../lib/types';
+import { L, gcd, pick, ri, round } from '../lib/util';
+
+/* ---------- עזרים ---------- */
+
+const POLY_NAMES: Record<number, string> = { 3: 'משולש', 4: 'מרובע', 5: 'מחומש', 6: 'משושה', 7: 'משובע', 8: 'מתומן' };
+const PI = 3.14;
+/** מספר עשרוני בלי אפסים מיותרים */
+const num = (x: number) => String(round(x, 4));
+
+/* ---------- מצולעים ותכונותיהם ---------- */
+
+const shapes: Topic = {
+  id: 'shapes',
+  track: 'geometry',
+  title: 'מצולעים ותכונותיהם',
+  grades: [2, 5],
+  icon: '🔷',
+  summary: 'משולש, מרובע, מחומש ומשושה: צלעות, קודקודים, היקף וסכום זוויות.',
+  levels: ['שמות וצלעות', 'היקף של מצולע משוכלל', 'סכום הזוויות'],
+  lesson: {
+    intro: 'מצולע הוא צורה סגורה שבנויה מקווים ישרים. כל קו הוא צלע, וכל נקודה שבה שתי צלעות נפגשות היא קודקוד.',
+    sections: [
+      {
+        title: 'שמות לפי מספר הצלעות',
+        body: '3 צלעות: משולש. 4: מרובע. 5: מחומש. 6: משושה. 8: מתומן. במצולע יש תמיד אותו מספר של צלעות, קודקודים וזוויות.',
+        figure: { type: 'polygon', n: 6 },
+      },
+      {
+        title: 'מצולע משוכלל',
+        body: 'במצולע משוכלל כל הצלעות שוות וכל הזוויות שוות. ההיקף שלו הוא מספר הצלעות כפול אורך צלע: למשושה משוכלל עם צלע 4 ס"מ ההיקף הוא $6 \\times 4 = 24$ ס"מ.',
+      },
+      {
+        title: 'סכום הזוויות',
+        body: 'במשולש סכום הזוויות הוא $180°$. כל מצולע אפשר לחלק למשולשים מקודקוד אחד: במרובע 2 משולשים, ולכן $2 \\times 180° = 360°$. במצולע עם $n$ צלעות יש $n - 2$ משולשים.',
+      },
+    ],
+    method: ['סופרים צלעות כדי לדעת את שם המצולע.', 'היקף: מחברים את כל הצלעות (או כופלים, אם הן שוות).', 'סכום זוויות: מספר הצלעות פחות 2, כפול $180°$.'],
+    examples: [
+      {
+        problem: 'מה ההיקף של מחומש משוכלל עם צלע 7 ס"מ?',
+        figure: { type: 'polygon', n: 5, side: '7' },
+        steps: ['למחומש 5 צלעות, וכולן שוות.', 'היקף: $5 \\times 7 = 35$ ס"מ'],
+      },
+      {
+        problem: 'מה סכום הזוויות במשושה?',
+        steps: ['למשושה 6 צלעות, אז מקודקוד אחד מחלקים אותו ל-$6 - 2 = 4$ משולשים.', 'סכום הזוויות: $4 \\times 180° = 720°$'],
+      },
+    ],
+    tips: ['ריבוע הוא מרובע משוכלל: 4 צלעות שוות ו-4 זוויות ישרות.', 'מספר המשולשים הוא תמיד 2 פחות ממספר הצלעות.'],
+  },
+  generate(level) {
+    const n = ri(3, 8);
+    if (level === 1) {
+      if (n !== 7 && Math.random() < 0.5) {
+        const names = [3, 4, 5, 6, 8].map((k) => POLY_NAMES[k]);
+        return {
+          text: 'איך קוראים למצולע הזה?',
+          figure: { type: 'polygon', n },
+          answer: { type: 'choice', options: names, correct: names.indexOf(POLY_NAMES[n]) },
+          hint: 'ספרו את הצלעות.',
+          solution: [`סופרים: יש ${n} צלעות.`, `מצולע עם ${n} צלעות נקרא ${POLY_NAMES[n]}.`],
+        };
+      }
+      return {
+        text: 'כמה צלעות יש למצולע?',
+        figure: { type: 'polygon', n },
+        answer: { type: 'number', value: n },
+        hint: 'ספרו את הקווים הישרים, ואל תספרו אף צלע פעמיים.',
+        solution: [`סופרים את הצלעות מסביב: יש ${n}.`, `זה ${POLY_NAMES[n]}.`],
+      };
+    }
+    if (level === 2) {
+      const side = ri(2, 15);
+      return {
+        text: `מה ההיקף של ${POLY_NAMES[n]} משוכלל שאורך הצלע שלו ${side} ס"מ?`,
+        figure: { type: 'polygon', n, side: String(side) },
+        answer: { type: 'number', value: n * side, unit: 'ס"מ' },
+        hint: 'במצולע משוכלל כל הצלעות שוות.',
+        solution: [`ל${POLY_NAMES[n]} יש ${n} צלעות, וכולן ${side} ס"מ.`, `היקף: $${n} \\times ${side} = ${n * side}$ ס"מ`],
+      };
+    }
+    return {
+      text: `מה סכום הזוויות ב${POLY_NAMES[n]}?`,
+      figure: { type: 'polygon', n },
+      answer: { type: 'number', value: (n - 2) * 180, unit: 'מעלות' },
+      hint: 'כמה משולשים אפשר ליצור מקודקוד אחד?',
+      solution: [
+        { tex: `${n} - 2 = ${n - 2}`, why: `מקודקוד אחד מחלקים את ה${POLY_NAMES[n]} ל-${n - 2} משולשים` },
+        { tex: `${n - 2} \\times 180° = ${(n - 2) * 180}°`, why: 'בכל משולש סכום הזוויות הוא 180°' },
+      ],
+    };
+  },
+};
+
+/* ---------- שטח משולש ומרובעים ---------- */
+
+const triangleArea: Topic = {
+  id: 'triangle-area',
+  track: 'geometry',
+  title: 'שטח משולש ומרובעים',
+  grades: [5, 7],
+  icon: '📐',
+  summary: 'שטח משולש הוא חצי מבסיס כפול גובה. ומה עם מקבילית וטרפז?',
+  levels: ['שטח משולש', 'מקבילית וטרפז', 'מוצאים גובה חסר'],
+  lesson: {
+    intro: 'השטח מודד כמה מקום תופסת צורה. את שטח המלבן כבר מכירים: אורך כפול רוחב. משם אפשר להגיע לכל שאר הצורות.',
+    sections: [
+      {
+        title: 'משולש הוא חצי מלבן',
+        body: 'כל משולש הוא בדיוק חצי ממלבן שהבסיס שלו הוא בסיס המשולש והגובה שלו הוא גובה המשולש. לכן שטח המשולש הוא $\\frac{\\text{בסיס} \\times \\text{גובה}}{2}$.',
+        figure: { type: 'triH', b: 'בסיס', h: 'גובה' },
+      },
+      {
+        title: 'מקבילית',
+        body: 'אם חותכים משולש מצד אחד של המקבילית ומדביקים אותו בצד השני, מקבלים מלבן. לכן שטח המקבילית הוא בסיס כפול גובה.',
+        figure: { type: 'quad', kind: 'parallelogram', b: 'בסיס', h: 'גובה' },
+      },
+      {
+        title: 'טרפז',
+        body: 'בטרפז יש שני בסיסים מקבילים. השטח הוא סכום הבסיסים כפול הגובה, חלקי 2: $\\frac{(a + b) \\times h}{2}$.',
+        figure: { type: 'quad', kind: 'trapezoid', b: 'a', top: 'b', h: 'h' },
+      },
+    ],
+    method: ['מזהים את הבסיס ואת הגובה שמאונך אליו.', 'מציבים בנוסחה המתאימה לצורה.', 'כותבים את התשובה ביחידות ריבועיות (סמ"ר).'],
+    examples: [
+      {
+        problem: 'מה שטח המשולש?',
+        figure: { type: 'triH', b: '10', h: '6' },
+        steps: ['בסיס 10, גובה 6.', '$\\frac{10 \\times 6}{2} = \\frac{60}{2} = 30$ סמ"ר'],
+      },
+      {
+        problem: 'מה שטח הטרפז?',
+        figure: { type: 'quad', kind: 'trapezoid', b: '12', top: '8', h: '5' },
+        steps: ['סכום הבסיסים: $12 + 8 = 20$', '$\\frac{20 \\times 5}{2} = \\frac{100}{2} = 50$ סמ"ר'],
+      },
+    ],
+    tips: ['הגובה תמיד מאונך לבסיס. הצלע המשופעת אינה הגובה.', 'שטח נמדד ביחידות ריבועיות: סמ"ר, מ"ר.'],
+  },
+  generate(level) {
+    if (level === 1) {
+      let b = ri(3, 16);
+      const h = ri(2, 12);
+      if ((b * h) % 2) b += 1;
+      return {
+        text: 'מה שטח המשולש? (המידות בס"מ)',
+        figure: { type: 'triH', b: String(b), h: String(h) },
+        answer: { type: 'number', value: (b * h) / 2, unit: 'סמ"ר' },
+        hint: 'בסיס כפול גובה, חלקי 2.',
+        solution: [{ tex: L`\frac{${b} \times ${h}}{2} = \frac{${b * h}}{2} = ${(b * h) / 2}`, why: 'שטח משולש: בסיס כפול גובה, חלקי 2' }],
+      };
+    }
+    if (level === 2) {
+      if (Math.random() < 0.5) {
+        const b = ri(4, 15);
+        const h = ri(2, 10);
+        return {
+          text: 'מה שטח המקבילית? (המידות בס"מ)',
+          figure: { type: 'quad', kind: 'parallelogram', b: String(b), h: String(h) },
+          answer: { type: 'number', value: b * h, unit: 'סמ"ר' },
+          hint: 'מקבילית: בסיס כפול גובה.',
+          solution: [{ tex: L`${b} \times ${h} = ${b * h}`, why: 'שטח מקבילית: בסיס כפול גובה' }],
+        };
+      }
+      const a = ri(6, 16);
+      const t = ri(2, a - 2);
+      let h = ri(2, 10);
+      if (((a + t) * h) % 2) h += 1;
+      return {
+        text: 'מה שטח הטרפז? (המידות בס"מ)',
+        figure: { type: 'quad', kind: 'trapezoid', b: String(a), top: String(t), h: String(h) },
+        answer: { type: 'number', value: ((a + t) * h) / 2, unit: 'סמ"ר' },
+        hint: 'סכום הבסיסים, כפול הגובה, חלקי 2.',
+        solution: [
+          { tex: `${a} + ${t} = ${a + t}`, why: 'מחברים את שני הבסיסים' },
+          { tex: L`\frac{${a + t} \times ${h}}{2} = \frac{${(a + t) * h}}{2} = ${((a + t) * h) / 2}`, why: 'כופלים בגובה ומחלקים ב-2' },
+        ],
+      };
+    }
+    const b = ri(4, 16);
+    const h = ri(2, 12);
+    const area = (b * h) / 2;
+    return {
+      text: `שטח המשולש ${num(area)} סמ"ר והבסיס שלו ${b} ס"מ. מה הגובה?`,
+      figure: { type: 'triH', b: String(b), h: '?' },
+      answer: { type: 'number', value: h, unit: 'ס"מ' },
+      hint: 'כתבו את הנוסחה עם הגובה כנעלם.',
+      solution: [
+        { tex: L`\frac{${b} \times h}{2} = ${num(area)}`, op: L`\times 2`, why: 'מציבים בנוסחת השטח' },
+        { tex: `${b}h = ${b * h}`, op: L`\div ${b}` },
+        { tex: `h = ${h}` },
+      ],
+    };
+  },
+};
+
+/* ---------- היקף ושטח מעגל ---------- */
+
+const circle: Topic = {
+  id: 'circle',
+  track: 'geometry',
+  title: 'היקף ושטח מעגל',
+  grades: [6, 8],
+  icon: '⭕',
+  summary: 'רדיוס, קוטר, והמספר π: כמה פעמים הקוטר נכנס בהיקף.',
+  levels: ['היקף', 'שטח', 'מההיקף לרדיוס'],
+  lesson: {
+    intro: 'הרדיוס הוא המרחק ממרכז המעגל לקצה. הקוטר עובר דרך המרכז מצד לצד, והוא פעמיים הרדיוס.',
+    sections: [
+      {
+        title: 'המספר π',
+        body: 'בכל מעגל, ההיקף גדול מהקוטר בערך פי 3.14. למספר הזה קוראים פאי: $\\pi \\approx 3.14$.',
+        figure: { type: 'circle', r: 'r' },
+      },
+      {
+        title: 'היקף',
+        body: 'היקף = $2 \\times \\pi \\times r$, או קוטר כפול π. למעגל עם רדיוס 5: $2 \\times 3.14 \\times 5 = 31.4$.',
+      },
+      {
+        title: 'שטח',
+        body: 'שטח = $\\pi \\times r^2$, כלומר π כפול הרדיוס כפול הרדיוס. למעגל עם רדיוס 5: $3.14 \\times 5 \\times 5 = 78.5$.',
+      },
+    ],
+    method: ['אם נתון קוטר, מחלקים ב-2 כדי לקבל רדיוס.', 'בוחרים נוסחה: היקף $2\\pi r$, שטח $\\pi r^2$.', 'מציבים $\\pi = 3.14$ ומחשבים.'],
+    examples: [
+      {
+        problem: 'מה ההיקף של מעגל עם רדיוס 4? (השתמשו ב-$\\pi = 3.14$)',
+        figure: { type: 'circle', r: '4' },
+        steps: ['$2 \\times 3.14 \\times 4 = 25.12$'],
+      },
+      {
+        problem: 'מה השטח של מעגל עם קוטר 10?',
+        figure: { type: 'circle', d: '10' },
+        steps: ['רדיוס: $10 \\div 2 = 5$', '$3.14 \\times 5 \\times 5 = 78.5$'],
+      },
+    ],
+    tips: ['בשטח מעלים בריבוע רק את הרדיוס, לא את π.', 'שימו לב אם נתון רדיוס או קוטר.'],
+  },
+  generate(level) {
+    const r = ri(1, 10);
+    const useD = Math.random() < 0.4;
+    const fig = useD ? { type: 'circle' as const, d: String(2 * r) } : { type: 'circle' as const, r: String(r) };
+    const given = useD ? `קוטר ${2 * r}` : `רדיוס ${r}`;
+    const toR: Step[] = useD ? [`רדיוס: $${2 * r} \\div 2 = ${r}$`] : [];
+    if (level === 1) {
+      const c = round(2 * PI * r, 2);
+      return {
+        text: `מה ההיקף של מעגל עם ${given}? (השתמשו ב-$\\pi = 3.14$)`,
+        figure: fig,
+        answer: { type: 'number', value: c, tol: 0.011 },
+        hint: 'היקף: 2 כפול π כפול הרדיוס.',
+        solution: [...toR, { tex: L`2 \times 3.14 \times ${r} = ${num(c)}`, why: 'היקף מעגל: $2 \\pi r$' }],
+      };
+    }
+    if (level === 2) {
+      const a = round(PI * r * r, 2);
+      return {
+        text: `מה השטח של מעגל עם ${given}? (השתמשו ב-$\\pi = 3.14$)`,
+        figure: fig,
+        answer: { type: 'number', value: a, tol: 0.011 },
+        hint: 'שטח: π כפול רדיוס כפול רדיוס.',
+        solution: [...toR, { tex: L`3.14 \times ${r} \times ${r} = 3.14 \times ${r * r} = ${num(a)}`, why: 'שטח מעגל: $\\pi r^2$' }],
+      };
+    }
+    const c = round(2 * PI * r, 2);
+    return {
+      text: `היקף מעגל הוא ${num(c)}. מה הרדיוס? (השתמשו ב-$\\pi = 3.14$)`,
+      figure: { type: 'circle', r: '?' },
+      answer: { type: 'number', value: r },
+      hint: 'כתבו את נוסחת ההיקף עם r כנעלם.',
+      solution: [
+        { tex: L`2 \times 3.14 \times r = ${num(c)}`, why: 'מציבים בנוסחת ההיקף' },
+        { tex: L`6.28r = ${num(c)}`, op: L`\div 6.28` },
+        { tex: `r = ${r}` },
+      ],
+    };
+  },
+};
+
+/* ---------- נפח ושטח פנים ---------- */
+
+const volume: Topic = {
+  id: 'volume',
+  track: 'geometry',
+  title: 'נפח ושטח פנים',
+  grades: [6, 9],
+  icon: '📦',
+  summary: 'כמה קוביות נכנסות בתיבה, וכמה נייר צריך כדי לעטוף אותה.',
+  levels: ['נפח תיבה', 'שטח פנים', 'מקצוע חסר'],
+  lesson: {
+    intro: 'לתיבה יש שלוש מידות: אורך, רוחב וגובה. הנפח מודד כמה מקום יש בתוכה, ושטח הפנים מודד את כל הקירות מבחוץ.',
+    sections: [
+      {
+        title: 'נפח',
+        body: 'נפח תיבה = אורך × רוחב × גובה. תיבה של $4 \\times 3 \\times 2$ מכילה 24 קוביות של סנטימטר: $4 \\times 3 = 12$ קוביות בשכבה, ו-2 שכבות.',
+        figure: { type: 'box', a: '4', b: '3', c: '2' },
+      },
+      {
+        title: 'שטח פנים',
+        body: 'לתיבה 6 פאות, בזוגות שווים: למטה ולמעלה, קדימה ואחורה, ימין ושמאל. שטח הפנים הוא $2 \\times (ab + bc + ac)$.',
+      },
+      {
+        title: 'יחידות',
+        body: 'נפח נמדד ביחידות מעוקבות: סמ"ק. שטח פנים נמדד ביחידות ריבועיות: סמ"ר.',
+      },
+    ],
+    method: ['מזהים את שלוש המידות.', 'נפח: כופלים את שלושתן.', 'שטח פנים: מחשבים שטח של שלוש פאות שונות, מחברים, וכופלים ב-2.'],
+    examples: [
+      {
+        problem: 'מה שטח הפנים של תיבה $5 \\times 3 \\times 2$?',
+        figure: { type: 'box', a: '5', b: '3', c: '2' },
+        steps: ['שלוש פאות שונות: $5 \\times 3 = 15$, $3 \\times 2 = 6$, $5 \\times 2 = 10$', 'מחברים: $15 + 6 + 10 = 31$', 'כל פאה מופיעה פעמיים: $2 \\times 31 = 62$ סמ"ר'],
+      },
+    ],
+    tips: ['בקובייה כל המקצועות שווים: נפח $a^3$, שטח פנים $6a^2$.', 'לא לבלבל: נפח בסמ"ק, שטח בסמ"ר.'],
+  },
+  generate(level) {
+    const a = ri(2, 10);
+    const b = ri(2, 8);
+    const c = ri(2, 8);
+    const fig = { type: 'box' as const, a: String(a), b: String(b), c: String(c) };
+    if (level === 1)
+      return {
+        text: 'מה הנפח של התיבה? (המידות בס"מ)',
+        figure: fig,
+        answer: { type: 'number', value: a * b * c, unit: 'סמ"ק' },
+        hint: 'אורך כפול רוחב כפול גובה.',
+        solution: [{ tex: L`${a} \times ${b} \times ${c} = ${a * b} \times ${c} = ${a * b * c}`, why: 'נפח תיבה: אורך × רוחב × גובה' }],
+      };
+    if (level === 2)
+      return {
+        text: 'מה שטח הפנים של התיבה? (המידות בס"מ)',
+        figure: fig,
+        answer: { type: 'number', value: 2 * (a * b + b * c + a * c), unit: 'סמ"ר' },
+        hint: 'שלוש פאות שונות, כל אחת פעמיים.',
+        solution: [
+          { tex: L`${a} \times ${b} = ${a * b},\; ${b} \times ${c} = ${b * c},\; ${a} \times ${c} = ${a * c}`, why: 'שטחי שלוש הפאות השונות' },
+          { tex: `${a * b} + ${b * c} + ${a * c} = ${a * b + b * c + a * c}` },
+          { tex: L`2 \times ${a * b + b * c + a * c} = ${2 * (a * b + b * c + a * c)}`, why: 'כל פאה מופיעה פעמיים' },
+        ],
+      };
+    return {
+      text: `נפח התיבה ${a * b * c} סמ"ק. האורך ${a} ס"מ והרוחב ${b} ס"מ. מה הגובה?`,
+      figure: { ...fig, c: '?' },
+      answer: { type: 'number', value: c, unit: 'ס"מ' },
+      hint: 'כתבו את נוסחת הנפח עם הגובה כנעלם.',
+      solution: [
+        { tex: L`${a} \times ${b} \times h = ${a * b * c}`, why: 'מציבים בנוסחת הנפח' },
+        { tex: `${a * b}h = ${a * b * c}`, op: L`\div ${a * b}` },
+        { tex: `h = ${c}` },
+      ],
+    };
+  },
+};
+
+/* ---------- יחס ופרופורציה ---------- */
+
+const ratio: Topic = {
+  id: 'ratio',
+  track: 'fractions',
+  title: 'יחס ופרופורציה',
+  grades: [6, 8],
+  icon: '⚖️',
+  summary: 'השוואה בין כמויות: על כל 2 בנים יש 3 בנות.',
+  levels: ['השלמה לפי יחס', 'חלוקה לפי יחס', 'פרופורציה'],
+  lesson: {
+    intro: 'יחס משווה בין שתי כמויות. היחס $2:3$ בין בנים לבנות אומר שעל כל 2 בנים יש 3 בנות.',
+    sections: [
+      {
+        title: 'יחסים שווים',
+        body: 'אפשר להכפיל או לחלק את שני האיברים של היחס באותו מספר, כמו בשבר: $2:3 = 4:6 = 10:15$.',
+      },
+      {
+        title: 'חלוקה לפי יחס',
+        body: 'כדי לחלק 40 ביחס $3:5$, מחברים את החלקים: $3 + 5 = 8$. כל חלק שווה $40 \\div 8 = 5$. הראשון מקבל $3 \\times 5 = 15$ והשני $5 \\times 5 = 25$.',
+      },
+      {
+        title: 'פרופורציה',
+        body: 'פרופורציה היא שוויון בין שני יחסים: $\\frac{x}{6} = \\frac{10}{15}$. פותרים בכפל בהצלבה: $15x = 6 \\times 10$.',
+      },
+    ],
+    method: ['מזהים איזו כמות מתאימה לאיזה איבר ביחס.', 'מוצאים פי כמה גדל האיבר הידוע, או כמה שווה חלק אחד.', 'כופלים את האיבר השני באותו מספר.'],
+    examples: [
+      {
+        problem: 'היחס בין עפרונות לעטים הוא $2:5$. יש 8 עפרונות. כמה עטים?',
+        steps: ['2 גדל ל-8, כלומר פי 4: $8 \\div 2 = 4$', 'גם העטים גדלים פי 4: $5 \\times 4 = 20$'],
+      },
+      {
+        problem: 'פתרו: $\\frac{x}{4} = \\frac{9}{12}$',
+        steps: [{ tex: '12x = 4 \\times 9', why: 'כפל בהצלבה' }, { tex: '12x = 36', op: '\\div 12' }, { tex: 'x = 3' }],
+      },
+    ],
+    tips: ['הסדר ביחס חשוב: $2:3$ בין בנים לבנות שונה מ-$3:2$.', 'בחלוקה לפי יחס, בודקים שסכום החלקים שווה לכמות המקורית.'],
+  },
+  generate(level) {
+    const items = pick([
+      ['בנים', 'בנות'],
+      ['עפרונות', 'עטים'],
+      ['תפוחים', 'אגסים'],
+      ['כחולים', 'אדומים'],
+    ]);
+    let a = ri(1, 7);
+    let b = ri(1, 9);
+    const g = gcd(a, b);
+    a /= g;
+    b /= g;
+    if (a === b) b += 1;
+    const k = ri(2, 8);
+    if (level === 1)
+      return {
+        text: `היחס בין ${items[0]} ל${items[1]} הוא $${a}:${b}$. יש ${a * k} ${items[0]}. כמה ${items[1]} יש?`,
+        answer: { type: 'number', value: b * k },
+        hint: `פי כמה גדל ${a}?`,
+        solution: [`${a} גדל ל-${a * k}, כלומר פי ${k}: $${a * k} \\div ${a} = ${k}$`, `גם ה${items[1]} גדלים פי ${k}: $${b} \\times ${k} = ${b * k}$`],
+      };
+    if (level === 2) {
+      const total = (a + b) * k;
+      return {
+        text: `מחלקים ${total} ${items[0]} בין דנה ליואב ביחס $${a}:${b}$. כמה מקבלת דנה?`,
+        answer: { type: 'number', value: a * k },
+        hint: 'כמה חלקים יש ביחד? כמה שווה כל חלק?',
+        solution: [
+          `מספר החלקים: $${a} + ${b} = ${a + b}$`,
+          `כל חלק: $${total} \\div ${a + b} = ${k}$`,
+          `דנה מקבלת ${a} חלקים: $${a} \\times ${k} = ${a * k}$`,
+          `בודקים: יואב מקבל $${b} \\times ${k} = ${b * k}$, ו-$${a * k} + ${b * k} = ${total}$`,
+        ],
+      };
+    }
+    const c = a * k;
+    const d = b * k;
+    let m = ri(2, 6);
+    if (m === k) m += 1;
+    const x = a * m;
+    const den = b * m;
+    return {
+      text: 'פתרו את הפרופורציה:',
+      latex: L`\frac{x}{${den}} = \frac{${c}}{${d}}`,
+      answer: { type: 'multi', labels: ['x'], values: [x], ordered: true },
+      hint: 'כופלים בהצלבה.',
+      solution: [
+        { tex: L`${d}x = ${den} \times ${c}`, why: 'כפל בהצלבה: המונה של כל צד כפול המכנה של הצד השני' },
+        { tex: `${d}x = ${den * c}`, op: L`\div ${d}` },
+        { tex: `x = ${x}` },
+      ],
+      short: [{ tex: L`${d}x = ${den * c}`, op: L`\div ${d}` }, { tex: `x = ${x}` }],
+    };
+  },
+};
+
+/* ---------- חזקות ושורשים ---------- */
+
+const powersRoots: Topic = {
+  id: 'powers-roots',
+  track: 'numbers',
+  title: 'חזקות ושורשים',
+  grades: [7, 9],
+  icon: '🔢',
+  summary: 'כפל חוזר של אותו מספר, הפעולה ההפוכה, וחוקי החזקות.',
+  levels: ['חישוב חזקה', 'שורש ריבועי', 'חוקי חזקות'],
+  lesson: {
+    intro: 'חזקה היא כפל של אותו מספר בעצמו כמה פעמים. $2^5$ פירושו $2 \\times 2 \\times 2 \\times 2 \\times 2 = 32$. המספר הגדול הוא הבסיס, והקטן למעלה הוא המעריך.',
+    sections: [
+      {
+        title: 'ריבוע ושורש',
+        body: '$7^2 = 49$, ולכן השורש של 49 הוא 7: $\\sqrt{49} = 7$. השורש עונה על השאלה: איזה מספר כפול עצמו נותן 49?',
+      },
+      {
+        title: 'כפל וחילוק חזקות עם אותו בסיס',
+        body: 'בכפל מחברים מעריכים: $2^3 \\times 2^4 = 2^7$, כי יש 3 שתיים ועוד 4 שתיים. בחילוק מחסרים: $5^6 \\div 5^2 = 5^4$.',
+      },
+      {
+        title: 'חזקה של חזקה',
+        body: 'כופלים את המעריכים: $(3^2)^4 = 3^8$, כי זה $3^2 \\times 3^2 \\times 3^2 \\times 3^2$.',
+      },
+    ],
+    method: ['כדי לחשב חזקה: כותבים ככפל וכופלים בהדרגה.', 'כדי למצוא שורש: מחפשים מספר שכפול עצמו נותן את המספר.', 'בחוקי חזקות: בודקים שהבסיס זהה, ואז מחברים, מחסרים או כופלים מעריכים.'],
+    examples: [
+      {
+        problem: 'חשבו: $3^4$',
+        steps: ['$3^4 = 3 \\times 3 \\times 3 \\times 3$', '$= 9 \\times 9 = 81$'],
+      },
+      {
+        problem: 'כתבו כחזקה אחת: $4^5 \\times 4^3$',
+        steps: ['אותו בסיס, כפל: מחברים מעריכים.', '$4^5 \\times 4^3 = 4^{5 + 3} = 4^8$'],
+      },
+    ],
+    tips: ['$2^3$ אינו $2 \\times 3$: $2^3 = 8$, ו-$2 \\times 3 = 6$.', 'כל מספר בחזקת 1 הוא עצמו, וכל מספר (חוץ מ-0) בחזקת 0 הוא 1.'],
+  },
+  generate(level) {
+    if (level === 1) {
+      const a = ri(2, 6);
+      const n = a <= 3 ? ri(2, 5) : ri(2, 3);
+      const prod = Array(n).fill(a).join(' \\times ');
+      return {
+        text: 'חשבו:',
+        latex: `${a}^{${n}}`,
+        answer: { type: 'number', value: a ** n },
+        hint: `כתבו את ${a} ככפל ${n} פעמים.`,
+        solution: [{ tex: `${a}^{${n}} = ${prod}`, why: 'חזקה היא כפל חוזר' }, { tex: `${prod} = ${a ** n}` }],
+      };
+    }
+    if (level === 2) {
+      const r = ri(2, 15);
+      return {
+        text: 'חשבו:',
+        latex: L`\sqrt{${r * r}}`,
+        answer: { type: 'number', value: r },
+        hint: `איזה מספר כפול עצמו נותן ${r * r}?`,
+        solution: [`מחפשים מספר שכפול עצמו נותן ${r * r}.`, { tex: L`${r} \times ${r} = ${r * r}`, why: 'בודקים' }, { tex: L`\sqrt{${r * r}} = ${r}` }],
+      };
+    }
+    const b = ri(2, 9);
+    const m = ri(2, 9);
+    const n = ri(2, 6);
+    const kind = pick(['mul', 'div', 'pow'] as const);
+    if (kind === 'mul')
+      return {
+        text: 'כתבו כחזקה אחת. מה המעריך?',
+        latex: L`${b}^{${m}} \times ${b}^{${n}} = ${b}^{\square}`,
+        answer: { type: 'number', value: m + n },
+        hint: 'בכפל של חזקות עם אותו בסיס, מחברים את המעריכים.',
+        solution: [{ tex: L`${b}^{${m}} \times ${b}^{${n}} = ${b}^{${m} + ${n}} = ${b}^{${m + n}}`, why: `אותו בסיס בכפל: מחברים מעריכים (יש ${m} ועוד ${n} פעמים ${b})` }],
+      };
+    if (kind === 'div') {
+      const big = m + n;
+      return {
+        text: 'כתבו כחזקה אחת. מה המעריך?',
+        latex: L`${b}^{${big}} \div ${b}^{${n}} = ${b}^{\square}`,
+        answer: { type: 'number', value: m },
+        hint: 'בחילוק של חזקות עם אותו בסיס, מחסרים את המעריכים.',
+        solution: [{ tex: L`${b}^{${big}} \div ${b}^{${n}} = ${b}^{${big} - ${n}} = ${b}^{${m}}`, why: 'אותו בסיס בחילוק: מחסרים מעריכים' }],
+      };
+    }
+    const k = ri(2, 4);
+    return {
+      text: 'כתבו כחזקה אחת. מה המעריך?',
+      latex: L`(${b}^{${n}})^{${k}} = ${b}^{\square}`,
+      answer: { type: 'number', value: n * k },
+      hint: 'בחזקה של חזקה, כופלים את המעריכים.',
+      solution: [{ tex: L`(${b}^{${n}})^{${k}} = ${b}^{${n} \times ${k}} = ${b}^{${n * k}}`, why: 'חזקה של חזקה: כופלים את המעריכים' }],
+    };
+  },
+};
+
+/* ---------- ממוצע, חציון ושכיח ---------- */
+
+const averages: Topic = {
+  id: 'averages',
+  track: 'data',
+  title: 'ממוצע, חציון ושכיח',
+  grades: [5, 8],
+  icon: '📊',
+  summary: 'שלוש דרכים לתאר במספר אחד קבוצה של נתונים.',
+  levels: ['ממוצע', 'חציון ושכיח', 'נתון חסר'],
+  lesson: {
+    intro: 'כשיש הרבה נתונים, כמו ציונים של כל הכיתה, רוצים מספר אחד שמתאר אותם. יש לזה שלוש דרכים עיקריות.',
+    sections: [
+      {
+        title: 'ממוצע',
+        body: 'מחברים את כל הנתונים ומחלקים במספר הנתונים. הממוצע של 4, 7, 10: $\\frac{4 + 7 + 10}{3} = \\frac{21}{3} = 7$.',
+      },
+      {
+        title: 'חציון',
+        body: 'מסדרים את הנתונים מהקטן לגדול, והחציון הוא הנתון שבאמצע. אם יש מספר זוגי של נתונים, החציון הוא הממוצע של שני האמצעיים.',
+      },
+      {
+        title: 'שכיח',
+        body: 'השכיח הוא הנתון שמופיע הכי הרבה פעמים. ב-3, 5, 5, 8, 5, 2 השכיח הוא 5.',
+      },
+    ],
+    method: ['ממוצע: סכום חלקי כמות.', 'חציון: קודם מסדרים, אחר כך לוקחים את האמצעי.', 'שכיח: סופרים כמה פעמים מופיע כל נתון.'],
+    examples: [
+      {
+        problem: 'מה החציון של 9, 2, 7, 4, 6?',
+        steps: ['מסדרים: 2, 4, 6, 7, 9', 'יש 5 נתונים, האמצעי הוא השלישי: 6'],
+      },
+      {
+        problem: 'הממוצע של 4 מספרים הוא 6. שלושה מהם: 5, 8, 4. מה הרביעי?',
+        steps: ['הסכום של כל הארבעה: $4 \\times 6 = 24$', 'הסכום של השלושה: $5 + 8 + 4 = 17$', 'הרביעי: $24 - 17 = 7$'],
+      },
+    ],
+    tips: ['בחציון חייבים לסדר קודם, אחרת הנתון האמצעי לא אומר כלום.', 'ממוצע × מספר הנתונים = סכום הנתונים.'],
+  },
+  generate(level) {
+    if (level === 1) {
+      const n = ri(3, 6);
+      const mean = ri(4, 15);
+      const xs = Array.from({ length: n - 1 }, () => mean + ri(-4, 4));
+      xs.push(mean * n - xs.reduce((a, b) => a + b, 0));
+      if (xs[n - 1] < 0) xs[n - 1] = 0;
+      const sum = xs.reduce((a, b) => a + b, 0);
+      return {
+        text: `מה הממוצע של: ${xs.join(', ')}?`,
+        answer: { type: 'number', value: round(sum / n, 2), tol: 0.01 },
+        hint: 'מחברים את כולם ומחלקים בכמות.',
+        solution: [`הסכום: $${xs.join(' + ')} = ${sum}$`, `יש ${n} מספרים: $${sum} \\div ${n} = ${num(sum / n)}$`],
+      };
+    }
+    if (level === 2) {
+      if (Math.random() < 0.5) {
+        const n = pick([5, 6, 7]);
+        const xs = Array.from({ length: n }, () => ri(1, 20));
+        const sorted = [...xs].sort((a, b) => a - b);
+        const med = n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
+        return {
+          text: `מה החציון של: ${xs.join(', ')}?`,
+          answer: { type: 'number', value: med },
+          hint: 'מסדרים מהקטן לגדול ולוקחים את האמצעי.',
+          solution: [
+            `מסדרים: ${sorted.join(', ')}`,
+            n % 2
+              ? `יש ${n} נתונים, האמצעי הוא במקום ה-${(n + 1) / 2}: ${med}`
+              : `יש ${n} נתונים, שני האמצעיים הם ${sorted[n / 2 - 1]} ו-${sorted[n / 2]}: $\\frac{${sorted[n / 2 - 1]} + ${sorted[n / 2]}}{2} = ${num(med)}$`,
+          ],
+        };
+      }
+      const mode = ri(2, 12);
+      const others = Array.from({ length: 4 }, () => ri(1, 15)).filter((x) => x !== mode);
+      const uniq = [...new Set(others)];
+      const xs = [mode, mode, mode, ...uniq.slice(0, 2), ...uniq.slice(2)].sort(() => Math.random() - 0.5);
+      return {
+        text: `מה השכיח של: ${xs.join(', ')}?`,
+        answer: { type: 'number', value: mode },
+        hint: 'איזה מספר מופיע הכי הרבה פעמים?',
+        solution: [`${mode} מופיע ${xs.filter((x) => x === mode).length} פעמים, יותר מכל מספר אחר.`, `השכיח הוא ${mode}.`],
+      };
+    }
+    const n = ri(4, 6);
+    const mean = ri(5, 15);
+    const xs = Array.from({ length: n - 1 }, () => mean + ri(-4, 4));
+    const missing = mean * n - xs.reduce((a, b) => a + b, 0);
+    if (missing < 0) xs[0] += missing;
+    const s = xs.reduce((a, b) => a + b, 0);
+    const miss = mean * n - s;
+    return {
+      text: `הממוצע של ${n} מספרים הוא ${mean}. ${n - 1} מהם הם: ${xs.join(', ')}. מה המספר החסר?`,
+      answer: { type: 'number', value: miss },
+      hint: 'ממוצע כפול כמות נותן את הסכום.',
+      solution: [`הסכום של כל ה-${n}: $${n} \\times ${mean} = ${n * mean}$`, `הסכום של ה-${n - 1} הידועים: $${xs.join(' + ')} = ${s}$`, `המספר החסר: $${n * mean} - ${s} = ${miss}$`],
+    };
+  },
+};
+
+/* ---------- קריאת דיאגרמות ---------- */
+
+const CHART_SETS = [
+  { q: 'כמה תלמידים בחרו ב', labels: ['כדורגל', 'שחייה', 'ריצה', 'טניס', 'ריקוד'] },
+  { q: 'כמה תלמידים אוהבים ', labels: ['תפוח', 'בננה', 'ענבים', 'אבטיח', 'תות'] },
+  { q: 'כמה ספרים קראו ב', labels: ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי'] },
+];
+
+const charts: Topic = {
+  id: 'charts',
+  track: 'data',
+  title: 'קריאת דיאגרמות וגרפים',
+  grades: [3, 6],
+  icon: '📈',
+  summary: 'מה אפשר ללמוד מדיאגרמת עמודות: כמה, איזה הכי הרבה, ובכמה יותר.',
+  levels: ['קריאת עמודה', 'השוואה', 'סכום'],
+  lesson: {
+    intro: 'דיאגרמת עמודות מראה כמויות בעזרת עמודות: ככל שהעמודה גבוהה יותר, הכמות גדולה יותר.',
+    sections: [
+      {
+        title: 'קוראים עמודה',
+        body: 'מסתכלים על הקצה העליון של העמודה, וממשיכים בקו ישר שמאלה עד הציר. המספר שם הוא הכמות.',
+        figure: { type: 'bars', labels: ['א', 'ב', 'ג'], values: [4, 7, 5], step: 1 },
+      },
+      {
+        title: 'משווים עמודות',
+        body: 'כדי לדעת בכמה אחת גדולה מהשנייה, קוראים את שתיהן ומחסרים. בדיאגרמה שלמעלה, ב גדולה מ-א ב-$7 - 4 = 3$.',
+      },
+      {
+        title: 'שימו לב לציר',
+        body: 'לפעמים כל קו בציר שווה 2 או 5 ולא 1. תמיד בודקים מה כתוב על הקווים לפני שקוראים.',
+      },
+    ],
+    method: ['קוראים את הכותרות: מה כל עמודה מייצגת?', 'בודקים את קפיצות הציר.', 'קוראים את הערכים הדרושים ומחשבים.'],
+    examples: [
+      {
+        problem: 'כמה ביחד בחרו ב-א ובג?',
+        figure: { type: 'bars', labels: ['א', 'ב', 'ג'], values: [4, 7, 5], step: 1 },
+        steps: ['א: 4, ג: 5', '$4 + 5 = 9$'],
+      },
+    ],
+    tips: ['העמודה הכי גבוהה היא הכי הרבה, גם בלי לקרוא מספרים.', 'בודקים שהקו שממשיכים ממנו הוא באמת של אותה עמודה.'],
+  },
+  generate(level) {
+    const set = pick(CHART_SETS);
+    const n = level === 1 ? 4 : 5;
+    const step = level === 1 ? 1 : 2;
+    const labels = set.labels.slice(0, n);
+    const values = labels.map(() => ri(1, level === 1 ? 10 : 10) * step);
+    const fig = { type: 'bars' as const, labels, values, step };
+    const i = ri(0, n - 1);
+    if (level === 1)
+      return {
+        text: `${set.q}${labels[i]}?`,
+        figure: fig,
+        answer: { type: 'number', value: values[i] },
+        hint: `מצאו את העמודה "${labels[i]}" וקראו את הגובה שלה בציר.`,
+        solution: [`העמודה של ${labels[i]} מגיעה עד ${values[i]}.`],
+      };
+    if (level === 2) {
+      const j = (i + ri(1, n - 1)) % n;
+      if (values[j] === values[i]) values[j] += step;
+      const [hi, lo] = values[i] > values[j] ? [i, j] : [j, i];
+      return {
+        text: `בכמה ${labels[hi]} גדול מ${labels[lo]}?`,
+        figure: { ...fig, values },
+        answer: { type: 'number', value: values[hi] - values[lo] },
+        hint: 'קראו את שתי העמודות וחסרו. שימו לב: כל קו בציר שווה 2.',
+        solution: [`${labels[hi]}: ${values[hi]}, ${labels[lo]}: ${values[lo]}`, `$${values[hi]} - ${values[lo]} = ${values[hi] - values[lo]}$`],
+      };
+    }
+    const total = values.reduce((a, b) => a + b, 0);
+    return {
+      text: 'כמה בסך הכול? (חברו את כל העמודות)',
+      figure: fig,
+      answer: { type: 'number', value: total },
+      hint: 'קראו כל עמודה בנפרד, ואז חברו. כל קו בציר שווה 2.',
+      solution: [labels.map((l, k) => `${l}: ${values[k]}`).join(', '), `$${values.join(' + ')} = ${total}$`],
+    };
+  },
+};
+
+export const geometryDataTopics: Topic[] = [shapes, triangleArea, circle, volume, ratio, powersRoots, averages, charts];

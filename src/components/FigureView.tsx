@@ -112,6 +112,103 @@ export function FigureView({ fig }: { fig: Figure }) {
         </svg>
       );
     }
+    case 'triH': {
+      return (
+        <svg viewBox="0 0 280 165" className="mx-auto w-full max-w-[280px]" role="img" aria-label="משולש עם גובה">
+          <polygon points="30,135 240,135 95,25" style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          <line x1="95" y1="25" x2="95" y2="135" stroke={INK} strokeWidth="1.8" strokeDasharray="6 4" />
+          <path d="M95 121 h14 v14" fill="none" stroke={INK} strokeWidth="1.5" />
+          <Label x={135} y={152}>{fig.b}</Label>
+          <Label x={87} y={84} anchor="end">{fig.h}</Label>
+        </svg>
+      );
+    }
+    case 'quad': {
+      const pts = fig.kind === 'parallelogram' ? '30,135 200,135 250,30 80,30' : '30,135 250,135 190,30 90,30';
+      return (
+        <svg viewBox="0 0 280 165" className="mx-auto w-full max-w-[280px]" role="img" aria-label={fig.kind === 'parallelogram' ? 'מקבילית' : 'טרפז'}>
+          <polygon points={pts} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          <line x1="140" y1="30" x2="140" y2="135" stroke={INK} strokeWidth="1.8" strokeDasharray="6 4" />
+          <path d="M140 121 h14 v14" fill="none" stroke={INK} strokeWidth="1.5" />
+          <Label x={fig.kind === 'parallelogram' ? 115 : 140} y={152}>{fig.b}</Label>
+          <Label x={132} y={84} anchor="end">{fig.h}</Label>
+          {fig.top && <Label x={fig.kind === 'parallelogram' ? 165 : 140} y={16}>{fig.top}</Label>}
+        </svg>
+      );
+    }
+    case 'circle': {
+      return (
+        <svg viewBox="0 0 220 180" className="mx-auto w-full max-w-[220px]" role="img" aria-label="מעגל">
+          <circle cx="110" cy="90" r="75" style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" />
+          <circle cx="110" cy="90" r="3.5" fill={INK} />
+          {fig.r && (
+            <>
+              <line x1="110" y1="90" x2="185" y2="90" stroke={INK} strokeWidth="2" />
+              <Label x={148} y={78}>{fig.r}</Label>
+            </>
+          )}
+          {fig.d && (
+            <>
+              <line x1="35" y1="90" x2="185" y2="90" stroke={INK} strokeWidth="2" />
+              <Label x={110} y={106}>{fig.d}</Label>
+            </>
+          )}
+        </svg>
+      );
+    }
+    case 'box': {
+      // תיבה בהטלה: חזית, עומק באלכסון
+      const [x, y, w, h, dx, dy] = [40, 60, 150, 80, 50, -35];
+      return (
+        <svg viewBox="0 0 270 175" className="mx-auto w-full max-w-[270px]" role="img" aria-label="תיבה">
+          <polygon points={`${x},${y} ${x + dx},${y + dy} ${x + w + dx},${y + dy} ${x + w},${y}`} fill="color-mix(in srgb, var(--tc, #4f46e5) 22%, white)" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
+          <polygon points={`${x + w},${y} ${x + w + dx},${y + dy} ${x + w + dx},${y + dy + h} ${x + w},${y + h}`} fill="color-mix(in srgb, var(--tc, #4f46e5) 30%, white)" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
+          <rect x={x} y={y} width={w} height={h} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" />
+          <Label x={x + w / 2} y={y + h + 16}>{fig.a}</Label>
+          <Label x={x + w + dx / 2 + 12} y={y + h + dy / 2 + 14} anchor="start">{fig.b}</Label>
+          <Label x={x - 8} y={y + h / 2} anchor="end">{fig.c}</Label>
+        </svg>
+      );
+    }
+    case 'polygon': {
+      const pts = Array.from({ length: fig.n }, (_, i) => {
+        const t = -Math.PI / 2 + (i * 2 * Math.PI) / fig.n + (fig.n % 2 ? 0 : Math.PI / fig.n);
+        return [110 + 72 * Math.cos(t), 92 + 72 * Math.sin(t)];
+      });
+      const [p0, p1] = [pts[Math.floor(fig.n / 2)], pts[Math.floor(fig.n / 2) - 1]];
+      return (
+        <svg viewBox="0 0 220 185" className="mx-auto w-full max-w-[220px]" role="img" aria-label={`מצולע עם ${fig.n} צלעות`}>
+          <polygon points={pts.map((p) => p.join(',')).join(' ')} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          {fig.side && <Label x={(p0[0] + p1[0]) / 2} y={(p0[1] + p1[1]) / 2 + 14}>{fig.side}</Label>}
+        </svg>
+      );
+    }
+    case 'bars': {
+      const max = Math.max(...fig.values);
+      const top = Math.ceil(max / fig.step) * fig.step;
+      const H = 150;
+      const Y = (v: number) => 170 - (v / top) * H;
+      const n = fig.values.length;
+      const bw = 200 / n;
+      return (
+        <svg viewBox="0 0 280 210" className="mx-auto w-full max-w-[360px]" role="img" aria-label="דיאגרמת עמודות" style={{ direction: 'ltr' }}>
+          {Array.from({ length: top / fig.step + 1 }, (_, i) => i * fig.step).map((v) => (
+            <g key={v}>
+              <line x1="50" y1={Y(v)} x2="265" y2={Y(v)} stroke="#e5e7eb" strokeWidth="1" />
+              <text x="42" y={Y(v) + 4} textAnchor="end" fontSize="12" fill="#5b6475">{v}</text>
+            </g>
+          ))}
+          <line x1="50" y1="170" x2="265" y2="170" stroke={INK} strokeWidth="2" />
+          <line x1="50" y1="15" x2="50" y2="170" stroke={INK} strokeWidth="2" />
+          {fig.values.map((v, i) => (
+            <g key={i}>
+              <rect x={58 + i * bw + bw * 0.15} y={Y(v)} width={bw * 0.7} height={170 - Y(v)} fill={i % 2 ? '#818cf8' : ACCENT} />
+              <text x={58 + i * bw + bw / 2} y="188" textAnchor="middle" fontSize="13" fontWeight="600" fill={INK} style={{ direction: 'rtl', unicodeBidi: 'plaintext' }}>{fig.labels[i]}</text>
+            </g>
+          ))}
+        </svg>
+      );
+    }
     case 'graph': {
       const R = 8; // טווח הצירים: מ-8- עד 8
       const S = 15;

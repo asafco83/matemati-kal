@@ -8,7 +8,17 @@ export type Figure =
   | { type: 'graph'; lines: { m: number; b: number }[]; points?: [number, number][] }
   | { type: 'fracbar'; parts: number; filled: number }
   | { type: 'array'; rows: number; cols: number }
-  | { type: 'numline'; from: number; to: number; jumps?: number[]; start?: number };
+  | { type: 'numline'; from: number; to: number; jumps?: number[]; start?: number }
+  /** משולש עם גובה מקווקו */
+  | { type: 'triH'; b: string; h: string }
+  /** מקבילית או טרפז עם גובה */
+  | { type: 'quad'; kind: 'parallelogram' | 'trapezoid'; b: string; h: string; top?: string }
+  | { type: 'circle'; r?: string; d?: string }
+  /** תיבה: אורך, רוחב, גובה */
+  | { type: 'box'; a: string; b: string; c: string }
+  | { type: 'polygon'; n: number; side?: string }
+  /** דיאגרמת עמודות */
+  | { type: 'bars'; labels: string[]; values: number[]; step: number };
 
 export type Answer =
   /** מספר אחד (מקבל גם שבר כמו 3/4) */

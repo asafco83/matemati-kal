@@ -1,6 +1,7 @@
 import type { SoonTopic, Topic, Track } from '../lib/types';
 import { elementaryTopics } from './elementary';
 import { elementaryTopics2 } from './elementary2';
+import { geometryDataTopics } from './geometryData';
 import { highTopics } from './high';
 import { middleTopics } from './middle';
 
@@ -15,7 +16,7 @@ export const tracks: Track[] = [
   { id: 'data', short: 'הסתברות', title: 'הסתברות וסטטיסטיקה', icon: '🎲', color: '#0d9488' },
 ];
 
-export const topics: Topic[] = [...elementaryTopics, ...elementaryTopics2, ...middleTopics, ...highTopics];
+export const topics: Topic[] = [...elementaryTopics, ...elementaryTopics2, ...geometryDataTopics, ...middleTopics, ...highTopics];
 
 const soon = (track: string, list: [string, string, number, number][]): SoonTopic[] =>
   list.map(([id, title, a, b]) => ({ id, track, title, grades: [a, b], soon: true }));
@@ -23,16 +24,10 @@ const soon = (track: string, list: [string, string, number, number][]): SoonTopi
 /** נושאים שמתוכננים ועדיין לא נכתבו. מוצגים באפור עם התווית "בקרוב" */
 export const soonTopics: SoonTopic[] = [
   ...soon('numbers', [
-    ['powers-roots', 'חזקות ושורשים', 7, 9],
   ]),
   ...soon('fractions', [
-    ['ratio', 'יחס ופרופורציה', 6, 8],
   ]),
   ...soon('geometry', [
-    ['shapes', 'מצולעים ותכונותיהם', 2, 5],
-    ['triangle-area', 'שטח משולש ומרובעים', 5, 7],
-    ['circle', 'היקף ושטח מעגל', 6, 8],
-    ['volume', 'נפח ושטח פנים', 6, 9],
     ['parallel-lines', 'ישרים מקבילים וזוויות', 7, 8],
     ['congruence', 'חפיפת משולשים', 8, 9],
     ['similarity', 'דמיון משולשים', 9, 10],
@@ -63,8 +58,6 @@ export const soonTopics: SoonTopic[] = [
     ['integrals', 'אינטגרלים ושטחים', 12, 12],
   ]),
   ...soon('data', [
-    ['averages', 'ממוצע, חציון ושכיח', 5, 8],
-    ['charts', 'קריאת דיאגרמות וגרפים', 3, 6],
     ['tree-diagram', 'דיאגרמת עץ והסתברות מותנית', 10, 11],
     ['normal', 'התפלגות נורמלית', 11, 12],
   ]),
