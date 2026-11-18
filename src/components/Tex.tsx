@@ -17,7 +17,10 @@ function applyNotation(tex: string, n: Notation): string {
 }
 
 export function texToHtml(tex: string, display = false, n: Notation = 'secondary'): string {
-  return katex.renderToString(applyNotation(tex, n), { displayMode: display, throwOnError: false, strict: false });
+  let t = applyNotation(tex, n);
+  // שבר בתוך שורה מוצג בגודל מלא, כדי שהמונה והמכנה יהיו קריאים
+  if (!display) t = t.replace(/\\frac(?![a-zA-Z])/g, '\\dfrac');
+  return katex.renderToString(t, { displayMode: display, throwOnError: false, strict: false });
 }
 
 /** ביטוי מתמטי בודד */
@@ -30,11 +33,13 @@ export const Tex = memo(function Tex({ tex, display = false }: { tex: string; di
 export const Rich = memo(function Rich({ text }: { text: string }) {
   const n = useContext(NotationContext);
   const parts = text.split('$');
+  // שורה שכולה מתמטיקה לא צריכה מסגרת; בתוך משפט, המסגרת מפרידה בין הטקסט לתרגיל
+  const onlyMath = parts.length === 3 && !parts[0].trim() && !parts[2].trim();
   return (
     <>
       {parts.map((p, i) =>
         i % 2 === 1 ? (
-          <span key={i} dir="ltr" className="mx-0.5 inline-block" dangerouslySetInnerHTML={{ __html: texToHtml(p, false, n) }} />
+          <span key={i} dir="ltr" className={onlyMath ? 'inline-block' : /^[.,:;!?)]/.test(parts[i + 1] ?? '') ? 'mi mi-p' : 'mi'} dangerouslySetInnerHTML={{ __html: texToHtml(p, false, n) }} />
         ) : (
           <Fragment key={i}>{p}</Fragment>
         ),
