@@ -5,12 +5,12 @@
  * כל עוד apiKey ריק, הלומדה עובדת במצב מקומי בלבד (בלי התחברות ובלי סנכרון).
  */
 export const firebaseConfig = {
-  apiKey: '',
+  apiKey: 'AIzaSyAwhoq6MqE0q-AFo_87H8t5ZBi33VM5LcY',
   authDomain: 'matemati-kal.firebaseapp.com',
   projectId: 'matemati-kal',
   storageBucket: 'matemati-kal.firebasestorage.app',
-  messagingSenderId: '',
-  appId: '',
+  messagingSenderId: '603805464211',
+  appId: '1:603805464211:web:0ff6cda97883dd3e0aff66',
 };
 
 export const isFirebaseConfigured = firebaseConfig.apiKey !== '' && firebaseConfig.appId !== '';
