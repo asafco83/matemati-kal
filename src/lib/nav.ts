@@ -1,5 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { soonTopics, topicById, topics } from '../content';
+import { soonTopics, topicById, topics, tracks } from '../content';
 import type { SoonTopic, Topic } from './types';
 
 /**
@@ -54,7 +54,11 @@ export function trackTopics(trackId: string): AnyTopic[] {
 }
 
 export function gradeTopics(g: GradeFilter): AnyTopic[] {
-  return [...topics, ...soonTopics].filter((t) => inGrade(t, g)).sort((a, b) => Number(isSoon(a)) - Number(isSoon(b)));
+  // מקובצים לפי סדר המסלולים, ובתוך מסלול לפי כיתה
+  const order = (t: AnyTopic) => tracks.findIndex((tr) => tr.id === t.track);
+  return [...topics, ...soonTopics]
+    .filter((t) => inGrade(t, g))
+    .sort((a, b) => Number(isSoon(a)) - Number(isSoon(b)) || order(a) - order(b) || a.grades[0] - b.grades[0]);
 }
 
 /* ---------- ניתוב לפי ה-hash ---------- */

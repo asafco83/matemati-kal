@@ -31,7 +31,11 @@ export function Header({ route }: { route: Route }) {
           (showSoon ? (
             soon.map((t) => pill(t, dotOf?.(t)))
           ) : (
-            <button type="button" onClick={() => setShowSoon(true)} className="min-h-9 shrink-0 whitespace-nowrap rounded-full border border-dashed border-white/70 px-3.5 text-[15px] text-white hover:bg-white/10">
+            <button
+              type="button"
+              onClick={() => setShowSoon(true)}
+              className="min-h-9 shrink-0 whitespace-nowrap rounded-full border border-dashed border-white/70 px-3.5 text-[15px] text-white hover:bg-white/10"
+            >
               ועוד {soon.length} בהכנה
             </button>
           ))}
@@ -114,66 +118,69 @@ export function Header({ route }: { route: Route }) {
 
   const t = totals(state);
   return (
-    <header className="sticky top-0 z-30 shadow-md">
-      <div className="bg-ink text-white">
-        <div className="mx-auto flex max-w-[1240px] flex-wrap items-center gap-x-3 px-4 sm:gap-x-4 sm:px-6">
-          <div className="order-1 flex min-h-14 items-center">
-            <Logo />
+    <>
+      {/* רק השורה העליונה נצמדת למעלה; שורת הנושאים נגללת עם הדף כדי לא לתפוס חצי מסך */}
+      <header className="sticky top-0 z-30 shadow-md">
+        <div className="bg-ink text-white">
+          <div className="mx-auto flex max-w-[1240px] flex-wrap items-center gap-x-3 px-4 sm:gap-x-4 sm:px-6">
+            <div className="order-1 flex min-h-14 items-center">
+              <Logo />
+            </div>
+            <span aria-hidden="true" className="order-3 h-0 basis-full lg:hidden" />
+            <div className="order-4 lg:order-2">
+              <ModeSwitch />
+            </div>
+            <nav aria-label={nav.mode === 'grade' ? 'כיתות' : 'מסלולים'} className="hide-scrollbar order-5 flex min-w-0 flex-1 basis-0 overflow-x-auto lg:order-3">
+              {nav.mode === 'grade'
+                ? GRADE_NAMES.slice(1).map((g, i) => {
+                    const on = nav.grade === i + 1;
+                    return (
+                      <button
+                        key={g}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => setGrade(i + 1)}
+                        className={`shrink-0 border-b-[3px] px-3 pb-3 pt-4 font-display text-[17px] ${on ? 'border-sun font-semibold text-white' : 'border-transparent font-medium text-[#c9cfdb] hover:text-white'}`}
+                      >
+                        {g}
+                      </button>
+                    );
+                  })
+                : tracks.map((tr) => {
+                    const on = tr.id === currentTrack;
+                    const empty = !trackTopics(tr.id).some((x) => inGrade(x, nav.grade));
+                    return (
+                      <a
+                        key={tr.id}
+                        href={`#/track/${tr.id}`}
+                        aria-current={on ? 'page' : undefined}
+                        className={`shrink-0 whitespace-nowrap border-b-[3px] px-3 pb-3 pt-4 text-base no-underline ${on ? 'border-sun font-bold text-white' : `border-transparent font-medium hover:text-white ${empty ? 'text-dim' : 'text-[#c9cfdb]'}`}`}
+                      >
+                        {tr.short}
+                      </a>
+                    );
+                  })}
+            </nav>
+            <button
+              type="button"
+              onClick={() => selectProfile(null)}
+              title="החלפת פרופיל"
+              className="order-2 ms-auto flex shrink-0 items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-[15px] font-semibold text-white hover:bg-white/25 lg:order-4 lg:ms-0"
+            >
+              {profile.name}
+              <span className="flex items-center gap-0.5 text-sun">
+                <StarIcon />
+                {t.stars}
+              </span>
+            </button>
           </div>
-          <span aria-hidden="true" className="order-3 h-0 basis-full lg:hidden" />
-          <div className="order-4 lg:order-2">
-            <ModeSwitch />
-          </div>
-          <nav aria-label={nav.mode === 'grade' ? 'כיתות' : 'מסלולים'} className="hide-scrollbar order-5 flex min-w-0 flex-1 basis-0 overflow-x-auto lg:order-3">
-            {nav.mode === 'grade'
-              ? GRADE_NAMES.slice(1).map((g, i) => {
-                  const on = nav.grade === i + 1;
-                  return (
-                    <button
-                      key={g}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => setGrade(i + 1)}
-                      className={`shrink-0 border-b-[3px] px-3 pb-3 pt-4 font-display text-[17px] ${on ? 'border-sun font-semibold text-white' : 'border-transparent font-medium text-[#c9cfdb] hover:text-white'}`}
-                    >
-                      {g}
-                    </button>
-                  );
-                })
-              : tracks.map((tr) => {
-                  const on = tr.id === currentTrack;
-                  const empty = !trackTopics(tr.id).some((x) => inGrade(x, nav.grade));
-                  return (
-                    <a
-                      key={tr.id}
-                      href={`#/track/${tr.id}`}
-                      aria-current={on ? 'page' : undefined}
-                      className={`shrink-0 whitespace-nowrap border-b-[3px] px-3 pb-3 pt-4 text-base no-underline ${on ? 'border-sun font-bold text-white' : `border-transparent font-medium hover:text-white ${empty ? 'text-dim' : 'text-[#c9cfdb]'}`}`}
-                    >
-                      {tr.short}
-                    </a>
-                  );
-                })}
-          </nav>
-          <button
-            type="button"
-            onClick={() => selectProfile(null)}
-            title="החלפת פרופיל"
-            className="order-2 ms-auto flex shrink-0 items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-[15px] font-semibold text-white hover:bg-white/25 lg:order-4 lg:ms-0"
-          >
-            {profile.name}
-            <span className="flex items-center gap-0.5 text-sun">
-              <StarIcon />
-              {t.stars}
-            </span>
-          </button>
         </div>
-      </div>
-      <div style={{ background: row2bg }}>
+      </header>
+      <div className="relative z-20 shadow-md" style={{ background: row2bg }}>
         <div className="hide-scrollbar mx-auto flex max-w-[1240px] items-center gap-2 overflow-x-auto px-4 py-2.5 sm:flex-wrap sm:overflow-visible sm:px-6">{row2}</div>
       </div>
       {auth.error && <div className="bg-red-700 px-4 py-1 text-center text-sm text-white">{auth.error}</div>}
-    </header>
+    </>
   );
 }
 
@@ -266,7 +273,12 @@ function GradeMenu({ own }: { own: number }) {
             <button type="button" onClick={() => pick(own)} className="min-h-[34px] flex-1 rounded-lg border-2 border-ink bg-white px-2 text-[13px] font-bold">
               הכיתה שלי ({GRADE_NAMES[own]})
             </button>
-            <button type="button" aria-pressed={nav.grade === 'all'} onClick={() => pick('all')} className={`min-h-[34px] flex-1 rounded-lg px-2 text-[13px] font-semibold ${nav.grade === 'all' ? 'bg-ink text-white' : 'bg-sand'}`}>
+            <button
+              type="button"
+              aria-pressed={nav.grade === 'all'}
+              onClick={() => pick('all')}
+              className={`min-h-[34px] flex-1 rounded-lg px-2 text-[13px] font-semibold ${nav.grade === 'all' ? 'bg-ink text-white' : 'bg-sand'}`}
+            >
               כל הכיתות
             </button>
           </div>
