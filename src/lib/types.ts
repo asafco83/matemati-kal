@@ -17,6 +17,13 @@ export type Answer =
   | { type: 'multi'; labels: string[]; values: number[]; ordered: boolean; tol?: number }
   | { type: 'choice'; options: string[]; correct: number };
 
+/**
+ * שורה בפתרון. מחרוזת היא טקסט חופשי עם $...$.
+ * שורת מחברת: tex היא המשוואה כפי שכותבים אותה, op היא הפעולה שכותבים לצידה (למשל "- 8" או "\\div 5"),
+ * ו-why מסבירה במילים למה עושים את הצעד (מוצגת בפתרון המלא).
+ */
+export type Step = string | { tex: string; op?: string; why?: string };
+
 export interface Question {
   /** ניסוח השאלה. $...$ מסמן מתמטיקה */
   text: string;
@@ -26,15 +33,15 @@ export interface Question {
   answer: Answer;
   hint: string;
   /** פתרון מלא: כל שורה שהתלמיד כותב במחברת */
-  solution: string[];
+  solution: Step[];
   /** פתרון רגיל, בלי שורות הביניים. אם חסר, מוצג רק הפתרון המלא */
-  short?: string[];
+  short?: Step[];
 }
 
 export interface Example {
   problem: string;
   figure?: Figure;
-  steps: string[];
+  steps: Step[];
 }
 
 export interface Lesson {

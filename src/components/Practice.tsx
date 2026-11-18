@@ -3,6 +3,7 @@ import { levelStat, MASTERY_GOAL, recordAnswer, restartLevel, totals, useStore }
 import type { Level, Question, Topic } from '../lib/types';
 import { checkAnswer, isFilled } from '../lib/util';
 import { FigureView } from './FigureView';
+import { StepView } from './StepView';
 import { Rich, Tex } from './Tex';
 import { PrimaryButton, Tick, Segmented, StarIcon } from './ui';
 
@@ -348,7 +349,7 @@ function Solution({ q, color }: { q: Question; color: string }) {
               {i + 1}
             </span>
             <span className={i === steps.length - 1 ? 'marker' : ''}>
-              <Rich text={s} />
+              <StepView step={s} color={color} showWhy={mode === 'full'} />
             </span>
           </li>
         ))}

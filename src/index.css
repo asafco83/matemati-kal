@@ -108,6 +108,18 @@ html {
   margin: 0 0.06em;
 }
 
+/* משתנים (x, y, a...) באות ישרה ולא נטויה, כדי ש-x ייראה כמו x שכותבים ביד */
+.katex .mathnormal {
+  font-family: KaTeX_Main, KaTeX_Math, serif;
+  font-style: normal;
+}
+
+/* קו הביטול (\cancel) בצבע המסלול ועבה מעט, כמו קו בעט */
+.katex svg line {
+  stroke: var(--tc, #dc2626);
+  stroke-width: 0.07em;
+}
+
 /* רווחים צפופים יותר סביב + − × = כדי שהתרגיל ייקרא כיחידה אחת */
 .katex .mspace[style*="0.2222em"] {
   margin-right: 0.14em !important;

@@ -4,6 +4,7 @@ import { markSeen } from '../lib/store';
 import { gradeLabel, type Example, type Topic } from '../lib/types';
 import { FigureView } from './FigureView';
 import { Practice } from './Practice';
+import { StepView } from './StepView';
 import { NotationContext, notationForGrade, Rich } from './Tex';
 import { PrimaryButton, Segmented, StepNum, tc } from './ui';
 
@@ -134,7 +135,7 @@ function ExampleCard({ ex, n, color }: { ex: Example; n: number; color: string }
               {i + 1}
             </span>
             <span className={i === ex.steps.length - 1 ? 'marker' : ''}>
-              <Rich text={s} />
+              <StepView step={s} color={color} />
             </span>
           </li>
         ))}

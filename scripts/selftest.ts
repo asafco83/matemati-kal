@@ -4,7 +4,7 @@
  */
 import katex from 'katex';
 import { soonTopics, topics, tracks } from '../src/content';
-import type { Level, Question } from '../src/lib/types';
+import type { Level, Question, Step } from '../src/lib/types';
 import { checkAnswer } from '../src/lib/util';
 
 let errors = 0;
@@ -33,13 +33,20 @@ function checkTex(where: string, text: string, isLatex = false) {
   if (!isLatex && /undefined|NaN/.test(text)) fail(where, `ערך לא תקין בטקסט: ${text}`);
 }
 
+function checkStep(where: string, s: Step) {
+  if (typeof s === 'string') return checkTex(where, s);
+  checkTex(where, s.tex, true);
+  if (s.op) checkTex(where, s.op, true);
+  if (s.why) checkTex(where, s.why);
+}
+
 function checkQuestion(where: string, q: Question) {
   checkTex(where, q.text);
   if (q.latex) checkTex(where, q.latex, true);
   checkTex(where, q.hint);
   if (!q.solution.length) fail(where, 'אין פתרון');
-  q.solution.forEach((s) => checkTex(where, s));
-  q.short?.forEach((s) => checkTex(where, s));
+  q.solution.forEach((s) => checkStep(where, s));
+  q.short?.forEach((s) => checkStep(where, s));
   if (q.short && q.short.length > q.solution.length) fail(where, 'הפתרון המקוצר ארוך מהמלא');
   const a = q.answer;
   if (a.type === 'number') {
@@ -66,7 +73,10 @@ let count = 0;
 for (const t of topics) {
   const L = t.lesson;
   [L.intro, ...L.method, ...L.tips, ...L.sections.flatMap((s) => [s.title, s.body])].forEach((s) => checkTex(`${t.id}/שיעור`, s));
-  L.examples.forEach((ex) => [ex.problem, ...ex.steps].forEach((s) => checkTex(`${t.id}/דוגמה`, s)));
+  L.examples.forEach((ex) => {
+    checkTex(`${t.id}/דוגמה`, ex.problem);
+    ex.steps.forEach((s) => checkStep(`${t.id}/דוגמה`, s));
+  });
   for (const level of [1, 2, 3] as Level[]) {
     for (let i = 0; i < 2000; i++) {
       checkQuestion(`${t.id}/רמה ${level}`, t.generate(level));
