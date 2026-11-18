@@ -52,7 +52,11 @@ html {
 
 .marker {
   background: var(--color-marker);
-  padding: 0 4px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  /* כשהסימון נשבר לשתי שורות, כל שורה מקבלת פינות וריווח משלה */
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
   --mi-bg: #fff6c2;
   --mi-line: #d8b400;
 }
