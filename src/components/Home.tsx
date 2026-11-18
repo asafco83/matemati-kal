@@ -1,24 +1,28 @@
-import { useState } from 'react';
-import { soonTopics, topics, tracks } from '../content';
+import { topics, tracks } from '../content';
+import { inGrade, isSoon, trackTopics, useNav, type GradeFilter } from '../lib/nav';
 import { activeProfile, stars, useStore, type State } from '../lib/store';
-import { gradeLabel, stageOfGrade, STAGES, type Stage, type Topic } from '../lib/types';
+import { GRADE_NAMES, gradeLabel, type Topic } from '../lib/types';
+import { StarIcon, tc } from './ui';
 
-function Stars({ n }: { n: number }) {
-  return (
-    <span aria-label={`${n} מתוך 3 כוכבים`} className="text-base tracking-tight">
-      {[0, 1, 2].map((i) => (
-        <span key={i} className={i < n ? '' : 'opacity-20 grayscale'}>
-          ⭐
-        </span>
-      ))}
-    </span>
-  );
-}
+export const TRACK_GLYPH: Record<string, string> = {
+  numbers: '+',
+  fractions: '½',
+  geometry: '△',
+  algebra: 'x',
+  functions: 'ƒ',
+  trig: '∡',
+  calculus: '∫',
+  data: '%',
+};
+
+const gname = (g: GradeFilter) => (g === 'all' ? 'כל הכיתות' : `כיתה ${GRADE_NAMES[g]}`);
 
 /** הנושא הבא שכדאי ללמוד: מתאים לכיתה ועדיין לא הושלם */
 function recommend(state: State, grade: number): Topic | null {
   const open = topics.filter((t) => stars(state, t.id) < 3);
   const fits = open.filter((t) => t.grades[0] <= grade && grade <= t.grades[1]);
+  const seen = fits.find((t) => state.activeId && state.progress[state.activeId]?.[t.id]?.seen);
+  if (seen) return seen;
   if (fits.length) return fits[0];
   const below = open.filter((t) => t.grades[1] < grade).sort((a, b) => b.grades[1] - a.grades[1]);
   return below[0] ?? open[0] ?? null;
@@ -26,74 +30,120 @@ function recommend(state: State, grade: number): Topic | null {
 
 export function Home() {
   const state = useStore();
+  const nav = useNav();
   const profile = activeProfile(state)!;
-  const [stage, setStage] = useState<Stage>(stageOfGrade(profile.grade));
-  const range = STAGES.find((s) => s.id === stage)!.range;
-  const inRange = (g: [number, number]) => g[0] <= range[1] && g[1] >= range[0];
   const next = recommend(state, profile.grade);
+  const nextTrack = next && tracks.find((t) => t.id === next.track)!;
+  const seen = next && state.progress[profile.id]?.[next.id]?.seen;
+  const nextStars = next ? stars(state, next.id) : 0;
 
   return (
-    <div>
-      <h1 className="text-3xl font-extrabold text-indigo-900">
-        שלום, {profile.name} {profile.avatar}
-      </h1>
-      <p className="mt-1 text-lg text-slate-600">מה לומדים היום?</p>
+    <div className="flex flex-col gap-5">
+      <section className="card">
+        <h1 className="font-display text-[40px] font-semibold">שלום, {profile.name}</h1>
+        <p className="mt-1 text-[19px] text-muted">מה לומדים היום?</p>
+        {next && nextTrack && (
+          <a href={`#/topic/${next.id}`} className="tint mt-6 flex flex-wrap items-center gap-x-6 gap-y-4 rounded-[28px] px-7 py-6 text-ink no-underline" style={tc(nextTrack.color)}>
+            <span className="flex min-w-0 flex-[1_1_320px] flex-col gap-0.5">
+              <span className="text-[15px] font-bold" style={{ color: nextTrack.color }}>
+                {seen ? 'ממשיכים מאיפה שעצרת' : 'מומלץ בשבילך'} · {nextTrack.title}
+              </span>
+              <span className="font-display text-[30px] font-semibold">{next.title}</span>
+              <span className="text-[17px] text-muted">{nextStars > 0 ? `השלמת ${nextStars} מתוך 3 רמות.` : next.summary}</span>
+            </span>
+            <span className="rounded-full px-7 py-3.5 font-display text-lg font-semibold text-white" style={{ background: nextTrack.color }}>
+              {seen ? 'ממשיכים ←' : 'מתחילים ←'}
+            </span>
+          </a>
+        )}
+      </section>
 
-      {next && (
-        <a href={`#/topic/${next.id}`} className="mt-5 flex items-center gap-4 rounded-2xl bg-gradient-to-l from-indigo-600 to-indigo-800 p-5 text-white shadow-md hover:from-indigo-500">
-          <span className="text-4xl">{next.icon}</span>
-          <span className="flex-1">
-            <span className="block text-sm font-medium text-indigo-200">מומלץ בשבילך</span>
-            <span className="block text-xl font-bold">{next.title}</span>
-            <span className="block text-indigo-100">{next.summary}</span>
-          </span>
-          <span className="rounded-full bg-amber-400 px-4 py-2 font-bold text-indigo-900">מתחילים ←</span>
-        </a>
-      )}
-
-      <div className="mt-8 flex flex-wrap gap-2" role="tablist" aria-label="סינון לפי שלב לימוד">
-        {STAGES.map((s) => (
-          <button key={s.id} role="tab" aria-selected={stage === s.id} onClick={() => setStage(s.id)} className={`rounded-full px-4 py-2 text-sm font-bold ${stage === s.id ? 'bg-indigo-700 text-white' : 'bg-white text-slate-600 hover:bg-indigo-50'}`}>
-            {s.title}
-          </button>
-        ))}
-      </div>
-
-      {tracks.map((track) => {
-        const ready = topics.filter((t) => t.track === track.id && inRange(t.grades));
-        const soon = soonTopics.filter((t) => t.track === track.id && inRange(t.grades));
-        if (!ready.length && !soon.length) return null;
-        return (
-          <section key={track.id} className="mt-8">
-            <h2 className="mb-3 flex items-center gap-2 text-xl font-bold" style={{ color: track.color }}>
-              <span>{track.icon}</span> {track.title}
-            </h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {ready.map((t) => (
-                <a key={t.id} href={`#/topic/${t.id}`} className="flex flex-col rounded-2xl border-t-4 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" style={{ borderColor: track.color }}>
-                  <span className="flex items-start justify-between gap-2">
-                    <span className="text-lg font-bold">
-                      {t.icon} {t.title}
-                    </span>
-                    <Stars n={stars(state, t.id)} />
+      <section className="card">
+        <h2 className="mb-4 font-display text-2xl font-semibold">המסלולים ל{gname(nav.grade)}</h2>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(300px,100%),1fr))] gap-3">
+          {tracks.map((tr) => {
+            const list = trackTopics(tr.id).filter((t) => inGrade(t, nav.grade));
+            const ready = list.filter((t) => !isSoon(t));
+            const s = ready.reduce((n, t) => n + stars(state, t.id), 0);
+            const tile = (on: boolean) => (
+              <span aria-hidden="true" className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-2xl font-display text-[26px] font-semibold" style={{ background: on ? tr.color : '#efece4', color: on ? '#fff' : '#5b6475' }}>
+                {TRACK_GLYPH[tr.id]}
+              </span>
+            );
+            if (!ready.length)
+              return (
+                <div key={tr.id} className="flex items-center gap-4 rounded-2xl border-[1.5px] border-dashed border-[#9a978e] p-[18px]">
+                  {tile(false)}
+                  <span className="flex flex-1 flex-col gap-0.5">
+                    <span className="font-display text-[21px] font-semibold text-muted">{tr.title}</span>
+                    <span className="text-[15px] text-muted">{list.length ? `בקרוב ל${gname(nav.grade)}` : 'מתחיל בכיתות גבוהות יותר'}</span>
                   </span>
-                  <span className="mt-1 flex-1 text-sm text-slate-600">{t.summary}</span>
-                  <span className="mt-3 self-start rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{gradeLabel(t.grades)}</span>
-                </a>
-              ))}
-              {soon.map((t) => (
-                <div key={t.id} className="flex flex-col rounded-2xl border border-dashed border-slate-300 p-4 text-slate-400">
-                  <span className="flex items-start justify-between gap-2">
-                    <span className="font-bold">{t.title}</span>
-                    <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-bold text-slate-500">בקרוב</span>
-                  </span>
-                  <span className="mt-3 self-start text-xs">{gradeLabel(t.grades)}</span>
                 </div>
-              ))}
-            </div>
-          </section>
-        );
-      })}
+              );
+            return (
+              <a key={tr.id} href={`#/track/${tr.id}`} className="flex items-center gap-4 rounded-2xl bg-[#f6f4ee] p-[18px] text-ink no-underline hover:bg-sand">
+                {tile(true)}
+                <span className="flex flex-1 flex-col gap-0.5">
+                  <span className="font-display text-[21px] font-semibold">{tr.title}</span>
+                  <span className="text-[15px] text-muted">{ready.length === 1 ? 'נושא אחד' : `${ready.length} נושאים`}</span>
+                </span>
+                {s > 0 && (
+                  <span className="flex items-center gap-1 text-[#b7791f]">
+                    <StarIcon />
+                    <span className="text-muted">{s}</span>
+                  </span>
+                )}
+              </a>
+            );
+          })}
+        </div>
+      </section>
     </div>
+  );
+}
+
+export function TrackPage({ id }: { id: string }) {
+  const state = useStore();
+  const nav = useNav();
+  const tr = tracks.find((t) => t.id === id);
+  if (!tr) return <Home />;
+  const list = trackTopics(id).filter((t) => inGrade(t, nav.grade));
+  return (
+    <section className="card border-t-4" style={{ borderColor: tr.color }}>
+      <p className="flex items-center gap-2 font-semibold" style={{ color: tr.color }}>
+        <span className="h-2.5 w-2.5 rounded-full" style={{ background: tr.color }} />
+        {gname(nav.grade)}
+      </p>
+      <h1 className="mb-5 mt-1 font-display text-[40px] font-semibold">{tr.title}</h1>
+      {list.length === 0 && <p className="text-lg text-muted">אין במסלול הזה נושאים ל{gname(nav.grade)}. אפשר לבחור כיתה אחרת בתפריט למעלה.</p>}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(280px,100%),1fr))] gap-3">
+        {list.map((t) =>
+          isSoon(t) ? (
+            <div key={t.id} className="flex flex-col gap-2 rounded-2xl border-[1.5px] border-dashed border-[#9a978e] p-4 text-muted">
+              <span className="flex items-start justify-between gap-2 font-display text-lg font-semibold">
+                {t.title}
+                <span className="shrink-0 rounded-full bg-sand px-2 py-0.5 font-sans text-xs font-bold">בקרוב</span>
+              </span>
+              <span className="text-sm">{gradeLabel(t.grades)}</span>
+            </div>
+          ) : (
+            <a key={t.id} href={`#/topic/${t.id}`} className="flex flex-col gap-1 rounded-2xl bg-[#f6f4ee] p-4 text-ink no-underline hover:bg-sand">
+              <span className="flex items-start justify-between gap-2">
+                <span className="font-display text-lg font-semibold">{t.title}</span>
+                <span className="flex shrink-0 text-[#b7791f]" aria-label={`${stars(state, t.id)} מתוך 3 כוכבים`}>
+                  {[0, 1, 2].map((i) => (
+                    <span key={i} className={i < stars(state, t.id) ? '' : 'opacity-25'}>
+                      <StarIcon size={16} />
+                    </span>
+                  ))}
+                </span>
+              </span>
+              <span className="flex-1 text-[15px] text-muted">{t.summary}</span>
+              <span className="mt-2 self-start rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-muted">{gradeLabel(t.grades)}</span>
+            </a>
+          ),
+        )}
+      </div>
+    </section>
   );
 }

@@ -1,109 +1,257 @@
 import { useState } from 'react';
-import { signIn, useAuth } from '../lib/cloud';
-import { addProfile, deleteProfile, selectProfile, useStore } from '../lib/store';
+import { signIn, signOutUser, useAuth } from '../lib/cloud';
+import { go } from '../lib/nav';
+import { addProfile, deleteProfile, PROFILE_COLORS, selectProfile, totals, useStore } from '../lib/store';
 import { GRADE_NAMES } from '../lib/types';
+import { Avatar, CheckIcon, Logo, StarIcon, StepNum } from './ui';
 
-const AVATARS = ['🦊', '🐼', '🦁', '🐸', '🦄', '🐙', '🦉', '🐬', '🚀', '⚽', '🎸', '🌈'];
-
-export function Profiles() {
-  const state = useStore();
-  const auth = useAuth();
-  const [adding, setAdding] = useState(state.profiles.length === 0);
-  const [name, setName] = useState('');
-  const [avatar, setAvatar] = useState(AVATARS[0]);
-  const [grade, setGrade] = useState(4);
-  const [confirmDel, setConfirmDel] = useState<string | null>(null);
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-    addProfile(name.trim(), avatar, grade);
-  };
-
+function BareHeader({ end }: { end?: React.ReactNode }) {
   return (
-    <div className="mx-auto max-w-xl">
-      <h1 className="mb-2 text-center text-3xl font-extrabold text-indigo-900">ברוכים הבאים למתמטי-קל</h1>
-      <p className="mb-8 text-center text-lg text-slate-600">לומדים ומתרגלים מתמטיקה בקצב שלכם, מכיתה א' ועד י"ב.</p>
+    <header className="bg-ink">
+      <div className="mx-auto flex max-w-[1240px] items-center gap-4 px-4 sm:px-6">
+        <Logo />
+        <div className="flex-1" />
+        {end}
+      </div>
+    </header>
+  );
+}
 
-      {state.profiles.length > 0 && !adding && (
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-xl font-bold">מי לומד עכשיו?</h2>
-          <ul className="grid gap-3 sm:grid-cols-2">
+function AuthCorner() {
+  const auth = useAuth();
+  if (!auth.configured || !auth.ready) return null;
+  return auth.user ? (
+    <div className="flex items-center gap-3">
+      <span className="hidden text-sm text-[#c9cfdb] sm:inline">מחובר: {auth.user.name}</span>
+      <button type="button" onClick={signOutUser} className="min-h-10 rounded-full border border-[#c9cfdb] px-4 text-[15px] font-semibold text-white">
+        התנתקות
+      </button>
+    </div>
+  ) : (
+    <button type="button" onClick={signIn} className="min-h-10 rounded-full bg-white px-4 text-[15px] font-bold text-ink">
+      התחברות
+    </button>
+  );
+}
+
+/* ---------- ברוכים הבאים ---------- */
+
+const STEPS = [
+  ['לומדים', 'הסבר קצר וברור, עם שרטוטים ושיטת עבודה.', '#db2777'],
+  ['דוגמאות פתורות', 'פתרון שנחשף צעד אחר צעד.', '#059669'],
+  ['מתרגלים', 'שלוש רמות, רמז כשנתקעים ופתרון מלא לכל שאלה.', '#4f46e5'],
+] as const;
+
+function Frac({ n, d }: { n: number; d: number }) {
+  return (
+    <span className="inline-flex flex-col items-center leading-[1.15]">
+      <span className="border-b-2 border-current px-1.5">{n}</span>
+      <span>{d}</span>
+    </span>
+  );
+}
+
+export function Welcome() {
+  const auth = useAuth();
+  const pink = '#db2777';
+  return (
+    <>
+      <BareHeader />
+      <main className="mx-auto flex max-w-[1040px] flex-col gap-5 px-4 pb-16 pt-8 sm:px-6 sm:pt-12">
+        <section className="card flex flex-wrap items-center gap-x-14 gap-y-10 sm:p-10">
+          <div className="flex min-w-0 flex-[1_1_400px] flex-col gap-7">
+            <div>
+              <h1 className="font-display text-[44px] font-semibold leading-tight sm:text-[52px]">מתמטי-קל</h1>
+              <p className="mt-2 text-[22px] leading-normal">
+                מתמטיקה <span className="marker">מאפס לאינסוף</span>, מכיתה א' ועד י"ב, בקצב שלכם.
+              </p>
+            </div>
+            <ol className="flex flex-col gap-4">
+              {STEPS.map(([t, d, c], i) => (
+                <li key={t} className="flex items-start gap-3.5">
+                  <StepNum n={i + 1} color={c} />
+                  <span className="flex flex-col">
+                    <span className="font-display text-xl font-semibold">{t}</span>
+                    <span className="text-[17px] text-muted">{d}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div aria-hidden="true" className="flex min-w-[260px] flex-[0_1_380px] flex-col gap-4 rounded-2xl border-t-4 bg-white p-6 shadow-[0_1px_3px_rgba(29,36,51,0.12)]" style={{ borderColor: pink }}>
+            <p className="flex items-center gap-2 text-[15px] font-semibold" style={{ color: pink }}>
+              <span className="h-2.5 w-2.5 rounded-full" style={{ background: pink }} />
+              שברים ואחוזים · תרגול
+            </p>
+            <div dir="ltr" className="flex items-center justify-center gap-3 font-display text-[32px] font-medium">
+              <Frac n={2} d={7} />+<Frac n={3} d={7} />=
+              <span className="rounded-md bg-marker px-2 py-1">
+                <Frac n={5} d={7} />
+              </span>
+            </div>
+            <p className="tint flex items-center gap-2 self-center rounded-full px-4 py-2 font-display text-lg font-semibold" style={{ ['--tc' as string]: pink, color: pink }}>
+              <CheckIcon size={20} />
+              נכון מאוד!
+            </p>
+          </div>
+        </section>
+        <section className="card flex flex-wrap items-center gap-x-12 gap-y-6 sm:px-10 sm:py-8">
+          <div className="flex flex-[1_1_360px] flex-col gap-1.5">
+            <h2 className="font-display text-[26px] font-semibold">מתחילים</h2>
+            <p className="text-[17px] leading-relaxed text-muted">
+              חשבון אחד למשפחה, עם פרופיל נפרד לכל ילד.
+              {auth.configured && ' מתחברים עם חשבון Google של ההורה, ולילדים לא צריך אימייל.'}
+            </p>
+          </div>
+          <div className="flex flex-[0_1_340px] flex-col gap-2.5">
+            {auth.configured && (
+              <>
+                <button type="button" onClick={signIn} className="flex min-h-14 items-center justify-center gap-3 rounded-full bg-ink font-display text-[19px] font-semibold text-white">
+                  התחברות עם Google
+                </button>
+                <p className="text-center text-sm text-muted">ההתקדמות נשמרת, ואפשר להמשיך מכל מכשיר.</p>
+              </>
+            )}
+            <a href="#/new-profile" className="mt-1.5 flex min-h-12 items-center justify-center rounded-full bg-sand text-[17px] font-semibold text-ink no-underline">
+              {auth.configured ? 'להמשיך בלי חשבון' : 'יוצאים לדרך'}
+            </a>
+            {auth.configured && <p className="text-center text-sm text-muted">ההתקדמות תישמר רק במכשיר הזה.</p>}
+          </div>
+        </section>
+      </main>
+    </>
+  );
+}
+
+/* ---------- מי לומד עכשיו? ---------- */
+
+export function ProfileList() {
+  const state = useStore();
+  const [confirm, setConfirm] = useState<string | null>(null);
+  return (
+    <>
+      <BareHeader end={<AuthCorner />} />
+      <main className="mx-auto max-w-[640px] px-4 pb-16 pt-9 sm:px-6">
+        <section className="card sm:p-8">
+          <h1 className="font-display text-4xl font-semibold">מי לומד עכשיו?</h1>
+          <p className="mb-5 mt-1 text-lg text-muted">בחרו פרופיל כדי להמשיך מאיפה שעצרתם.</p>
+          <ul className="flex flex-col gap-2.5">
             {state.profiles.map((p) => (
               <li key={p.id} className="flex items-center gap-2">
-                <button onClick={() => selectProfile(p.id)} className="flex flex-1 items-center gap-3 rounded-xl border-2 border-indigo-100 p-3 text-start hover:border-indigo-400 hover:bg-indigo-50">
-                  <span className="text-3xl">{p.avatar}</span>
-                  <span>
-                    <span className="block font-bold">{p.name}</span>
-                    <span className="text-sm text-slate-500">כיתה {GRADE_NAMES[p.grade]}</span>
+                <button type="button" onClick={() => selectProfile(p.id)} className="flex min-h-16 flex-1 items-center gap-3.5 rounded-[14px] bg-[#f6f4ee] px-3.5 py-2 text-start hover:bg-sand">
+                  <Avatar profile={p} />
+                  <span className="flex flex-1 flex-col">
+                    <span className="font-display text-xl font-semibold">{p.name}</span>
+                    <span className="text-[15px] text-muted">כיתה {GRADE_NAMES[p.grade]}</span>
+                  </span>
+                  <span className="flex items-center gap-1 font-bold text-[#b7791f]">
+                    <StarIcon />
+                    <span className="text-ink">{totals(state, p.id).stars}</span>
                   </span>
                 </button>
-                {confirmDel === p.id ? (
-                  <button onClick={() => deleteProfile(p.id)} className="rounded-lg bg-red-600 px-2 py-1 text-xs font-bold text-white">
+                {confirm === p.id ? (
+                  <button type="button" onClick={() => deleteProfile(p.id)} className="min-h-11 rounded-full bg-red-700 px-3 text-sm font-bold text-white">
                     למחוק?
                   </button>
                 ) : (
-                  <button onClick={() => setConfirmDel(p.id)} className="rounded-lg px-2 py-1 text-slate-400 hover:text-red-600" aria-label={`מחיקת הפרופיל של ${p.name}`}>
+                  <button type="button" onClick={() => setConfirm(p.id)} aria-label={`מחיקת הפרופיל של ${p.name}`} className="grid h-11 w-11 place-items-center rounded-full text-xl text-muted hover:text-red-700">
                     ✕
                   </button>
                 )}
               </li>
             ))}
           </ul>
-          <button onClick={() => setAdding(true)} className="mt-5 font-bold text-indigo-700 hover:underline">
+          <a href="#/new-profile" className="mt-5 inline-flex min-h-11 items-center font-display text-lg font-semibold text-ink">
             + פרופיל חדש
-          </button>
+          </a>
         </section>
-      )}
+      </main>
+    </>
+  );
+}
 
-      {adding && (
-        <form onSubmit={submit} className="rounded-2xl bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-xl font-bold">פרופיל חדש</h2>
-          <label className="mb-1 block font-medium" htmlFor="pname">
-            איך קוראים לך?
-          </label>
-          <input id="pname" value={name} onChange={(e) => setName(e.target.value)} maxLength={20} autoFocus className="mb-5 w-full rounded-xl border-2 border-slate-200 px-4 py-2 text-lg focus:border-indigo-500 focus:outline-none" />
+/* ---------- פרופיל חדש ---------- */
 
-          <span className="mb-1 block font-medium">בחרו דמות</span>
-          <div className="mb-5 flex flex-wrap gap-2">
-            {AVATARS.map((a) => (
-              <button type="button" key={a} onClick={() => setAvatar(a)} aria-pressed={avatar === a} className={`grid h-11 w-11 place-items-center rounded-xl text-2xl ${avatar === a ? 'bg-amber-300 ring-2 ring-amber-500' : 'bg-slate-100 hover:bg-slate-200'}`}>
-                {a}
-              </button>
-            ))}
+export function NewProfile() {
+  const state = useStore();
+  const [name, setName] = useState('');
+  const [color, setColor] = useState(1);
+  const [grade, setGrade] = useState(4);
+  const initial = name.trim().charAt(0) || '?';
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    addProfile(name.trim(), color, grade);
+    go('#/');
+  };
+
+  return (
+    <>
+      <BareHeader
+        end={
+          state.profiles.length > 0 && (
+            <a href="#/" className="text-[15px] font-semibold text-white">
+              → חזרה לרשימת הפרופילים
+            </a>
+          )
+        }
+      />
+      <main className="mx-auto max-w-[640px] px-4 pb-16 pt-9 sm:px-6">
+        <form onSubmit={submit} className="card flex flex-col gap-7 sm:p-8">
+          <div>
+            <h1 className="font-display text-[40px] font-semibold">פרופיל חדש</h1>
+            <p className="mt-1 text-[19px] text-muted">כמה פרטים קטנים, ומתחילים ללמוד.</p>
           </div>
-
-          <span className="mb-1 block font-medium">באיזו כיתה?</span>
-          <div className="mb-6 flex flex-wrap gap-2">
-            {GRADE_NAMES.slice(1).map((g, i) => (
-              <button type="button" key={g} onClick={() => setGrade(i + 1)} aria-pressed={grade === i + 1} className={`min-w-11 rounded-xl px-3 py-2 font-bold ${grade === i + 1 ? 'bg-indigo-600 text-white' : 'bg-slate-100 hover:bg-slate-200'}`}>
-                {g}
-              </button>
-            ))}
+          <div>
+            <label htmlFor="pname" className="mb-2 block font-display text-xl font-semibold">
+              איך קוראים לך?
+            </label>
+            <input id="pname" value={name} onChange={(e) => setName(e.target.value)} maxLength={20} autoFocus className="h-14 w-full max-w-[360px] rounded-[14px] border-2 border-ink bg-white px-4 text-xl" />
           </div>
-
-          <div className="flex items-center gap-4">
-            <button type="submit" disabled={!name.trim()} className="rounded-xl bg-indigo-600 px-8 py-3 font-bold text-white shadow hover:bg-indigo-700 disabled:bg-slate-300">
-              יוצאים לדרך
+          <fieldset>
+            <legend className="font-display text-xl font-semibold">בחרו צבע לפרופיל שלך</legend>
+            <p className="mb-2.5 text-[15px] text-muted">כך נזהה אותך ברשימת הפרופילים.</p>
+            <div className="flex flex-wrap gap-3">
+              {PROFILE_COLORS.map((c, i) => (
+                <button
+                  key={c}
+                  type="button"
+                  aria-label={`צבע ${i + 1}`}
+                  aria-pressed={color === i}
+                  onClick={() => setColor(i)}
+                  className="grid h-12 w-12 place-items-center rounded-full font-display text-[22px] font-semibold text-white"
+                  style={{ background: c, boxShadow: color === i ? '0 0 0 3px #fff, 0 0 0 6px #1d2433' : undefined }}
+                >
+                  {initial}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend className="mb-2 font-display text-xl font-semibold">באיזו כיתה?</legend>
+            <div className="flex flex-wrap gap-2">
+              {GRADE_NAMES.slice(1).map((g, i) => (
+                <button
+                  key={g}
+                  type="button"
+                  aria-pressed={grade === i + 1}
+                  onClick={() => setGrade(i + 1)}
+                  className={`min-h-12 min-w-12 rounded-[14px] px-3 font-display text-lg ${grade === i + 1 ? 'bg-ink font-semibold text-white' : 'bg-sand font-medium'}`}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-[15px] text-muted">לפי הכיתה נבחר אילו נושאים להציג קודם. תמיד אפשר לעבור לכיתות אחרות.</p>
+          </fieldset>
+          <div>
+            <button type="submit" disabled={!name.trim()} className="rounded-full bg-ink px-10 py-4 font-display text-xl font-semibold text-white disabled:bg-[#9a978e]">
+              יוצאים לדרך ←
             </button>
-            {state.profiles.length > 0 && (
-              <button type="button" onClick={() => setAdding(false)} className="text-slate-500 hover:underline">
-                ביטול
-              </button>
-            )}
           </div>
         </form>
-      )}
-
-      {auth.configured && auth.ready && !auth.user && (
-        <p className="mt-6 text-center text-slate-600">
-          כבר יש לכם חשבון?{' '}
-          <button onClick={signIn} className="font-bold text-indigo-700 hover:underline">
-            התחברו עם Google
-          </button>{' '}
-          כדי לשמור את ההתקדמות ולהמשיך מכל מכשיר.
-        </p>
-      )}
-    </div>
+      </main>
+    </>
   );
 }

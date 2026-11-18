@@ -25,8 +25,10 @@ export interface Question {
   figure?: Figure;
   answer: Answer;
   hint: string;
-  /** פתרון מלא, צעד אחר צעד */
+  /** פתרון מלא: כל שורה שהתלמיד כותב במחברת */
   solution: string[];
+  /** פתרון רגיל, בלי שורות הביניים. אם חסר, מוצג רק הפתרון המלא */
+  short?: string[];
 }
 
 export interface Example {
@@ -70,6 +72,8 @@ export interface SoonTopic {
 export interface Track {
   id: string;
   title: string;
+  /** שם קצר ללשונית בהאדר */
+  short: string;
   icon: string;
   color: string;
 }

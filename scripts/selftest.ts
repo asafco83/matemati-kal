@@ -39,6 +39,8 @@ function checkQuestion(where: string, q: Question) {
   checkTex(where, q.hint);
   if (!q.solution.length) fail(where, 'אין פתרון');
   q.solution.forEach((s) => checkTex(where, s));
+  q.short?.forEach((s) => checkTex(where, s));
+  if (q.short && q.short.length > q.solution.length) fail(where, 'הפתרון המקוצר ארוך מהמלא');
   const a = q.answer;
   if (a.type === 'number') {
     if (!Number.isFinite(a.value)) fail(where, `תשובה לא סופית: ${a.value}`);

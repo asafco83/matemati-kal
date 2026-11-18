@@ -1,13 +1,55 @@
 @import "tailwindcss";
 @import "katex/dist/katex.min.css";
 
+/*
+ * עיצוב I: אדר כהה, תיבות לבנות על רקע מחברת משובצת עדין,
+ * כותרות ומספרים בגופן עגול (Fredoka), טקסט רץ ב-Assistant.
+ */
 @theme {
-  --font-sans: "Rubik", "Heebo", "Arial Hebrew", Arial, sans-serif;
+  --font-sans: "Assistant", "Arial Hebrew", Arial, sans-serif;
+  --font-display: "Fredoka", Arial, sans-serif;
+  --color-ink: #1d2433;
+  --color-muted: #5b6475;
+  --color-line: #dedbd2;
+  --color-sand: #efece4;
+  --color-paper: #f8f7f2;
+  --color-marker: #ffe45c;
+  --color-sun: #ffd43b;
+  --color-slate-nav: #33405e;
+  --color-dim: #8791a5;
 }
 
 html {
-  background: #f5f5fb;
-  color: #1f2340;
+  color: var(--color-ink);
+  background-color: var(--color-paper);
+  background-image:
+    linear-gradient(rgba(52, 104, 190, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 104, 190, 0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(29, 36, 51, 0.12);
+  padding: 24px;
+}
+
+/* צבע המסלול מגיע במשתנה --tc; הגוון הבהיר נגזר ממנו */
+.tint {
+  background: color-mix(in srgb, var(--tc) 13%, white);
+}
+
+.marker {
+  background: var(--color-marker);
+  padding: 0 4px;
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 .katex {

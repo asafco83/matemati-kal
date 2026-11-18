@@ -119,6 +119,15 @@ const quadratics: Topic = {
       answer: { type: 'multi', labels: ['x₁', 'x₂'], values: [q / p, r], ordered: false },
       hint: 'הציבו בנוסחת השורשים. חשבו קודם את הדיסקרימיננטה.',
       solution: [
+        `מזהים את המקדמים: $a = ${a}$, $b = ${b}$, $c = ${c}$`,
+        `דיסקרימיננטה: $\\Delta = b^2 - 4ac = ${par(b)}^2 - 4 \\cdot ${a} \\cdot ${par(c)}$`,
+        `$\\Delta = ${b * b} - ${par(4 * a * c)} = ${b * b} ${sgn(-4 * a * c)} = ${disc}$`,
+        `$\\sqrt{\\Delta} = \\sqrt{${disc}} = ${sq}$, כי $${sq} \\cdot ${sq} = ${disc}$`,
+        `מציבים בנוסחת השורשים: $x_{1,2} = \\frac{-b \\pm \\sqrt{\\Delta}}{2a} = \\frac{-${par(b)} \\pm ${sq}}{2 \\cdot ${a}} = \\frac{${-b} \\pm ${sq}}{${2 * a}}$`,
+        `$x_1 = \\frac{${-b} + ${sq}}{${2 * a}} = ${rawFrac(-b + sq, 2 * a)}${gcd(-b + sq, 2 * a) !== 1 && -b + sq !== 0 ? ` = ${fracTex(-b + sq, 2 * a)}` : ''}$`,
+        `$x_2 = \\frac{${-b} - ${sq}}{${2 * a}} = ${rawFrac(-b - sq, 2 * a)}${gcd(-b - sq, 2 * a) !== 1 && -b - sq !== 0 ? ` = ${fracTex(-b - sq, 2 * a)}` : ''}$`,
+      ],
+      short: [
         `מזהים: $a = ${a}$, $b = ${b}$, $c = ${c}$`,
         `דיסקרימיננטה: $\\Delta = ${par(b)}^2 - 4 \\cdot ${a} \\cdot ${par(c)} = ${b * b} ${sgn(-4 * a * c)} = ${disc}$`,
         `$\\sqrt{${disc}} = ${sq}$`,

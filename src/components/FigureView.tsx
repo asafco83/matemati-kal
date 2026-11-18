@@ -1,13 +1,14 @@
 import type { Figure } from '../lib/types';
 
-const INK = '#312e81';
-const FILL = '#e0e7ff';
-const ACCENT = '#f59e0b';
+const INK = '#1d2433';
+/** גוון בהיר של צבע המסלול (המשתנה --tc מוגדר בדף הנושא) */
+const FILL = 'color-mix(in srgb, var(--tc, #4f46e5) 13%, white)';
+const ACCENT = '#f5b400';
 
 function Label({ x, y, children, anchor = 'middle', bold }: { x: number; y: number; children: string; anchor?: 'start' | 'middle' | 'end'; bold?: boolean }) {
   const q = children === '?';
   return (
-    <text x={x} y={y} textAnchor={anchor} dominantBaseline="middle" fontSize={q ? 20 : 15} fontWeight={q || bold ? 800 : 500} fill={q ? '#dc2626' : INK} style={{ direction: 'ltr', unicodeBidi: 'plaintext' }}>
+    <text x={x} y={y} textAnchor={anchor} dominantBaseline="middle" fontSize={q ? 20 : 16} fontWeight={q || bold ? 700 : 500} fontFamily="Fredoka, Arial, sans-serif" fill={q ? 'var(--tc, #b3261e)' : INK} style={{ direction: 'ltr', unicodeBidi: 'plaintext' }}>
       {children}
     </text>
   );
@@ -18,7 +19,7 @@ export function FigureView({ fig }: { fig: Figure }) {
     case 'rect':
       return (
         <svg viewBox="0 0 260 150" className="mx-auto w-full max-w-[260px]" role="img" aria-label="מלבן">
-          <rect x="50" y="20" width="160" height="90" fill={FILL} stroke={INK} strokeWidth="2.5" rx="2" />
+          <rect x="50" y="20" width="160" height="90" style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" rx="2" />
           <Label x={130} y={128}>{fig.w}</Label>
           <Label x={44} y={65} anchor="end">{fig.h}</Label>
         </svg>
@@ -30,7 +31,7 @@ export function FigureView({ fig }: { fig: Figure }) {
       const C = [40, 25];
       return (
         <svg viewBox="0 0 270 160" className="mx-auto w-full max-w-[270px]" role="img" aria-label="משולש ישר זווית">
-          <polygon points={`${A} ${B} ${C}`} fill={FILL} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          <polygon points={`${A} ${B} ${C}`} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
           <path d="M40 116 h14 v14" fill="none" stroke={INK} strokeWidth="1.5" />
           {fig.angle && (
             <>
@@ -49,7 +50,7 @@ export function FigureView({ fig }: { fig: Figure }) {
       return (
         <svg viewBox="0 0 300 165" className="mx-auto w-full max-w-[300px]" role="img" aria-label="משולש">
           {fig.ext !== undefined && <line x1="215" y1="135" x2="285" y2="135" stroke={INK} strokeWidth="2" strokeDasharray="5 4" />}
-          <polygon points="30,135 215,135 135,20" fill={FILL} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          <polygon points="30,135 215,135 135,20" style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
           {a && <Label x={66} y={122}>{a}</Label>}
           {b && <Label x={186} y={122}>{b}</Label>}
           {c && <Label x={134} y={52}>{c}</Label>}

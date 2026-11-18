@@ -244,11 +244,11 @@ const fractionsAdd: Topic = {
       },
       {
         title: 'מכנים שווים: מחברים רק מונים',
-        body: 'כשהחלקים באותו גודל, פשוט סופרים אותם: $\\frac{2}{7} + \\frac{3}{7} = \\frac{5}{7}$. המכנה לא משתנה, כי גודל החלקים לא השתנה.',
+        body: 'כשהחלקים באותו גודל, פשוט סופרים אותם: $\\frac{2}{7} + \\frac{3}{7} = \\frac{2 + 3}{7} = \\frac{5}{7}$. המכנה לא משתנה, כי גודל החלקים לא השתנה.',
       },
       {
         title: 'מכנים שונים: קודם מרחיבים',
-        body: 'אי אפשר לחבר חצאים עם שלישים, כי החלקים בגודל שונה. מרחיבים את השברים למכנה משותף: כופלים מונה ומכנה באותו מספר, והשבר לא משנה את ערכו. למשל $\\frac{1}{2} = \\frac{3}{6}$ ו-$\\frac{1}{3} = \\frac{2}{6}$.',
+        body: 'אי אפשר לחבר חצאים עם שלישים, כי החלקים בגודל שונה. מרחיבים את השברים למכנה משותף: כופלים מונה ומכנה באותו מספר, והשבר לא משנה את ערכו. למשל $\\frac{1}{2} = \\frac{1 \\times 3}{2 \\times 3} = \\frac{3}{6}$ ו-$\\frac{1}{3} = \\frac{1 \\times 2}{3 \\times 2} = \\frac{2}{6}$.',
       },
     ],
     method: [
@@ -263,9 +263,9 @@ const fractionsAdd: Topic = {
         problem: 'חשבו: $\\frac{1}{2} + \\frac{1}{3}$',
         steps: [
           'המכנים שונים. המכנה המשותף של 2 ו-3 הוא 6.',
-          'מרחיבים: $\\frac{1}{2} = \\frac{3}{6}$ (כפלנו ב-3)',
-          'מרחיבים: $\\frac{1}{3} = \\frac{2}{6}$ (כפלנו ב-2)',
-          'מחברים מונים: $\\frac{3}{6} + \\frac{2}{6} = \\frac{5}{6}$',
+          'מרחיבים: $\\frac{1}{2} = \\frac{1 \\times 3}{2 \\times 3} = \\frac{3}{6}$',
+          'מרחיבים: $\\frac{1}{3} = \\frac{1 \\times 2}{3 \\times 2} = \\frac{2}{6}$',
+          'מחברים מונים: $\\frac{3}{6} + \\frac{2}{6} = \\frac{3 + 2}{6} = \\frac{5}{6}$',
         ],
       },
       {
@@ -273,8 +273,8 @@ const fractionsAdd: Topic = {
         steps: [
           '6 מתחלק ב-3, אז המכנה המשותף הוא 6.',
           'מרחיבים רק את השבר השני: $\\frac{1}{3} = \\frac{2}{6}$',
-          'מחסרים מונים: $\\frac{5}{6} - \\frac{2}{6} = \\frac{3}{6}$',
-          'מצמצמים ב-3: $\\frac{3}{6} = \\frac{1}{2}$',
+          'מחסרים מונים: $\\frac{5}{6} - \\frac{2}{6} = \\frac{5 - 2}{6} = \\frac{3}{6}$',
+          'מצמצמים ב-3: $\\frac{3}{6} = \\frac{3 \\div 3}{6 \\div 3} = \\frac{1}{2}$',
         ],
       },
     ],
@@ -314,17 +314,34 @@ const fractionsAdd: Topic = {
     const e2 = (n2 * m) / d2;
     const rn = plus ? e1 + e2 : e1 - e2;
     const op = plus ? '+' : '-';
+    // solution: כל שורה שנכתבת במחברת. short: הפתרון הרגיל, בלי שורות הביניים
     const solution: string[] = [];
+    const short: string[] = [];
+    const both = (x: string) => {
+      solution.push(x);
+      short.push(x);
+    };
     if (d1 === d2) {
-      solution.push('המכנים שווים, אז מחברים או מחסרים רק את המונים.');
+      both('המכנים שווים, אז מחברים או מחסרים רק את המונים. המכנה נשאר.');
     } else {
-      solution.push(`המכנה המשותף של ${d1} ו-${d2} הוא ${m}.`);
-      if (m !== d1) solution.push(`מרחיבים: $${rawFrac(n1, d1)} = ${rawFrac(e1, m)}$ (כפלנו ב-${m / d1})`);
-      if (m !== d2) solution.push(`מרחיבים: $${rawFrac(n2, d2)} = ${rawFrac(e2, m)}$ (כפלנו ב-${m / d2})`);
+      both(`המכנה המשותף של ${d1} ו-${d2} הוא ${m}.`);
+      for (const [n, d, e] of [
+        [n1, d1, e1],
+        [n2, d2, e2],
+      ]) {
+        if (m === d) continue;
+        const k = m / d;
+        solution.push(`מרחיבים: $${rawFrac(n, d)} = \\frac{${n} \\times ${k}}{${d} \\times ${k}} = ${rawFrac(e, m)}$`);
+        short.push(`מרחיבים: $${rawFrac(n, d)} = ${rawFrac(e, m)}$ (כפלנו ב-${k})`);
+      }
     }
-    solution.push(`$${rawFrac(e1, m)} ${op} ${rawFrac(e2, m)} = ${rawFrac(rn, m)}$`);
+    solution.push(`$${rawFrac(e1, m)} ${op} ${rawFrac(e2, m)} = \\frac{${e1} ${op} ${e2}}{${m}} = ${rawFrac(rn, m)}$`);
+    short.push(`$${rawFrac(e1, m)} ${op} ${rawFrac(e2, m)} = ${rawFrac(rn, m)}$`);
     const g = gcd(rn, m);
-    if (g > 1) solution.push(`מצמצמים ב-${g}: $${rawFrac(rn, m)} = ${fracTex(rn, m)}$`);
+    if (g > 1) {
+      solution.push(`מצמצמים ב-${g}: $${rawFrac(rn, m)} = \\frac{${rn} \\div ${g}}{${m} \\div ${g}} = ${fracTex(rn, m)}$`);
+      short.push(`מצמצמים ב-${g}: $${rawFrac(rn, m)} = ${fracTex(rn, m)}$`);
+    }
     return {
       text: 'חשבו וכתבו את התוצאה כשבר:',
       latex: `${rawFrac(n1, d1)} ${op} ${rawFrac(n2, d2)}`,
@@ -334,6 +351,7 @@ const fractionsAdd: Topic = {
           ? 'המכנים שווים: מחברים או מחסרים את המונים, והמכנה נשאר.'
           : `מצאו מכנה משותף (${m}) והרחיבו את השברים אליו.`,
       solution,
+      short,
     };
   },
 };
