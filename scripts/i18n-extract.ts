@@ -17,7 +17,7 @@ const content = new Map<string, number>();
 const samples = new Map<string, string>();
 const ui = new Set<string>();
 
-const MATH_FIELDS = new Set(['tex', 'latex', 'op']);
+const MATH_FIELDS = new Set(['tex', 'latex', 'op', 'cells']);
 
 function addText(s: string) {
   if (!HEBREW.test(s)) return;

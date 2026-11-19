@@ -1,5 +1,5 @@
 import type { Figure, Topic } from '../lib/types';
-import { L, mixChoice, pick, ri } from '../lib/util';
+import { L, gcd, mixChoice, pick, ri } from '../lib/util';
 
 /* ---------- המעגל: זוויות, מיתרים ומשיק ---------- */
 
@@ -619,4 +619,144 @@ const measures: Topic = {
   },
 };
 
-export const extraTopics: Topic[] = [rounding, measures, speed, patterns, circleAngles];
+/* ---------- השוואה וסידור של עשרוניים ושברים ---------- */
+
+/** מספר עשרוני כמחרוזת, בלי אפסים מיותרים */
+const dstr = (x: number) => String(Math.round(x * 1000) / 1000);
+const SIGNS = ['$>$', '$<$', '$=$'];
+const signIdx = (a: number, b: number) => (Math.abs(a - b) < 1e-9 ? 2 : a > b ? 0 : 1);
+/** טבלת ערך המקום של מספר עשרוני: אחדות, עשיריות, מאיות, אלפיות */
+const placeTable = (nums: number[]): Figure => ({
+  type: 'table',
+  rows: [
+    { label: '', cells: ['\\text{מספר}', '\\text{אחדות}', '\\text{עשיריות}', '\\text{מאיות}', '\\text{אלפיות}'] },
+    ...nums.map((x) => {
+      const [i, f = ''] = dstr(x).split('.');
+      const d = (f + '000').slice(0, 3).split('');
+      return { label: '', cells: [dstr(x), i, ...d.map((c, k) => (k < f.length ? c : `\\color{#9ca3af}{${c}}`))] };
+    }),
+  ],
+});
+
+const compareNumbers: Topic = {
+  id: 'compare-numbers',
+  track: 'fractions',
+  title: 'השוואה וסידור של עשרוניים ושברים',
+  grades: [4, 6],
+  icon: '⚖️',
+  summary: 'מי גדול יותר: 0.7 או 0.65? $\\frac{2}{3}$ או $\\frac{3}{4}$? משווים ספרה אחרי ספרה, או מביאים למכנה משותף.',
+  levels: ['השוואת עשרוניים', 'הקטן ביותר', 'השוואת שברים'],
+  lesson: {
+    intro: 'מספר עשרוני עם יותר ספרות הוא לא בהכרח גדול יותר: 0.7 גדול מ-0.65. כדי להשוות, משווים לפי ערך המקום, ספרה אחרי ספרה.',
+    before: ['צריך להכיר עשיריות, מאיות ואלפיות.', 'צריך לדעת להרחיב שבר.'],
+    sections: [
+      {
+        title: 'השוואת מספרים עשרוניים',
+        body: 'משווים קודם את השלמים. אם הם שווים, משווים עשיריות, אחר כך מאיות, וכן הלאה. אפשר להוסיף אפסים בסוף כדי שלשני המספרים יהיה אותו מספר ספרות.',
+        detail: [
+          { figure: placeTable([0.7, 0.65]), caption: 'כותבים את המספרים זה מתחת לזה, לפי ערך המקום. האפס האפור נוסף בסוף ולא משנה את המספר.' },
+          'השלמים שווים: 0 ו-0.',
+          'משווים עשיריות: 7 עשיריות לעומת 6 עשיריות. 7 גדול מ-6, ולכן:',
+          { tex: '0.7 > 0.65', why: 'אפשר לחשוב על זה כ-0.70 לעומת 0.65: 70 מאיות לעומת 65 מאיות' },
+          'הוספת אפס בסוף החלק העשרוני לא משנה את המספר: $0.7 = 0.70 = 0.700$.',
+        ],
+      },
+      {
+        title: 'סידור מספרים',
+        body: 'כדי לסדר כמה מספרים מהקטן לגדול, משלימים לכולם אותו מספר ספרות אחרי הנקודה, ואז משווים כמו מספרים שלמים.',
+        detail: [
+          'דוגמה: 0.5, 0.45, 0.405, 0.54.',
+          { tex: '0.500,\\ 0.450,\\ 0.405,\\ 0.540', why: 'משלימים לשלוש ספרות אחרי הנקודה' },
+          'עכשיו משווים כמו 500, 450, 405 ו-540:',
+          { tex: '0.405 < 0.45 < 0.5 < 0.54' },
+        ],
+      },
+      {
+        title: 'השוואת שברים',
+        body: 'שברים עם אותו מכנה: הגדול הוא זה עם המונה הגדול. מכנים שונים: מביאים קודם למכנה משותף.',
+        detail: [
+          '$\\frac{3}{7} < \\frac{5}{7}$: אותם חלקים (שביעיות), ו-3 חלקים פחות מ-5.',
+          'עם אותו מונה, הגדול הוא זה עם המכנה הקטן: $\\frac{1}{3} > \\frac{1}{4}$, כי שליש הוא חלק גדול יותר מרבע.',
+          'מכנים שונים, למשל $\\frac{2}{3}$ ו-$\\frac{3}{4}$. מכנה משותף 12:',
+          { tex: '\\frac{2}{3} = \\frac{8}{12},\\quad \\frac{3}{4} = \\frac{9}{12}', why: 'מרחיבים כל שבר' },
+          { tex: '\\frac{8}{12} < \\frac{9}{12} \\Rightarrow \\frac{2}{3} < \\frac{3}{4}' },
+          'שבר ומספר עשרוני: הופכים את השבר לעשרוני. $\\frac{3}{5} = 0.6$, ולכן $\\frac{3}{5} > 0.55$.',
+        ],
+      },
+    ],
+    method: ['עשרוניים: משלימים אפסים לאותו מספר ספרות, ומשווים ספרה אחרי ספרה משמאל.', 'שברים: מביאים למכנה משותף ומשווים מונים.', 'שבר מול עשרוני: הופכים לאותה צורה.'],
+    examples: [
+      {
+        problem: 'מה גדול יותר: $0.09$ או $0.1$?',
+        steps: [{ tex: '0.09 \\text{ ו-} 0.10', why: 'משלימים לשתי ספרות' }, '9 מאיות לעומת 10 מאיות, ולכן $0.1 > 0.09$.'],
+      },
+    ],
+    tips: ['יותר ספרות לא אומר מספר גדול יותר.', 'אפס בסוף החלק העשרוני לא משנה את המספר.', 'אותו מונה: המכנה הקטן נותן שבר גדול.'],
+  },
+  generate(level) {
+    if (level === 1) {
+      // זוגות שבהם האורך מטעה
+      let a: number, b: number;
+      do {
+        const t = ri(1, 9);
+        a = t / 10;
+        b = (10 * pick([t - 1, t, t + 1]) + ri(1, 9)) / 100;
+        if (Math.random() < 0.15) b = a;
+        if (Math.random() < 0.5) [a, b] = [b, a];
+      } while (a <= 0 || b <= 0 || a >= 1 || b >= 1);
+      const k = signIdx(a, b);
+      return {
+        text: `השלימו את הסימן: $${dstr(a)} \\;\\square\\; ${dstr(b)}$`,
+        figure: placeTable([a, b]),
+        answer: { type: 'choice', options: SIGNS, correct: k },
+        hint: 'משלימים אפס כדי שלשני המספרים יהיו שתי ספרות אחרי הנקודה, ומשווים.',
+        solution: [
+          { tex: `${a.toFixed(2)} \\text{ ו-} ${b.toFixed(2)}`, why: 'משלימים לשתי ספרות אחרי הנקודה' },
+          { tex: `${dstr(a)} ${['>', '<', '='][k]} ${dstr(b)}` },
+        ],
+      };
+    }
+    if (level === 2) {
+      const d = ri(2, 8);
+      const set = [d / 10, (10 * d - ri(1, 9)) / 100, (100 * d - ri(1, 9) * 10 + ri(1, 9)) / 1000, (10 * d + ri(1, 9)) / 100];
+      const uniq = [...new Set(set.map(dstr))].map(Number);
+      if (uniq.length < 4) return compareNumbers.generate(2);
+      const min = Math.min(...uniq);
+      const opts = uniq.map(dstr);
+      const sorted = [...uniq].sort((x, y) => x - y);
+      return {
+        text: 'מהו המספר הקטן ביותר?',
+        figure: placeTable(uniq),
+        answer: mixChoice([dstr(min), ...opts.filter((o) => o !== dstr(min))].map((o) => `$${o}$`)),
+        hint: 'משלימים לכל המספרים שלוש ספרות אחרי הנקודה, ומשווים.',
+        solution: [
+          { tex: uniq.map((x) => x.toFixed(3)).join(',\\ '), why: 'משלימים לשלוש ספרות' },
+          { tex: sorted.map(dstr).join(' < ') },
+          `הקטן ביותר הוא $${dstr(min)}$.`,
+        ],
+      };
+    }
+    // שברים: מכנים שונים
+    let a: number, b: number, c: number, e: number;
+    do {
+      b = ri(2, 9);
+      e = ri(2, 9);
+      a = ri(1, b - 1);
+      c = ri(1, e - 1);
+    } while (b === e || gcd(a, b) !== 1 || gcd(c, e) !== 1);
+    const m = (b * e) / gcd(b, e);
+    const A = a * (m / b), C = c * (m / e);
+    const k = A > C ? 0 : A < C ? 1 : 2;
+    return {
+      text: `השלימו את הסימן: $\\frac{${a}}{${b}} \\;\\square\\; \\frac{${c}}{${e}}$`,
+      answer: { type: 'choice', options: SIGNS, correct: k },
+      hint: 'מביאים את שני השברים למכנה משותף.',
+      solution: [
+        { tex: `\\frac{${a}}{${b}} = \\frac{${A}}{${m}},\\quad \\frac{${c}}{${e}} = \\frac{${C}}{${m}}`, why: `מכנה משותף ${m}` },
+        { tex: `\\frac{${A}}{${m}} ${['>', '<', '='][k]} \\frac{${C}}{${m}} \\Rightarrow \\frac{${a}}{${b}} ${['>', '<', '='][k]} \\frac{${c}}{${e}}` },
+      ],
+    };
+  },
+};
+
+export const extraTopics: Topic[] = [rounding, measures, compareNumbers, speed, patterns, circleAngles];

@@ -9,7 +9,7 @@ import { topics } from '../src/content/index';
 import { localizeMath, setLocaleForTest, tr, trTex } from '../src/i18n';
 import { HEBREW } from '../src/i18n/mask';
 
-const MATH = new Set(['tex', 'latex', 'op']);
+const MATH = new Set(['tex', 'latex', 'op', 'cells']);
 let errors = 0;
 for (const f of readdirSync('src/i18n/locales')) {
   const code = f.replace('.json', '');
