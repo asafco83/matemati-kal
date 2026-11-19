@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Tex } from './Tex';
 import type { Figure } from '../lib/types';
 import { getLocale, localizeNumber, T } from '../i18n';
@@ -172,6 +173,8 @@ export function FigureView({ fig }: { fig: Figure }) {
         </svg>
       );
     }
+    case 'solid':
+      return <Solid fig={fig} />;
     case 'polygon': {
       const pts = Array.from({ length: fig.n }, (_, i) => {
         const t = -Math.PI / 2 + (i * 2 * Math.PI) / fig.n + (fig.n % 2 ? 0 : Math.PI / fig.n);
@@ -429,37 +432,45 @@ export function FigureView({ fig }: { fig: Figure }) {
       );
     }
     case 'graph': {
-      const R = fig.range ?? 8; // טווח הצירים: מ-R- עד R
-      const S = 120 / R;
-      const P = (x: number, y: number) => [140 + x * S, 140 - y * S];
-      const colors = ['#4f46e5', '#db2777'];
+      const R = fig.range ?? 8; // טווח הצירים: מ-R- עד R, או מ-0 עד R ברביע הראשון
+      const q1 = !!fig.q1;
+      const S = q1 ? 240 / R : 120 / R;
+      const O = q1 ? [20, 260] : [140, 140]; // ראשית הצירים
+      const P = (x: number, y: number) => [O[0] + x * S, O[1] - y * S];
+      const lo = q1 ? 0 : -R;
+      const colors = ['#4f46e5', '#db2777', '#059669', '#d97706'];
+      const step = Math.max(1, Math.round(R / (q1 ? 5 : 4)));
       return (
-        <svg viewBox="0 0 280 280" className="mx-auto w-full max-w-[280px]" role="img" aria-label={T('גרף')} style={{ direction: "ltr" }}>
+        <svg viewBox="0 0 280 280" className="mx-auto w-full max-w-[280px]" role="img" aria-label={T('גרף')} style={{ direction: 'ltr' }}>
           <defs>
             <clipPath id="plot"><rect x="20" y="20" width="240" height="240" /></clipPath>
           </defs>
-          {Array.from({ length: 2 * R + 1 }, (_, i) => i - R).map((v) => (
+          {Array.from({ length: R - lo + 1 }, (_, i) => i + lo).map((v) => (
             <g key={v}>
               <line x1={P(v, 0)[0]} y1="20" x2={P(v, 0)[0]} y2="260" stroke="#e5e7eb" strokeWidth="1" />
               <line x1="20" y1={P(0, v)[1]} x2="260" y2={P(0, v)[1]} stroke="#e5e7eb" strokeWidth="1" />
-              {v !== 0 && v % Math.max(1, Math.round(R / 4)) === 0 && (
+              {v !== 0 && v % step === 0 && (
                 <>
-                  <text x={P(v, 0)[0]} y="153" textAnchor="middle" fontSize="9" fill="#6b7280">{v}</text>
-                  <text x="134" y={P(0, v)[1] + 3} textAnchor="end" fontSize="9" fill="#6b7280">{v}</text>
+                  <text x={P(v, 0)[0]} y={O[1] + 13} textAnchor="middle" fontSize="9" fill="#6b7280">{v}</text>
+                  <text x={O[0] - 6} y={P(0, v)[1] + 3} textAnchor="end" fontSize="9" fill="#6b7280">{v}</text>
                 </>
               )}
             </g>
           ))}
-          <line x1="20" y1="140" x2="260" y2="140" stroke="#374151" strokeWidth="1.5" />
-          <line x1="140" y1="20" x2="140" y2="260" stroke="#374151" strokeWidth="1.5" />
-          <text x="264" y="144" fontSize="11" fill="#374151">x</text>
-          <text x="137" y="14" fontSize="11" fill="#374151">y</text>
+          <line x1="20" y1={O[1]} x2="260" y2={O[1]} stroke="#374151" strokeWidth="1.5" />
+          <line x1={O[0]} y1="20" x2={O[0]} y2="260" stroke="#374151" strokeWidth="1.5" />
+          <text x="264" y={O[1] + 4} fontSize="11" fill="#374151">x</text>
+          <text x={O[0] - 3} y="14" fontSize="11" fill="#374151">y</text>
           <g clipPath="url(#plot)">
+            {fig.region && <polygon points={fig.region.map(([x, y]) => P(x, y).join(',')).join(' ')} fill={ACCENT} fillOpacity="0.18" stroke="none" />}
             {fig.lines.map((ln, i) => {
-              const [x1, y1] = P(-R, ln.m * -R + ln.b);
-              const [x2, y2] = P(R, ln.m * R + ln.b);
-              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors[i % 2]} strokeWidth="2.5" />;
+              const [x1, y1] = P(lo - 1, ln.m * (lo - 1) + ln.b);
+              const [x2, y2] = P(R + 1, ln.m * (R + 1) + ln.b);
+              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors[i % colors.length]} strokeWidth="2.5" />;
             })}
+            {(fig.vlines ?? []).map((c, i) => (
+              <line key={`v${i}`} x1={P(c, 0)[0]} y1="20" x2={P(c, 0)[0]} y2="260" stroke={colors[(fig.lines.length + i) % colors.length]} strokeWidth="2.5" />
+            ))}
             {(fig.curves ?? []).map((c, i) => (
               <polyline key={`c${i}`} points={c.map(([x, y]) => P(x, Math.max(-3 * R, Math.min(3 * R, y))).join(',')).join(' ')} fill="none" stroke={colors[(fig.lines.length + i) % 2]} strokeWidth="2.5" strokeLinejoin="round" />
             ))}
@@ -467,6 +478,12 @@ export function FigureView({ fig }: { fig: Figure }) {
               <circle key={i} cx={P(x, y)[0]} cy={P(x, y)[1]} r="4.5" fill={ACCENT} stroke="#fff" strokeWidth="1.5" />
             ))}
           </g>
+          {(fig.pointLabels ?? []).map((l, i) => {
+            const pt = fig.points?.[i];
+            if (!pt) return null;
+            const [x, y] = P(pt[0], pt[1]);
+            return <Label key={`l${i}`} x={x + 9} y={y - 10} anchor="start" bold>{l}</Label>;
+          })}
         </svg>
       );
     }
@@ -816,5 +833,104 @@ function ColumnArith({ top, bottom, op, upto, from }: { top: string; bottom: str
         );
       })}
     </svg>
+  );
+}
+
+/** גופים במרחב: גליל, חרוט, כדור ופירמידה עם בסיס ריבועי. קווים נסתרים מקווקוים, כמו במחברת */
+function Solid({ fig }: { fig: Extract<Figure, { type: 'solid' }> }) {
+  const dash = '6 5';
+  const side = 'color-mix(in srgb, var(--tc, #4f46e5) 22%, white)';
+  const svg = (label: string, children: ReactNode) => (
+    <svg viewBox="0 0 240 215" className="mx-auto w-full max-w-[240px]" role="img" aria-label={label}>
+      {children}
+    </svg>
+  );
+  if (fig.kind === 'cylinder') {
+    const [cx, top, bot, rx, ry] = [120, 40, 175, 70, 17];
+    return svg(
+      T('גליל'),
+      <>
+        <path d={`M${cx - rx},${top} L${cx - rx},${bot} A${rx},${ry} 0 0 0 ${cx + rx},${bot} L${cx + rx},${top} Z`} style={{ fill: side }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+        <path d={`M${cx - rx},${bot} A${rx},${ry} 0 0 1 ${cx + rx},${bot}`} fill="none" stroke={INK} strokeWidth="1.8" strokeDasharray={dash} />
+        <ellipse cx={cx} cy={top} rx={rx} ry={ry} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" />
+        {fig.r && (
+          <>
+            <circle cx={cx} cy={top} r="3" fill={INK} />
+            <line x1={cx} y1={top} x2={cx + rx} y2={top} stroke={INK} strokeWidth="2" />
+            <Label x={cx + rx / 2} y={top - 9}>{fig.r}</Label>
+          </>
+        )}
+        {fig.h && <Label x={cx + rx + 8} y={(top + bot) / 2} anchor="start">{fig.h}</Label>}
+      </>,
+    );
+  }
+  if (fig.kind === 'cone') {
+    const [cx, ax, ay, by, rx, ry] = [120, 120, 25, 175, 75, 17];
+    return svg(
+      T('חרוט'),
+      <>
+        <path d={`M${ax},${ay} L${cx - rx},${by} A${rx},${ry} 0 0 0 ${cx + rx},${by} Z`} style={{ fill: side }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+        <path d={`M${cx - rx},${by} A${rx},${ry} 0 0 1 ${cx + rx},${by}`} fill="none" stroke={INK} strokeWidth="1.8" strokeDasharray={dash} />
+        {fig.h && (
+          <>
+            <line x1={ax} y1={ay} x2={cx} y2={by} stroke={INK} strokeWidth="1.8" strokeDasharray={dash} />
+            <polyline points={`${cx},${by - 11} ${cx + 11},${by - 11} ${cx + 11},${by}`} fill="none" stroke={INK} strokeWidth="1.5" />
+            <Label x={cx - 8} y={(ay + by) / 2 + 10} anchor="end">{fig.h}</Label>
+          </>
+        )}
+        {fig.r && (
+          <>
+            <circle cx={cx} cy={by} r="3" fill={INK} />
+            <line x1={cx} y1={by} x2={cx + rx} y2={by} stroke={INK} strokeWidth="2" />
+            <Label x={cx + rx / 2 + 4} y={by - 10}>{fig.r}</Label>
+          </>
+        )}
+        {fig.l && <Label x={(ax + cx + rx) / 2 + 10} y={(ay + by) / 2 - 6} anchor="start">{fig.l}</Label>}
+      </>,
+    );
+  }
+  if (fig.kind === 'sphere') {
+    const [cx, cy, R] = [120, 108, 85];
+    return svg(
+      T('כדור'),
+      <>
+        <circle cx={cx} cy={cy} r={R} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" />
+        <path d={`M${cx - R},${cy} A${R},${R / 4} 0 0 0 ${cx + R},${cy}`} fill="none" stroke={INK} strokeWidth="1.8" />
+        <path d={`M${cx - R},${cy} A${R},${R / 4} 0 0 1 ${cx + R},${cy}`} fill="none" stroke={INK} strokeWidth="1.5" strokeDasharray={dash} />
+        <circle cx={cx} cy={cy} r="3" fill={INK} />
+        {fig.r && (
+          <>
+            <line x1={cx} y1={cy} x2={cx + R * 0.7} y2={cy - R * 0.71} stroke={INK} strokeWidth="2" />
+            <Label x={cx + R * 0.35 + 12} y={cy - R * 0.36 + 4} anchor="start">{fig.r}</Label>
+          </>
+        )}
+      </>,
+    );
+  }
+  // פירמידה ישרה עם בסיס ריבועי
+  const A: [number, number] = [35, 180], B: [number, number] = [160, 180], C: [number, number] = [205, 145], D: [number, number] = [80, 145];
+  const S: [number, number] = [120, 22];
+  const O: [number, number] = [(A[0] + C[0]) / 2, (A[1] + C[1]) / 2];
+  const p = (q: [number, number]) => `${q[0]},${q[1]}`;
+  return svg(
+    T('פירמידה'),
+    <>
+      <polygon points={`${p(S)} ${p(A)} ${p(B)} ${p(C)}`} style={{ fill: side }} stroke="none" />
+      <polygon points={`${p(S)} ${p(A)} ${p(B)}`} style={{ fill: FILL }} stroke="none" />
+      <polyline points={`${p(A)} ${p(D)} ${p(C)}`} fill="none" stroke={INK} strokeWidth="1.8" strokeDasharray={dash} />
+      <line x1={S[0]} y1={S[1]} x2={D[0]} y2={D[1]} stroke={INK} strokeWidth="1.8" strokeDasharray={dash} />
+      <polyline points={`${p(A)} ${p(B)} ${p(C)}`} fill="none" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+      {[A, B, C].map((q, i) => (
+        <line key={i} x1={S[0]} y1={S[1]} x2={q[0]} y2={q[1]} stroke={INK} strokeWidth="2.5" />
+      ))}
+      {fig.h && (
+        <>
+          <line x1={S[0]} y1={S[1]} x2={O[0]} y2={O[1]} stroke={INK} strokeWidth="1.8" strokeDasharray={dash} />
+          <circle cx={O[0]} cy={O[1]} r="3" fill={INK} />
+          <Label x={S[0] + 8} y={(S[1] + O[1]) / 2 + 8} anchor="start">{fig.h}</Label>
+        </>
+      )}
+      {fig.r && <Label x={(A[0] + B[0]) / 2} y={A[1] + 16}>{fig.r}</Label>}
+    </>,
   );
 }

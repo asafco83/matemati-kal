@@ -95,6 +95,7 @@ export function trTex(tex: string): string {
 // שיעור של נקודה: מספר, משתנה (עם אינדקס), שבר, או cos/sin של זווית
 const COORD = String.raw`-?(?:\d+(?:\.\d+)?|[a-zA-Z](?:_\{?[\w,]+\}?)?|\\frac\{[^{}]*\}\{[^{}]*\}|\\(?:cos|sin) \\alpha)`;
 const POINT_RE = new RegExp(String.raw`\(\s*(${COORD})\s*,\s*(${COORD})\s*\)`, 'g');
+const POINT3_RE = new RegExp(String.raw`\(\s*(${COORD})\s*,\s*(${COORD})\s*,\s*(${COORD})\s*\)`, 'g');
 
 /**
  * בשפות שבהן כותבים פסיק עשרוני: 3.5 נכתב 3,5, ולכן נקודה (2, 3.5) נכתבת
@@ -103,7 +104,10 @@ const POINT_RE = new RegExp(String.raw`\(\s*(${COORD})\s*,\s*(${COORD})\s*\)`, '
 export function localizeMath(tex: string): string {
   if (!current.decimalComma) return tex;
   const sep = current.pointSep === '|' ? ' \\mid ' : ';\\ ';
-  return tex.replace(POINT_RE, (_, a: string, b: string) => `(${a}${sep}${b})`).replace(/(\d)\.(\d)/g, '$1{,}$2');
+  return tex
+    .replace(POINT3_RE, (_, a: string, b: string, c: string) => `(${a}${sep}${b}${sep}${c})`)
+    .replace(POINT_RE, (_, a: string, b: string) => `(${a}${sep}${b})`)
+    .replace(/(\d)\.(\d)/g, '$1{,}$2');
 }
 
 /** מספר בטקסט רגיל (לא בתוך מתמטיקה) */

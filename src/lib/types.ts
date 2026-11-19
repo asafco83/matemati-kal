@@ -6,7 +6,21 @@ export type Figure =
   | { type: 'rect'; w: string; h: string }
   | { type: 'rtri'; bottom?: string; left?: string; hyp?: string; angle?: string }
   | { type: 'tri'; angles: [string, string, string]; ext?: string }
-  | { type: 'graph'; lines: { m: number; b: number }[]; points?: [number, number][]; curves?: [number, number][][]; range?: number }
+  | {
+      type: 'graph';
+      lines: { m: number; b: number }[];
+      points?: [number, number][];
+      curves?: [number, number][][];
+      range?: number;
+      /** רק הרביע הראשון, מ-0 עד range (תכנון לינארי) */
+      q1?: boolean;
+      /** ישרים אנכיים x = c */
+      vlines?: number[];
+      /** תחום צבוע (מצולע), למשל התחום האפשרי */
+      region?: [number, number][];
+      /** שמות לנקודות, לפי הסדר של points */
+      pointLabels?: string[];
+    }
   /** משולש עם שמות קודקודים: A למטה משמאל, B למטה מימין, C למעלה. a מול A וכו' */
   | { type: 'triS'; a?: string; b?: string; c?: string; A?: string; B?: string; C?: string }
   | { type: 'fracbar'; parts: number; filled: number }
@@ -19,6 +33,8 @@ export type Figure =
   | { type: 'circle'; r?: string; d?: string }
   /** תיבה: אורך, רוחב, גובה */
   | { type: 'box'; a: string; b: string; c: string }
+  /** גוף סיבוב או פירמידה: r רדיוס (או צלע הבסיס בפירמידה), h גובה מקווקו, l קו יוצר */
+  | { type: 'solid'; kind: 'cylinder' | 'cone' | 'sphere' | 'pyramid'; r?: string; h?: string; l?: string }
   | { type: 'polygon'; n: number; side?: string; /** קווים מקודקוד אחד לכל השאר */ diags?: boolean }
   /** דיאגרמת עמודות */
   | { type: 'bars'; labels: string[]; values: number[]; step: number }
