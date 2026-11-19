@@ -104,14 +104,20 @@ const POINT3_RE = new RegExp(String.raw`\(\s*(${COORD})\s*,\s*(${COORD})\s*,\s*(
 export function localizeMath(tex: string): string {
   if (!current.decimalComma) return tex;
   const sep = current.pointSep === '|' ? ' \\mid ' : ';\\ ';
-  return tex
+  const hasDecimal = /\d\.\d/.test(tex);
+  tex = tex
     .replace(POINT3_RE, (_, a: string, b: string, c: string) => `(${a}${sep}${b}${sep}${c})`)
-    .replace(POINT_RE, (_, a: string, b: string) => `(${a}${sep}${b})`)
-    .replace(/(\d)\.(\d)/g, '$1{,}$2');
+    .replace(POINT_RE, (_, a: string, b: string) => `(${a}${sep}${b})`);
+  // ברשימה עם מספרים עשרוניים, פסיק בין המספרים מתבלבל עם הפסיק העשרוני: מפרידים בנקודה-פסיק
+  if (hasDecimal) tex = tex.replace(/(\d),(?=\\ |\s)/g, '$1;');
+  return tex.replace(/(\d)\.(\d)/g, '$1{,}$2');
 }
 
 /** מספר בטקסט רגיל (לא בתוך מתמטיקה) */
 export const localizeNumber = (s: string) => (current.decimalComma ? s.replace(/(\d)\.(\d)/g, '$1,$2') : s);
+
+/** רשימת מספרים בטקסט רגיל: אם יש בה פסיק עשרוני, מפרידים בין המספרים בנקודה-פסיק */
+const listSep = (s: string) => (current.decimalComma && /\d,\d/.test(s) ? s.replace(/(\d),(?=\s+[-−]?\d)/g, '$1;') : s);
 
 function lookup(text: string): string {
   const { key, tokens } = mask(text);
@@ -123,7 +129,7 @@ function lookup(text: string): string {
 /** תרגום של משפט מהתוכן (שיעור, שאלה, פתרון). בלי תרגום, נשאר המקור */
 export function tr(text: string): string {
   if (current.code === DEFAULT_LOCALE || !text || !HEBREW.test(text)) return text;
-  return flipArrows(lookup(text));
+  return flipArrows(listSep(lookup(text)));
 }
 
 /**
