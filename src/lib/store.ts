@@ -90,7 +90,13 @@ export function addProfile(name: string, color: number, grade: number, units?: U
 }
 
 export function updateProfile(id: string, patch: Partial<Omit<Profile, 'id'>>) {
-  commit({ ...state, profiles: state.profiles.map((p) => (p.id === id ? { ...p, ...patch } : p)) });
+  const merge = (p: Profile): Profile => {
+    const next: Profile = { ...p, ...patch };
+    // שדה שקיבל undefined נמחק (Firestore לא שומר undefined)
+    for (const k of Object.keys(next) as (keyof Profile)[]) if (next[k] === undefined) delete next[k];
+    return next;
+  };
+  commit({ ...state, profiles: state.profiles.map((p) => (p.id === id ? merge(p) : p)) });
 }
 
 export function selectProfile(id: string | null) {
