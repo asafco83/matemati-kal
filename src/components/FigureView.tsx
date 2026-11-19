@@ -1,3 +1,4 @@
+import { DrawBlock } from './Draw';
 import type { ReactNode } from 'react';
 import { Tex } from './Tex';
 import type { Figure } from '../lib/types';
@@ -179,6 +180,8 @@ export function FigureView({ fig }: { fig: Figure }) {
       return <CirclePoints fig={fig} />;
     case 'matches':
       return <Matches fig={fig} />;
+    case 'draw':
+      return <DrawBlock b={fig} />;
     case 'clock': {
       const ma = (fig.m / 60) * 2 * Math.PI;
       const ha = (((fig.h % 12) + fig.m / 60) / 12) * 2 * Math.PI;
