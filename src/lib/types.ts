@@ -32,6 +32,8 @@ export type Figure =
   /** מאזניים: מה יש בכל כף (TeX), ולאן הם נוטים */
   | { type: 'balance'; left: string; right: string; tilt?: -1 | 0 | 1 }
   /** שני ישרים מקבילים וחותך. at: 0 = הצומת העליון, 1 = התחתון. q: הרביע של הזווית */
+  /** טבלת סימנים של הנגזרת, כמו בחקירה במחברת: שורת x, שורת f'(x) ושורת f(x) עם חצים */
+  | { type: 'signtable'; cols: { x: string; d: '+' | '-' | '0'; f?: 'max' | 'min' }[]; fn?: string }
   | { type: 'parallel'; marks: { at: 0 | 1; q: 'tl' | 'tr' | 'bl' | 'br'; label: string }[] };
 
 export type Answer =

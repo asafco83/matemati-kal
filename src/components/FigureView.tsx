@@ -234,6 +234,43 @@ export function FigureView({ fig }: { fig: Figure }) {
         </svg>
       );
     }
+    case 'signtable': {
+      const fn = fig.fn ?? 'f';
+      const arrow = (d: '+' | '-') => (
+        <svg viewBox="0 0 28 28" width="26" height="26" aria-label={d === '+' ? 'עולה' : 'יורדת'} className="mx-auto">
+          <path d={d === '+' ? 'M5 23 L23 5 M11 5 H23 V17' : 'M5 5 L23 23 M23 11 V23 H11'} fill="none" stroke={INK} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+      const cell = 'whitespace-nowrap border border-[#c9c4b6] px-2.5 py-1.5 text-center';
+      return (
+        <div dir="ltr" className="overflow-x-auto py-1">
+          <table className="mx-auto border-collapse bg-white text-[17px]">
+            <tbody>
+              <tr>
+                <th className={`${cell} bg-[#f6f4ee]`}><Tex tex="x" /></th>
+                {fig.cols.map((c, i) => (
+                  <td key={i} className={`${cell} ${c.d === '0' ? 'bg-[#fff8db]' : ''}`}><Tex tex={c.x} /></td>
+                ))}
+              </tr>
+              <tr>
+                <th className={`${cell} bg-[#f6f4ee]`}><Tex tex={`${fn}'(x)`} /></th>
+                {fig.cols.map((c, i) => (
+                  <td key={i} className={`${cell} font-semibold ${c.d === '0' ? 'bg-[#fff8db]' : ''}`}><Tex tex={c.d === '-' ? '-' : c.d} /></td>
+                ))}
+              </tr>
+              <tr>
+                <th className={`${cell} bg-[#f6f4ee]`}><Tex tex={`${fn}(x)`} /></th>
+                {fig.cols.map((c, i) => (
+                  <td key={i} className={`${cell} ${c.d === '0' ? 'bg-[#fff8db] text-sm font-bold' : ''}`}>
+                    {c.d === '0' ? (c.f ?? '') : arrow(c.d)}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      );
+    }
     case 'eqsides':
       return (
         <div dir="ltr" className="flex items-start justify-center gap-3 py-2 text-[26px]">
