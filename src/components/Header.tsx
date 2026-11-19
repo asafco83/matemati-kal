@@ -1,3 +1,4 @@
+import { SearchButton } from './Search';
 import { useEffect, useRef, useState } from 'react';
 import { tracks } from '../content';
 import { useAuth } from '../lib/cloud';
@@ -176,6 +177,7 @@ export function Header({ route }: { route: Route }) {
                 {t.stars}
               </span>
             </button>
+            <SearchButton className="order-2 lg:order-4" />
             <LanguageSwitch className="order-3 lg:order-5" />
           </div>
         </div>
