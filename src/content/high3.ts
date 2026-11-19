@@ -1,5 +1,5 @@
 import type { Topic } from '../lib/types';
-import { L, mixChoice, par, pick, polyTex, ri, round, sgn } from '../lib/util';
+import { gcd, L, mixChoice, par, pick, polyTex, ri, round, sgn } from '../lib/util';
 
 /* ---------- עזרים ---------- */
 
@@ -1987,4 +1987,164 @@ const induction: Topic = {
   },
 };
 
-export const highTopics3: Topic[] = [sineCosineLaw, unitCircle, trig3d, investigation, optimization, integrals, linearProgramming, statistics, regression, normal, vectors, solids, complexNumbers, induction];
+/* ---------- אליפסה והיפרבולה ---------- */
+
+/** אליפסה x²/a² + y²/b² = 1 כעקומה סגורה */
+const ellipseCurve = (a: number, b: number): [number, number][] =>
+  Array.from({ length: 73 }, (_, i) => [a * Math.cos((i * Math.PI) / 36), b * Math.sin((i * Math.PI) / 36)]);
+/** שני הענפים של היפרבולה x²/a² − y²/b² = 1 */
+const hyperbolaCurves = (a: number, b: number, R: number): [number, number][][] => {
+  const T = Math.acosh(Math.max(1.01, (R + 1) / a));
+  const branch = (s: number): [number, number][] =>
+    Array.from({ length: 61 }, (_, i) => {
+      const t = -T + (i * 2 * T) / 60;
+      return [s * a * Math.cosh(t), b * Math.sinh(t)];
+    });
+  return [branch(1), branch(-1)];
+};
+const conicTex = (a2: number, b2: number, sign: '+' | '-') => `\\frac{x^2}{${a2}} ${sign} \\frac{y^2}{${b2}} = 1`;
+/** a² = b² + c² באליפסה, c² = a² + b² בהיפרבולה: שלשות פיתגוריות */
+const TRIP3: [number, number, number][] = [[3, 4, 5], [4, 3, 5], [6, 8, 10], [8, 6, 10], [5, 12, 13], [12, 5, 13], [8, 15, 17], [15, 8, 17]];
+
+const conics: Topic = {
+  id: 'conics',
+  track: 'geometry',
+  title: 'אליפסה והיפרבולה',
+  grades: [12, 12],
+  icon: '⬭',
+  units: [5],
+  summary: 'אליפסה והיפרבולה כמקום גאומטרי: מוקדים, קודקודים, צירים ואסימפטוטות.',
+  levels: ['מוקדי האליפסה', 'מוקדים ואסימפטוטות של היפרבולה', 'מעבר לצורה קנונית'],
+  lesson: {
+    intro: 'מעגל הוא כל הנקודות במרחק קבוע מנקודה אחת. אליפסה והיפרבולה מוגדרות בעזרת שתי נקודות, המוקדים: באליפסה סכום המרחקים מהמוקדים קבוע, ובהיפרבולה ההפרש.',
+    before: ['צריך להכיר את נוסחת המרחק בין שתי נקודות ואת משוואת המעגל.', 'צריך להכיר את משפט פיתגורס.'],
+    sections: [
+      {
+        title: 'האליפסה',
+        body: 'אליפסה היא המקום הגאומטרי של הנקודות שסכום מרחקיהן מהמוקדים $F_1(-c, 0)$ ו-$F_2(c, 0)$ הוא $2a$. המשוואה הקנונית: $\\frac{x^2}{a^2} + \\frac{y^2}{b^2} = 1$, כאשר $b^2 = a^2 - c^2$.',
+        detail: [
+          { figure: { type: 'graph', lines: [], curves: [ellipseCurve(5, 3)], points: [[-4, 0], [4, 0]], pointLabels: ['F₁', 'F₂'], range: 6 }, caption: 'האליפסה $\\frac{x^2}{25} + \\frac{y^2}{9} = 1$ והמוקדים שלה.' },
+          'כל נקודה $P$ על האליפסה מקיימת $PF_1 + PF_2 = 2a$.',
+          'הקודקודים על ציר ה-$x$ הם $(\\pm a, 0)$, והקודקודים על ציר ה-$y$ הם $(0, \\pm b)$.',
+          'את המוקדים מוצאים מ-$c^2 = a^2 - b^2$. באליפסה $a$ הוא הגדול, ולכן המוקדים בתוך האליפסה.',
+          'דוגמה: $\\frac{x^2}{25} + \\frac{y^2}{9} = 1$.',
+          { tex: 'a^2 = 25,\\ b^2 = 9 \\Rightarrow c^2 = 25 - 9 = 16 \\Rightarrow c = 4' },
+          { tex: 'F_1(-4, 0),\\ F_2(4, 0)', why: 'המוקדים' },
+        ],
+      },
+      {
+        title: 'ההיפרבולה',
+        body: 'היפרבולה היא המקום הגאומטרי של הנקודות שהערך המוחלט של הפרש מרחקיהן מהמוקדים $F_1(-c, 0)$ ו-$F_2(c, 0)$ הוא $2a$. המשוואה הקנונית: $\\frac{x^2}{a^2} - \\frac{y^2}{b^2} = 1$, כאשר $b^2 = c^2 - a^2$.',
+        detail: [
+          { figure: { type: 'graph', lines: [{ m: 4 / 3, b: 0 }, { m: -4 / 3, b: 0 }], dashedLines: true, curves: hyperbolaCurves(3, 4, 8), points: [[-5, 0], [5, 0]], pointLabels: ['F₁', 'F₂'], range: 8 }, caption: 'ההיפרבולה $\\frac{x^2}{9} - \\frac{y^2}{16} = 1$, המוקדים והאסימפטוטות (מקווקו).' },
+          'כל נקודה $P$ על ההיפרבולה מקיימת $|PF_1 - PF_2| = 2a$.',
+          'להיפרבולה שני ענפים. הקודקודים הם $(\\pm a, 0)$. הקטע ביניהם נקרא הציר הממשי, ואורכו $2a$. הציר המדומה אורכו $2b$.',
+          'בהיפרבולה המוקדים רחוקים מהראשית יותר מהקודקודים, ולכן $c^2 = a^2 + b^2$ (חיבור, לא חיסור כמו באליפסה).',
+          'דוגמה: $\\frac{x^2}{9} - \\frac{y^2}{16} = 1$.',
+          { tex: 'c^2 = 9 + 16 = 25 \\Rightarrow c = 5', why: 'בהיפרבולה מחברים' },
+          { tex: 'F_1(-5, 0),\\ F_2(5, 0)' },
+        ],
+      },
+      {
+        title: 'אסימפטוטות',
+        body: 'האסימפטוטות של ההיפרבולה $\\frac{x^2}{a^2} - \\frac{y^2}{b^2} = 1$ הן הישרים $y = \\pm\\frac{b}{a}x$. ככל ש-$x$ גדל, ענפי ההיפרבולה מתקרבים אליהן.',
+        detail: [
+          'מבודדים את $y$:',
+          { tex: 'y = \\pm\\frac{b}{a}\\sqrt{x^2 - a^2}' },
+          'כש-$x$ גדול מאוד, $\\sqrt{x^2 - a^2}$ קרוב מאוד ל-$|x|$, ולכן הגרף קרוב לישרים $y = \\pm\\frac{b}{a}x$.',
+          'דרך נוחה לשרטט: בונים מלבן שקודקודיו $(\\pm a, \\pm b)$. האלכסונים שלו, שעוברים בראשית, הם האסימפטוטות.',
+          'דוגמה: עבור $\\frac{x^2}{9} - \\frac{y^2}{16} = 1$ האסימפטוטות הן $y = \\frac{4}{3}x$ ו-$y = -\\frac{4}{3}x$.',
+          'היפרבולה שווה שוקיים: $b = a$, המשוואה $x^2 - y^2 = a^2$, והאסימפטוטות $y = x$ ו-$y = -x$ מאונכות זו לזו.',
+        ],
+      },
+      {
+        title: 'מעבר לצורה קנונית',
+        body: 'כשהמשוואה נתונה בצורה $Ax^2 \\pm By^2 = C$, מחלקים את שני האגפים ב-$C$ כדי לקבל 1 באגף ימין, וקוראים את $a^2$ ו-$b^2$ מהמכנים.',
+        detail: [
+          'דוגמה: $3x^2 - 2y^2 = 60$.',
+          { tex: '\\frac{3x^2}{60} - \\frac{2y^2}{60} = 1', why: 'מחלקים את שני האגפים ב-60' },
+          { tex: '\\frac{x^2}{20} - \\frac{y^2}{30} = 1', why: 'מצמצמים כל שבר' },
+          { tex: 'a^2 = 20,\\ b^2 = 30 \\Rightarrow c^2 = 20 + 30 = 50', why: 'היפרבולה: מחברים' },
+          'לפי הסימן בין האיברים יודעים מה הצורה: פלוס היא אליפסה, ומינוס היא היפרבולה.',
+        ],
+      },
+    ],
+    method: [
+      'מביאים לצורה קנונית: אגף ימין שווה 1.',
+      'קוראים את $a^2$ (מתחת ל-$x^2$) ואת $b^2$ (מתחת ל-$y^2$).',
+      'אליפסה: $c^2 = a^2 - b^2$. היפרבולה: $c^2 = a^2 + b^2$.',
+      'אסימפטוטות של היפרבולה: $y = \\pm\\frac{b}{a}x$.',
+    ],
+    examples: [
+      {
+        problem: 'מצאו את המוקדים ואת האסימפטוטות של ההיפרבולה $16x^2 - 9y^2 = 144$.',
+        steps: [
+          { tex: '\\frac{x^2}{9} - \\frac{y^2}{16} = 1', why: 'מחלקים ב-144' },
+          { tex: 'a = 3,\\ b = 4,\\ c^2 = 9 + 16 = 25 \\Rightarrow c = 5' },
+          { tex: 'F_1(-5, 0),\\ F_2(5, 0)', why: 'המוקדים' },
+          { tex: 'y = \\pm\\frac{4}{3}x', why: 'האסימפטוטות' },
+        ],
+      },
+    ],
+    tips: ['אליפסה: סכום המרחקים, ו-$c^2 = a^2 - b^2$. היפרבולה: הפרש המרחקים, ו-$c^2 = a^2 + b^2$.', 'בצורה הקנונית אגף ימין תמיד 1.', 'באסימפטוטות $\\frac{b}{a}$: מה שמתחת ל-$y^2$ חלקי מה שמתחת ל-$x^2$, בלי ריבוע.'],
+  },
+  generate(level) {
+    if (level === 1) {
+      // אליפסה: a² = b² + c²
+      const [p, q, a] = pick(TRIP3);
+      const b = pick([p, q]), c = b === p ? q : p;
+      return {
+        text: `מוקדי האליפסה $${conicTex(a * a, b * b, '+')}$ הם $(\\pm c, 0)$. מה $c$?`,
+        figure: { type: 'graph', lines: [], curves: [ellipseCurve(a, b)], points: [[-c, 0], [c, 0]], pointLabels: ['F₁', 'F₂'], range: a + 1 },
+        answer: { type: 'number', value: c },
+        hint: 'באליפסה $c^2 = a^2 - b^2$.',
+        solution: [
+          { tex: `a^2 = ${a * a},\\ b^2 = ${b * b}`, why: 'מהמכנים' },
+          { tex: `c^2 = a^2 - b^2 = ${a * a} - ${b * b} = ${c * c}`, why: 'אליפסה: מחסרים' },
+          { tex: `c = ${c}` },
+          { tex: `F_1(-${c}, 0),\\ F_2(${c}, 0)` },
+        ],
+      };
+    }
+    if (level === 2) {
+      const [a, b, c] = pick(TRIP3);
+      const R = c + 2;
+      return {
+        text: `נתונה ההיפרבולה $${conicTex(a * a, b * b, '-')}$. מצאו את $c$ (המוקדים $(\\pm c, 0)$) ואת $m$, השיפוע החיובי של האסימפטוטות.`,
+        figure: { type: 'graph', lines: [{ m: b / a, b: 0 }, { m: -b / a, b: 0 }], dashedLines: true, curves: hyperbolaCurves(a, b, R), points: [[-c, 0], [c, 0]], pointLabels: ['F₁', 'F₂'], range: R },
+        answer: { type: 'multi', labels: ['c', 'm'], values: [c, round(b / a, 2)], ordered: true, tol: 0.01 },
+        hint: 'בהיפרבולה $c^2 = a^2 + b^2$, והאסימפטוטות $y = \\pm\\frac{b}{a}x$.',
+        solution: [
+          { tex: `a^2 = ${a * a},\\ b^2 = ${b * b} \\Rightarrow a = ${a},\\ b = ${b}`, why: 'מהמכנים' },
+          { tex: `c^2 = ${a * a} + ${b * b} = ${c * c} \\Rightarrow c = ${c}`, why: 'היפרבולה: מחברים' },
+          { tex: `y = \\pm\\frac{${b}}{${a}}x`, why: 'האסימפטוטות' },
+          { tex: `m = \\frac{${b}}{${a}}${Number.isInteger(b / a) ? '' : ` \\approx ${n2(b / a)}`}` },
+        ],
+      };
+    }
+    // Ax² ± By² = L
+    const hyp = Math.random() < 0.5;
+    let a2: number, b2: number;
+    do {
+      a2 = pick([2, 3, 4, 5, 6, 8, 9, 10, 12, 16, 18, 20, 25]);
+      b2 = pick([2, 3, 4, 5, 6, 8, 9, 10, 12, 16, 18, 20, 25]);
+    } while (a2 === b2 || (!hyp && a2 < b2));
+    const Lc = (a2 * b2) / gcd(a2, b2);
+    const A = Lc / a2, B = Lc / b2;
+    const sign = hyp ? '-' : '+';
+    const coef = (k: number, v: string) => `${k === 1 ? '' : k}${v}`;
+    return {
+      text: `רשמו את ${hyp ? 'ההיפרבולה' : 'האליפסה'} $${coef(A, 'x^2')} ${sign} ${coef(B, 'y^2')} = ${Lc}$ בצורה קנונית. מה $a^2$ ומה $b^2$?`,
+      answer: { type: 'multi', labels: ['a²', 'b²'], values: [a2, b2], ordered: true },
+      hint: `מחלקים את שני האגפים ב-${Lc}.`,
+      solution: [
+        { tex: `\\frac{${coef(A, 'x^2')}}{${Lc}} ${sign} \\frac{${coef(B, 'y^2')}}{${Lc}} = 1`, why: `מחלקים ב-${Lc}` },
+        { tex: conicTex(a2, b2, sign), why: 'מצמצמים כל שבר' },
+        { tex: `a^2 = ${a2},\\ b^2 = ${b2}` },
+        { tex: hyp ? `c^2 = ${a2} + ${b2} = ${a2 + b2}` : `c^2 = ${a2} - ${b2} = ${a2 - b2}`, why: hyp ? 'ואם צריך מוקדים: היפרבולה, מחברים' : 'ואם צריך מוקדים: אליפסה, מחסרים' },
+      ],
+    };
+  },
+};
+
+export const highTopics3: Topic[] = [sineCosineLaw, unitCircle, trig3d, investigation, optimization, integrals, linearProgramming, statistics, regression, normal, vectors, solids, complexNumbers, induction, conics];
