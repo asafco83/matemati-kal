@@ -466,13 +466,13 @@ export function FigureView({ fig }: { fig: Figure }) {
             {fig.lines.map((ln, i) => {
               const [x1, y1] = P(lo - 1, ln.m * (lo - 1) + ln.b);
               const [x2, y2] = P(R + 1, ln.m * (R + 1) + ln.b);
-              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors[i % colors.length]} strokeWidth="2.5" />;
+              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={fig.dashedLines ? '#6b7280' : colors[i % colors.length]} strokeWidth={fig.dashedLines ? 1.8 : 2.5} strokeDasharray={fig.dashedLines ? '6 5' : undefined} />;
             })}
             {(fig.vlines ?? []).map((c, i) => (
               <line key={`v${i}`} x1={P(c, 0)[0]} y1="20" x2={P(c, 0)[0]} y2="260" stroke={colors[(fig.lines.length + i) % colors.length]} strokeWidth="2.5" />
             ))}
             {(fig.curves ?? []).map((c, i) => (
-              <polyline key={`c${i}`} points={c.map(([x, y]) => P(x, Math.max(-3 * R, Math.min(3 * R, y))).join(',')).join(' ')} fill="none" stroke={colors[(fig.lines.length + i) % 2]} strokeWidth="2.5" strokeLinejoin="round" />
+              <polyline key={`c${i}`} points={c.map(([x, y]) => P(x, Math.max(-3 * R, Math.min(3 * R, y))).join(',')).join(' ')} fill="none" stroke={colors[fig.dashedLines ? 0 : (fig.lines.length + i) % 2]} strokeWidth="2.5" strokeLinejoin="round" />
             ))}
             {(fig.points ?? []).map(([x, y], i) => (
               <circle key={i} cx={P(x, y)[0]} cy={P(x, y)[1]} r="4.5" fill={ACCENT} stroke="#fff" strokeWidth="1.5" />
