@@ -1,6 +1,6 @@
 import katex from 'katex';
 import { createContext, Fragment, memo, useContext } from 'react';
-import { tr, trTex } from '../i18n';
+import { localizeMath, tr, trTex } from '../i18n';
 
 /**
  * כללי כתיבה לפי שלב הלימוד:
@@ -18,7 +18,7 @@ function applyNotation(tex: string, n: Notation): string {
 }
 
 export function texToHtml(tex: string, display = false, n: Notation = 'secondary'): string {
-  let t = applyNotation(tex, n);
+  let t = localizeMath(applyNotation(tex, n));
   // שבר בתוך שורה מוצג בגודל מלא, כדי שהמונה והמכנה יהיו קריאים
   if (!display) t = t.replace(/\\frac(?![a-zA-Z])/g, '\\dfrac');
   // התיבה של המספר החסר מצוירת ב-CSS, כדי שתהיה בגובה הספרות וממורכזת אליהן

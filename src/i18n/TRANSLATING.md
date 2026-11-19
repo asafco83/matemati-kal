@@ -34,6 +34,10 @@ Numbers, math expressions (`$...$`), typed answers and character names were repl
 - Hebrew letters used as labels (א, ב, ג, ד in lists, charts and answer options) become the first letters of your alphabet (A, B, C, D; Arabic أ ب ج د; Russian А Б В Г; Amharic ሀ ለ ሐ መ; Yiddish keeps א ב ג ד).
 - Hebrew notation remarks in content (e.g. which multiplication sign is used in which grade) are about math notation, not language: translate them literally.
 
+## Numbers
+
+Decimals are written with a dot in the keys. For ru, fr, de, it and ro the app shows them with a decimal comma (3,5) and writes points as A(2; 3), in German A(2 | 3). So in those languages call the decimal mark a comma, as in school.
+
 ## Language notes
 
 - **ar** (Arabic): Modern Standard Arabic as used in Arab-sector schools in Israel. Western digits stay as they are (they are placeholders). Plural imperative (احسبوا، حُلّوا) for instructions.

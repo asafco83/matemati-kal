@@ -19,6 +19,10 @@ export interface LocaleInfo {
   /** שם השפה בשפה עצמה */
   name: string;
   dir: 'rtl' | 'ltr';
+  /** בבית הספר כותבים שבר עשרוני עם פסיק (3,5). אז נקודה במערכת צירים נכתבת עם pointSep */
+  decimalComma?: boolean;
+  /** המפריד בין שיעורי נקודה כשיש פסיק עשרוני: A(2; 3) או A(2 | 3) בגרמנית */
+  pointSep?: ';' | '|';
   /** גופן נוסף מ-Google Fonts, לכתב שהגופנים הרגילים לא מכסים */
   font?: { family: string; css: string };
 }
@@ -27,16 +31,16 @@ const RUBIK = { family: 'Rubik', css: 'family=Rubik:wght@400;500;600;700' };
 
 export const LOCALES: LocaleInfo[] = [
   { code: 'he', name: 'עברית', dir: 'rtl' },
+  { code: 'yi', name: 'ייִדיש', dir: 'rtl' },
   { code: 'ar', name: 'العربية', dir: 'rtl', font: { family: 'Noto Sans Arabic', css: 'family=Noto+Sans+Arabic:wght@400;500;600;700' } },
   { code: 'en', name: 'English', dir: 'ltr' },
-  { code: 'ru', name: 'Русский', dir: 'ltr', font: RUBIK },
-  { code: 'fr', name: 'Français', dir: 'ltr' },
+  { code: 'ru', name: 'Русский', dir: 'ltr', font: RUBIK, decimalComma: true, pointSep: ';' },
+  { code: 'fr', name: 'Français', dir: 'ltr', decimalComma: true, pointSep: ';' },
   { code: 'es', name: 'Español', dir: 'ltr' },
-  { code: 'de', name: 'Deutsch', dir: 'ltr' },
-  { code: 'it', name: 'Italiano', dir: 'ltr' },
-  { code: 'ro', name: 'Română', dir: 'ltr' },
+  { code: 'de', name: 'Deutsch', dir: 'ltr', decimalComma: true, pointSep: '|' },
+  { code: 'it', name: 'Italiano', dir: 'ltr', decimalComma: true, pointSep: ';' },
+  { code: 'ro', name: 'Română', dir: 'ltr', decimalComma: true, pointSep: ';' },
   { code: 'am', name: 'አማርኛ', dir: 'ltr', font: { family: 'Noto Sans Ethiopic', css: 'family=Noto+Sans+Ethiopic:wght@400;500;600;700' } },
-  { code: 'yi', name: 'ייִדיש', dir: 'rtl' },
 ];
 
 export const DEFAULT_LOCALE: LocaleCode = 'he';
@@ -86,11 +90,30 @@ export function trTex(tex: string): string {
   });
 }
 
+/* ---------- פסיק עשרוני ---------- */
+
+// שיעור של נקודה: מספר, משתנה (עם אינדקס), שבר, או cos/sin של זווית
+const COORD = String.raw`-?(?:\d+(?:\.\d+)?|[a-zA-Z](?:_\{?[\w,]+\}?)?|\\frac\{[^{}]*\}\{[^{}]*\}|\\(?:cos|sin) \\alpha)`;
+const POINT_RE = new RegExp(String.raw`\(\s*(${COORD})\s*,\s*(${COORD})\s*\)`, 'g');
+
+/**
+ * בשפות שבהן כותבים פסיק עשרוני: 3.5 נכתב 3,5, ולכן נקודה (2, 3.5) נכתבת
+ * (2; 3,5), ובגרמנית (2 | 3,5), כמו בספרי הלימוד שם.
+ */
+export function localizeMath(tex: string): string {
+  if (!current.decimalComma) return tex;
+  const sep = current.pointSep === '|' ? ' \\mid ' : ';\\ ';
+  return tex.replace(POINT_RE, (_, a: string, b: string) => `(${a}${sep}${b})`).replace(/(\d)\.(\d)/g, '$1{,}$2');
+}
+
+/** מספר בטקסט רגיל (לא בתוך מתמטיקה) */
+export const localizeNumber = (s: string) => (current.decimalComma ? s.replace(/(\d)\.(\d)/g, '$1,$2') : s);
+
 function lookup(text: string): string {
   const { key, tokens } = mask(text);
   const hit = dict[key];
   if (hit === undefined) return text;
-  return unmask(hit, tokens, (tok) => (tok.startsWith('$') ? `$${trTex(tok.slice(1, -1))}$` : (dict[tok] ?? tok)));
+  return unmask(hit, tokens, (tok) => (tok.startsWith('$') ? `$${trTex(tok.slice(1, -1))}$` : localizeNumber(dict[tok] ?? tok)));
 }
 
 /** תרגום של משפט מהתוכן (שיעור, שאלה, פתרון). בלי תרגום, נשאר המקור */

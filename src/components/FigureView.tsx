@@ -1,6 +1,6 @@
 import { Tex } from './Tex';
 import type { Figure } from '../lib/types';
-import { getLocale, T } from '../i18n';
+import { getLocale, localizeNumber, T } from '../i18n';
 
 const INK = '#1d2433';
 /** גוון בהיר של צבע המסלול (המשתנה --tc מוגדר בדף הנושא) */
@@ -11,7 +11,7 @@ function Label({ x, y, children, anchor = 'middle', bold }: { x: number; y: numb
   const q = children === '?';
   return (
     <text x={x} y={y} textAnchor={anchor} dominantBaseline="middle" fontSize={q ? 20 : 16} fontWeight={q || bold ? 700 : 500} fontFamily="Fredoka, Arial, sans-serif" fill={q ? 'var(--tc, #b3261e)' : INK} style={{ direction: 'ltr', unicodeBidi: 'plaintext' }}>
-      {T(children)}
+      {localizeNumber(T(children))}
     </text>
   );
 }
@@ -782,7 +782,14 @@ function ColumnArith({ top, bottom, op, upto, from }: { top: string; bottom: str
         {crossCols?.has(i) && <line x1={x(i) - 6} y1={y + 2} x2={x(i) + 6} y2={y - 16} stroke={ACC} strokeWidth="2" />}
       </g>
     ));
-  const point = (y: number) => D > 0 && <circle cx={x(D) + COL / 2 + 3} cy={y - 2} r="2.4" fill={INK} />;
+  // הנקודה העשרונית, או פסיק בשפות שבהן כותבים כך
+  const point = (y: number) =>
+    D > 0 &&
+    (getLocale().decimalComma ? (
+      <path d={`M${x(D) + COL / 2 + 4} ${y - 3} q 1.5 4 -2.5 8`} fill="none" stroke={INK} strokeWidth="2.6" strokeLinecap="round" />
+    ) : (
+      <circle cx={x(D) + COL / 2 + 3} cy={y - 2} r="2.4" fill={INK} />
+    ));
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: W * 1.15, direction: 'ltr' }} role="img" aria-label={T(`${top} ${op === '+' ? T('ועוד') : T('פחות')} ${bottom}, במאונך`)}>
       {digitRow(A, yTop, 't', padA, crossed)}
