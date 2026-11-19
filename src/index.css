@@ -141,7 +141,7 @@ html {
 }
 /* כשאחרי התרגיל בא סימן פיסוק, הוא נצמד אליו */
 .mi-p {
-  margin-left: 0.08em; /* הפיסוק בא משמאל, כי השורה מימין לשמאל */
+  margin-inline-end: 0.08em; /* הפיסוק בא אחרי התרגיל, בכיוון הקריאה */
 }
 
 .q-latex .katex {
@@ -184,4 +184,26 @@ button:disabled {
 @media (prefers-reduced-motion: reduce) {
   .pop { animation: none; }
   .tick-pen { animation: none; }
+}
+
+/* ---------- שפות ---------- */
+/* מילים ארוכות (גרמנית, רוסית) נשברות בסוף שורה ולא גולשות מהמסך */
+body {
+  overflow-wrap: break-word;
+}
+html:not([lang="he"]):not([lang="yi"]):not([lang="ar"]) body {
+  hyphens: auto;
+}
+/* כתבים שהגופנים הרגילים לא מכסים */
+html[lang="ru"] {
+  --font-sans: "Rubik", "Assistant", Arial, sans-serif;
+  --font-display: "Rubik", Arial, sans-serif;
+}
+html[lang="ar"] {
+  --font-sans: "Noto Sans Arabic", Arial, sans-serif;
+  --font-display: "Noto Sans Arabic", Arial, sans-serif;
+}
+html[lang="am"] {
+  --font-sans: "Noto Sans Ethiopic", Arial, sans-serif;
+  --font-display: "Noto Sans Ethiopic", Arial, sans-serif;
 }

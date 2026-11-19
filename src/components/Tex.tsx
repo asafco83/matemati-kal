@@ -1,5 +1,6 @@
 import katex from 'katex';
 import { createContext, Fragment, memo, useContext } from 'react';
+import { tr, trTex } from '../i18n';
 
 /**
  * כללי כתיבה לפי שלב הלימוד:
@@ -29,7 +30,7 @@ export function texToHtml(tex: string, display = false, n: Notation = 'secondary
 /** ביטוי מתמטי בודד */
 export const Tex = memo(function Tex({ tex, display = false }: { tex: string; display?: boolean }) {
   const n = useContext(NotationContext);
-  return <span dir="ltr" className={display ? 'block' : 'inline-block'} dangerouslySetInnerHTML={{ __html: texToHtml(tex, display, n) }} />;
+  return <span dir="ltr" className={display ? 'block' : 'inline-block'} dangerouslySetInnerHTML={{ __html: texToHtml(trTex(tex), display, n) }} />;
 });
 
 /**
@@ -52,7 +53,7 @@ function typed(text: string) {
 /** טקסט בעברית שמשולבת בו מתמטיקה בין סימני $...$ */
 export const Rich = memo(function Rich({ text }: { text: string }) {
   const n = useContext(NotationContext);
-  const parts = text.split('$');
+  const parts = tr(text).split('$');
   // שורה שכולה מתמטיקה לא צריכה מסגרת; בתוך משפט, המסגרת מפרידה בין הטקסט לתרגיל
   const onlyMath = parts.length === 3 && !parts[0].trim() && !parts[2].trim();
   return (

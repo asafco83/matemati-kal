@@ -6,6 +6,7 @@ import { FigureView } from './FigureView';
 import { StepView } from './StepView';
 import { Rich, Tex } from './Tex';
 import { PrimaryButton, Tick, Segmented, StarIcon } from './ui';
+import { T } from '../i18n';
 
 type Phase = 'asking' | 'wrong' | 'correct' | 'revealed';
 
@@ -72,14 +73,14 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
   const levelBar = (
     <div className="card flex flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4">
       <Segmented
-        label="רמת קושי"
+        label={T('רמת קושי')}
         value={String(level)}
         onChange={(v) => changeLevel(Number(v) as Level)}
         items={([1, 2, 3] as Level[]).map((lv) => ({
           id: String(lv),
           label: (
             <span className="flex items-center gap-1.5">
-              {LEVEL_NAMES[lv - 1]}
+              {T(LEVEL_NAMES[lv - 1])}
               {lv === level && <span className="hidden font-semibold sm:inline">· {topic.levels[lv - 1]}</span>}
               {levelStat(state, topic.id, lv).mastered && (
                 <span className="text-[#b7791f]">
@@ -93,9 +94,9 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
       <div className="flex-1" />
       <div className="flex items-center gap-3">
         <span className="text-base text-muted">
-          בדרך לכוכב · {stat.score} מתוך {MASTERY_GOAL}
+          {T`בדרך לכוכב · ${stat.score} מתוך ${MASTERY_GOAL}`}
         </span>
-        <div role="img" aria-label={`${stat.score} מתוך ${MASTERY_GOAL}`} className="flex gap-1.5">
+        <div role="img" aria-label={T(`${stat.score} מתוך ${MASTERY_GOAL}`)} className="flex gap-1.5">
           {Array.from({ length: MASTERY_GOAL }, (_, i) => (
             <span
               key={i}
@@ -127,14 +128,14 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
           <svg viewBox="0 0 24 24" width="120" height="120" aria-hidden="true">
             <path d="M12 2l3 6.5 7 .9-5.2 4.8 1.4 7-6.2-3.6-6.2 3.6 1.4-7L2 9.4l7-.9z" fill="#ffd43b" stroke="#1d2433" strokeWidth="1" strokeLinejoin="round" />
           </svg>
-          <h2 className="font-display text-[52px] font-semibold">כל הכבוד!</h2>
+          <h2 className="font-display text-[52px] font-semibold">{T('כל הכבוד!')}</h2>
           <p className="max-w-[520px] text-xl leading-relaxed">
-            השלמתם את הרמה "{LEVEL_NAMES[level - 1]}" בנושא {topic.title}, וזכיתם בכוכב. עכשיו יש לכם {totals(state).stars} כוכבים.
+            {T`השלמתם את הרמה "${T(LEVEL_NAMES[level - 1])}" בנושא ${T(topic.title)}, וזכיתם בכוכב. עכשיו יש לכם ${totals(state).stars} כוכבים.`}
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-3">
             {level < 3 && (
               <PrimaryButton color={color} onClick={() => changeLevel((level + 1) as Level)}>
-                לרמה הבאה: {LEVEL_NAMES[level]} ←
+                {T`לרמה הבאה: ${T(LEVEL_NAMES[level])} ←`}
               </PrimaryButton>
             )}
             <button
@@ -146,10 +147,10 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
               }}
               className="rounded-full bg-sand px-7 py-3.5 font-display text-lg font-semibold"
             >
-              עוד תרגול ברמה הזו
+              {T('עוד תרגול ברמה הזו')}
             </button>
             <a href="#/" className="rounded-full bg-sand px-7 py-3.5 font-display text-lg font-semibold text-ink no-underline">
-              לכל הנושאים
+              {T('לכל הנושאים')}
             </a>
           </div>
         </section>
@@ -172,7 +173,7 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
       {levelBar}
       <form onSubmit={submit} className="card flex flex-wrap items-center gap-x-14 gap-y-6 sm:p-8">
         <div className="min-w-0 flex-[1_1_300px]">
-          <p className="text-base text-muted">תרגיל {count}</p>
+          <p className="text-base text-muted">{T`תרגיל ${count}`}</p>
           <h2 className="mt-1 font-display text-[26px] font-semibold leading-relaxed sm:text-[30px]">
             <Rich text={q.text} />
           </h2>
@@ -212,7 +213,7 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
               <div dir={ans.type === 'multi' && ans.labels.some((l) => /[\u0590-\u05FF]/.test(l)) ? 'rtl' : 'ltr'} className="flex flex-wrap items-center gap-4">
                 {(ans.type === 'number' ? [''] : ans.labels).map((label, i) => (
                   <label key={i} className="flex items-center gap-3 font-display text-[30px] font-medium">
-                    {label && <span>{label} =</span>}
+                    {label && <span>{T(label)} =</span>}
                     <span className="relative">
                       <input
                         ref={i === 0 ? firstInput : undefined}
@@ -222,7 +223,7 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
                         onChange={(e) => setField(i, e.target.value)}
                         disabled={locked}
                         placeholder={ans.type === 'number' ? (ans.placeholder ?? '') : ''}
-                        aria-label={label || 'התשובה שלך'}
+                        aria-label={label || T('התשובה שלך')}
                         className={`h-16 w-28 rounded-[14px] border-[2.5px] bg-white text-center font-display text-[30px] placeholder:text-lg placeholder:text-[#9a978e] disabled:bg-white ${fracTex(fields[i] ?? '') ? 'frac-input' : ''}`}
                         style={{
                           borderColor: inputBorder,
@@ -238,8 +239,8 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
                       {phase === 'correct' && i === 0 && <TeacherTick color={color} />}
                     </span>
                     {ans.type === 'number' && ans.unit && (
-                      <span dir="rtl" className="font-sans text-lg text-muted">
-                        {ans.unit}
+                      <span className="font-sans text-lg text-muted">
+                        {T(ans.unit)}
                       </span>
                     )}
                   </label>
@@ -252,7 +253,7 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
                   className="min-h-14 rounded-full px-9 font-display text-[19px] font-semibold text-white disabled:opacity-40"
                   style={{ background: color }}
                 >
-                  בדיקה
+                  {T('בדיקה')}
                 </button>
               )}
             </div>
@@ -261,27 +262,27 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
           <div aria-live="polite">
             {phase === 'correct' && (
               <p className="pop tint mt-5 inline-flex items-center rounded-full px-5 py-2.5 font-display text-xl font-semibold" style={{ color }}>
-                {tries === 1 ? 'נכון מאוד!' : 'נכון! הצלחתם לתקן.'}
+                {tries === 1 ? T('נכון מאוד!') : T('נכון! הצלחתם לתקן.')}
               </p>
             )}
             {phase === 'revealed' && (
-              <p className="pop mt-5 inline-flex rounded-full bg-sand px-5 py-2.5 font-display text-[19px] font-semibold">לא נורא! הפתרון המלא מחכה למטה.</p>
+              <p className="pop mt-5 inline-flex rounded-full bg-sand px-5 py-2.5 font-display text-[19px] font-semibold">{T('לא נורא! הפתרון המלא מחכה למטה.')}</p>
             )}
             {phase === 'wrong' && (
               <p className="pop mt-5 inline-flex rounded-full bg-[#fde8e6] px-5 py-2.5 font-display text-[19px] font-semibold" style={{ color: ERR }}>
-                לא בדיוק. בדקו שוב ונסו עוד פעם.
+                {T('לא בדיוק. בדקו שוב ונסו עוד פעם.')}
               </p>
             )}
             {phase === 'wrong' && !showHint && (
               <p className="mt-3">
                 <button type="button" onClick={() => setShowHint(true)} className="min-h-11 font-bold underline">
-                  רמז
+                  {T('רמז')}
                 </button>
               </p>
             )}
             {showHint && !locked && (
               <aside className="pop mt-4 flex max-w-[560px] flex-wrap items-baseline gap-x-4 gap-y-1 note rounded-2xl px-5 py-4">
-                <strong className="font-display text-[17px] font-semibold">רמז</strong>
+                <strong className="font-display text-[17px] font-semibold">{T('רמז')}</strong>
                 <p className="min-w-0 flex-[1_1_260px] text-lg leading-relaxed">
                   <Rich text={q.hint} />
                 </p>
@@ -290,7 +291,7 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
             {phase === 'wrong' && tries >= 2 && (
               <p className="mt-2">
                 <button type="button" onClick={() => setPhase('revealed')} className="min-h-11 font-bold underline">
-                  הצגת הפתרון המלא
+                  {T('הצגת הפתרון המלא')}
                 </button>
               </p>
             )}
@@ -314,7 +315,7 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
               className="rounded-full px-8 py-3.5 font-display text-[19px] font-semibold text-white shadow-md hover:brightness-110"
               style={{ background: color }}
             >
-              לתרגיל הבא ←
+              {T('לתרגיל הבא ←')}
             </button>
           </div>
         </>
@@ -329,16 +330,16 @@ function Solution({ q, color }: { q: Question; color: string }) {
   return (
     <section className="pop card">
       <div className="mb-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <h2 className="font-display text-2xl font-semibold">דרך הפתרון</h2>
+        <h2 className="font-display text-2xl font-semibold">{T('דרך הפתרון')}</h2>
         {q.short && (
           <Segmented
             small
-            label="רמת הפירוט"
+            label={T('רמת הפירוט')}
             value={mode}
             onChange={setMode}
             items={[
-              { id: 'full', label: 'פתרון מלא' },
-              { id: 'short', label: 'מקוצר' },
+              { id: 'full', label: T('פתרון מלא') },
+              { id: 'short', label: T('מקוצר') },
             ]}
           />
         )}

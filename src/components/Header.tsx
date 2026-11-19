@@ -4,10 +4,11 @@ import { useAuth } from '../lib/cloud';
 import { gradeTopics, hasUnits, inGrade, isSoon, setGrade, setMode, setUnits, trackTopics, useNav, type AnyTopic, type GradeFilter, type Route, type UnitsFilter } from '../lib/nav';
 import { UNITS } from '../lib/types';
 import { activeProfile, selectProfile, stars, totals, useStore } from '../lib/store';
-import { GRADE_NAMES } from '../lib/types';
-import { Logo, StarIcon } from './ui';
+import { GRADE_NAMES, gradeName } from '../lib/types';
+import { LanguageSwitch, Logo, StarIcon } from './ui';
+import { T } from '../i18n';
 
-const gname = (g: GradeFilter) => (g === 'all' ? 'כל הכיתות' : `כיתה ${GRADE_NAMES[g]}`);
+const gname = (g: GradeFilter) => (g === 'all' ? T('כל הכיתות') : T`כיתה ${gradeName(g)}`);
 
 /** האדר בשתי שורות: מסלולים (או כיתות) למעלה, הנושאים מתחת */
 export function Header({ route }: { route: Route }) {
@@ -37,7 +38,7 @@ export function Header({ route }: { route: Route }) {
               onClick={() => setShowSoon(true)}
               className="min-h-9 shrink-0 whitespace-nowrap rounded-full border border-dashed border-white/70 px-3.5 text-[15px] text-white hover:bg-white/10"
             >
-              ועוד {soon.length} בהכנה
+              {T`ועוד ${soon.length} בהכנה`}
             </button>
           ))}
       </>
@@ -50,7 +51,7 @@ export function Header({ route }: { route: Route }) {
       return (
         <span key={t.id} className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-dashed border-white/70 px-3.5 py-1.5 text-[15px] text-white">
           {d}
-          {t.title} · בקרוב
+          {T(t.title)} · {T('בקרוב')}
         </span>
       );
     const active = t.id === currentTopic;
@@ -64,7 +65,7 @@ export function Header({ route }: { route: Route }) {
         style={active ? { color: track?.color ?? '#1d2433' } : undefined}
       >
         {d}
-        {t.title}
+        {T(t.title)}
         {n > 0 && (
           <span className="flex">
             {Array.from({ length: n }, (_, i) => (
@@ -84,7 +85,7 @@ export function Header({ route }: { route: Route }) {
       <>
         <span className="shrink-0 text-sm font-semibold text-white">
           {gname(nav.grade)}
-          {nav.grade === profile.grade && ` · הכיתה של ${profile.name}`}
+          {nav.grade === profile.grade && ` · ${T`הכיתה של ${profile.name}`}`}
         </span>
         {hasUnits(nav.grade) && <UnitsSwitch own={profile.units} />}
         {pills(list, (t) => tracks.find((tr) => tr.id === t.track)?.color)}
@@ -100,10 +101,10 @@ export function Header({ route }: { route: Route }) {
         <GradeMenu own={profile.grade} ownUnits={profile.units} />
         <span aria-hidden="true" className="mx-1 h-6 w-px shrink-0 bg-white/55" />
         {pills(shown)}
-        {shown.length === 0 && <span className="text-[15px] text-white">אין במסלול הזה נושאים ל{gname(nav.grade)}</span>}
+        {shown.length === 0 && <span className="text-[15px] text-white">{T`אין במסלול הזה נושאים ל${gname(nav.grade)}`}</span>}
         {hidden > 0 && (
           <button type="button" onClick={() => setGrade('all')} className="min-h-9 shrink-0 text-sm font-semibold text-white underline">
-            ועוד {hidden} נושאים בכיתות אחרות
+            {T`ועוד ${hidden} נושאים בכיתות אחרות`}
           </button>
         )}
       </>
@@ -113,7 +114,7 @@ export function Header({ route }: { route: Route }) {
       <>
         <GradeMenu own={profile.grade} ownUnits={profile.units} />
         <span aria-hidden="true" className="mx-1 h-6 w-px shrink-0 bg-white/55" />
-        <span className="text-[15px] font-semibold text-white">בחרו מסלול למעלה כדי לראות את הנושאים שלו</span>
+        <span className="text-[15px] font-semibold text-white">{T('בחרו מסלול למעלה כדי לראות את הנושאים שלו')}</span>
       </>
     );
   }
@@ -132,7 +133,7 @@ export function Header({ route }: { route: Route }) {
             <div className="order-4 lg:order-2">
               <ModeSwitch />
             </div>
-            <nav aria-label={nav.mode === 'grade' ? 'כיתות' : 'מסלולים'} className="hide-scrollbar order-5 flex min-w-0 flex-1 basis-0 overflow-x-auto lg:order-3">
+            <nav aria-label={nav.mode === 'grade' ? T('כיתות') : T('מסלולים')} className="hide-scrollbar order-5 flex min-w-0 flex-1 basis-0 overflow-x-auto lg:order-3">
               {nav.mode === 'grade'
                 ? GRADE_NAMES.slice(1).map((g, i) => {
                     const on = nav.grade === i + 1;
@@ -144,7 +145,7 @@ export function Header({ route }: { route: Route }) {
                         onClick={() => setGrade(i + 1)}
                         className={`shrink-0 border-b-[3px] px-3 pb-3 pt-4 font-display text-[17px] ${on ? 'border-sun font-semibold text-white' : 'border-transparent font-medium text-[#c9cfdb] hover:text-white'}`}
                       >
-                        {g}
+                        {gradeName(i + 1)}
                       </button>
                     );
                   })
@@ -158,7 +159,7 @@ export function Header({ route }: { route: Route }) {
                         aria-current={on ? 'page' : undefined}
                         className={`shrink-0 whitespace-nowrap border-b-[3px] px-3 pb-3 pt-4 text-base no-underline ${on ? 'border-sun font-bold text-white' : `border-transparent font-medium hover:text-white ${empty ? 'text-dim' : 'text-[#c9cfdb]'}`}`}
                       >
-                        {tr.short}
+                        {T(tr.short)}
                       </a>
                     );
                   })}
@@ -166,7 +167,7 @@ export function Header({ route }: { route: Route }) {
             <button
               type="button"
               onClick={() => selectProfile(null)}
-              title="החלפת פרופיל"
+              title={T('החלפת פרופיל')}
               className="order-2 ms-auto flex shrink-0 items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-[15px] font-semibold text-white hover:bg-white/25 lg:order-4 lg:ms-0"
             >
               {profile.name}
@@ -175,13 +176,14 @@ export function Header({ route }: { route: Route }) {
                 {t.stars}
               </span>
             </button>
+            <LanguageSwitch className="order-3 lg:order-5" />
           </div>
         </div>
       </header>
       <div className="relative z-20 shadow-md" style={{ background: row2bg }}>
         <div className="hide-scrollbar mx-auto flex max-w-[1240px] items-center gap-2 overflow-x-auto px-4 py-2.5 sm:flex-wrap sm:overflow-visible sm:px-6">{row2}</div>
       </div>
-      {auth.error && <div className="bg-red-700 px-4 py-1 text-center text-sm text-white">{auth.error}</div>}
+      {auth.error && <div className="bg-red-700 px-4 py-1 text-center text-sm text-white">{T(auth.error)}</div>}
     </>
   );
 }
@@ -189,11 +191,11 @@ export function Header({ route }: { route: Route }) {
 function ModeSwitch() {
   const nav = useNav();
   return (
-    <div role="group" aria-label="סידור הניווט" className="flex shrink-0 gap-0.5 rounded-full bg-white/15 p-[3px]">
+    <div role="group" aria-label={T('סידור הניווט')} className="flex shrink-0 gap-0.5 rounded-full bg-white/15 p-[3px]">
       {(
         [
-          ['topics', 'לפי נושאים'],
-          ['grade', 'לפי כיתה'],
+          ['topics', T('לפי נושאים')],
+          ['grade', T('לפי כיתה')],
         ] as const
       ).map(([id, label]) => (
         <button
@@ -215,7 +217,7 @@ function ModeSwitch() {
 function UnitsSwitch({ own }: { own?: number }) {
   const nav = useNav();
   return (
-    <div role="group" aria-label="רמת לימוד" className="flex shrink-0 items-center gap-0.5 rounded-full bg-white/15 p-0.5">
+    <div role="group" aria-label={T('רמת לימוד')} className="flex shrink-0 items-center gap-0.5 rounded-full bg-white/15 p-0.5">
       {([...UNITS, 'all'] as UnitsFilter[]).map((u) => (
         <button
           key={u}
@@ -224,7 +226,7 @@ function UnitsSwitch({ own }: { own?: number }) {
           onClick={() => setUnits(u)}
           className={`min-h-8 rounded-full px-2.5 text-[13px] font-semibold ${nav.units === u ? 'bg-white text-ink' : 'text-white'} ${u === own && nav.units !== u ? 'underline' : ''}`}
         >
-          {u === 'all' ? 'כל הרמות' : `${u} יח"ל`}
+          {u === 'all' ? T('כל הרמות') : T`${u} יח"ל`}
         </button>
       ))}
     </div>
@@ -267,8 +269,8 @@ function GradeMenu({ own, ownUnits }: { own: number; ownUnits?: number }) {
           <path d="M4 6h16M7 12h10M10 18h4" />
         </svg>
         {gname(nav.grade)}
-        {hasUnits(nav.grade) && nav.units !== 'all' && ` · ${nav.units} יח"ל`}
-        {nav.grade === own && (!hasUnits(nav.grade) || nav.units === (ownUnits ?? 'all')) && ' · הכיתה שלי'}
+        {hasUnits(nav.grade) && nav.units !== 'all' && ` · ${T`${nav.units} יח"ל`}`}
+        {nav.grade === own && (!hasUnits(nav.grade) || nav.units === (ownUnits ?? 'all')) && ` · ${T('הכיתה שלי')}`}
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d={open ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'} />
         </svg>
@@ -287,14 +289,14 @@ function GradeMenu({ own, ownUnits }: { own: number; ownUnits?: number }) {
                   onClick={() => pick(v)}
                   className={`min-h-[34px] rounded-lg border-2 font-display text-[15px] ${v === own ? 'border-ink' : 'border-transparent'} ${on ? 'bg-ink font-semibold text-white' : 'bg-sand font-medium'}`}
                 >
-                  {g}
+                  {gradeName(v)}
                 </button>
               );
             })}
           </div>
           {hasUnits(nav.grade) && (
-            <div role="group" aria-label="רמת לימוד" className="flex items-center gap-1">
-              <span className="ms-1 me-1 text-[13px] font-semibold text-muted">יח"ל</span>
+            <div role="group" aria-label={T('רמת לימוד')} className="flex items-center gap-1">
+              <span className="ms-1 me-1 text-[13px] font-semibold text-muted">{T('יח"ל')}</span>
               {([...UNITS, 'all'] as UnitsFilter[]).map((u) => (
                 <button
                   key={u}
@@ -303,7 +305,7 @@ function GradeMenu({ own, ownUnits }: { own: number; ownUnits?: number }) {
                   onClick={() => setUnits(u)}
                   className={`min-h-[34px] flex-1 rounded-lg border-2 font-display text-[15px] ${u === ownUnits ? 'border-ink' : 'border-transparent'} ${nav.units === u ? 'bg-ink font-semibold text-white' : 'bg-sand font-medium'}`}
                 >
-                  {u === 'all' ? 'הכול' : u}
+                  {u === 'all' ? T('הכול') : u}
                 </button>
               ))}
             </div>
@@ -315,8 +317,8 @@ function GradeMenu({ own, ownUnits }: { own: number; ownUnits?: number }) {
                 setUnits(ownUnits ? (ownUnits as UnitsFilter) : 'all');
                 pick(own);
               }} className="min-h-[34px] flex-1 rounded-lg border-2 border-ink bg-white px-2 text-[13px] font-bold">
-              הכיתה שלי ({GRADE_NAMES[own]}
-              {ownUnits ? ` · ${ownUnits} יח"ל` : ''})
+              {T('הכיתה שלי')} ({gradeName(own)}
+              {ownUnits ? ` · ${T`${ownUnits} יח"ל`}` : ''})
             </button>
             <button
               type="button"
@@ -324,7 +326,7 @@ function GradeMenu({ own, ownUnits }: { own: number; ownUnits?: number }) {
               onClick={() => pick('all')}
               className={`min-h-[34px] flex-1 rounded-lg px-2 text-[13px] font-semibold ${nav.grade === 'all' ? 'bg-ink text-white' : 'bg-sand'}`}
             >
-              כל הכיתות
+              {T('כל הכיתות')}
             </button>
           </div>
         </div>

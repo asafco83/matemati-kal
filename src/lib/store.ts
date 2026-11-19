@@ -13,6 +13,8 @@ export interface Profile {
   grade: number;
   /** רמת הלימוד (יח"ל), רק בכיתות י'–י"ב */
   units?: Units;
+  /** שפת הממשק והתוכן של הילד. חסר = עברית */
+  lang?: string;
 }
 
 /** צבעי פרופיל. נפרדים מצבעי המסלולים כדי שלא יתבלבלו איתם */
@@ -44,6 +46,8 @@ export interface State {
   /** progress[profileId][topicId] */
   progress: Record<string, Record<string, TopicProgress>>;
   updatedAt: number;
+  /** השפה במסכים שלפני בחירת פרופיל (רשימת הפרופילים, פתיחה) */
+  lang?: string;
 }
 
 const KEY = 'matemati-kal:v1';
@@ -83,9 +87,9 @@ export const useStore = () => useSyncExternalStore(subscribe, getState);
 
 export const activeProfile = (s: State) => s.profiles.find((p) => p.id === s.activeId) ?? null;
 
-export function addProfile(name: string, color: number, grade: number, units?: Units) {
+export function addProfile(name: string, color: number, grade: number, units?: Units, lang?: string) {
   const id = Math.random().toString(36).slice(2, 10);
-  const p: Profile = { id, name, color, grade, ...(grade >= 10 && units ? { units } : {}) };
+  const p: Profile = { id, name, color, grade, ...(grade >= 10 && units ? { units } : {}), ...(lang && lang !== 'he' ? { lang } : {}) };
   commit({ ...state, profiles: [...state.profiles, p], activeId: id });
 }
 
@@ -97,6 +101,28 @@ export function updateProfile(id: string, patch: Partial<Omit<Profile, 'id'>>) {
     return next;
   };
   commit({ ...state, profiles: state.profiles.map((p) => (p.id === id ? merge(p) : p)) });
+}
+
+/** השפה שמוצגת עכשיו: של הילד הפעיל, ובלי ילד פעיל השפה של המכשיר */
+export function currentLang(s: State): string {
+  const p = activeProfile(s);
+  return (p ? p.lang : s.lang) ?? 'he';
+}
+
+/** החלפת שפה מכל מסך: לילד הפעיל, וגם כשפת המכשיר */
+export function setLanguage(code: string) {
+  const lang = code === 'he' ? undefined : code;
+  const profiles = state.activeId
+    ? state.profiles.map((p) => {
+        if (p.id !== state.activeId) return p;
+        const next = { ...p, lang };
+        if (!lang) delete next.lang;
+        return next;
+      })
+    : state.profiles;
+  const next: State = { ...state, profiles, lang };
+  if (!lang) delete next.lang;
+  commit(next);
 }
 
 export function selectProfile(id: string | null) {

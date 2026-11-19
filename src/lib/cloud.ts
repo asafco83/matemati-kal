@@ -1,3 +1,4 @@
+import { N } from '../i18n';
 import { useSyncExternalStore } from 'react';
 import { firebaseConfig, isFirebaseConfigured } from '../firebaseConfig';
 import { getState, mergeStates, replaceState, subscribe as subscribeStore, type State } from './store';
@@ -54,7 +55,7 @@ async function save(uid: string) {
     await fs.setDoc(fs.doc(db, 'users', uid), { state: JSON.stringify(s), updatedAt: s.updatedAt });
     lastSaved = s.updatedAt;
   } catch {
-    setAuth({ error: 'השמירה בענן נכשלה. ההתקדמות נשמרת במכשיר הזה.' });
+    setAuth({ error: N('השמירה בענן נכשלה. ההתקדמות נשמרת במכשיר הזה.') });
   }
 }
 
@@ -82,7 +83,7 @@ export async function initCloud() {
           await save(u.uid);
         }
       } catch {
-        setAuth({ error: 'לא הצלחנו לטעון את ההתקדמות מהענן.' });
+        setAuth({ error: N('לא הצלחנו לטעון את ההתקדמות מהענן.') });
       }
     });
     subscribeStore(() => {
@@ -92,7 +93,7 @@ export async function initCloud() {
       saveTimer = setTimeout(() => save(uid), 1500);
     });
   } catch {
-    setAuth({ ready: true, error: 'החיבור ל-Firebase נכשל.' });
+    setAuth({ ready: true, error: N('החיבור ל-Firebase נכשל.') });
   }
 }
 
@@ -103,7 +104,7 @@ export async function signIn() {
   } catch (e) {
     const code = (e as { code?: string }).code ?? '';
     if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request')
-      setAuth({ error: 'ההתחברות נכשלה. נסו שוב.' });
+      setAuth({ error: N('ההתחברות נכשלה. נסו שוב.') });
   }
 }
 

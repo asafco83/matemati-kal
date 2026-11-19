@@ -1,3 +1,4 @@
+import { getLocale, T } from '../i18n';
 export type Level = 1 | 2 | 3;
 
 /** שרטוטים פשוטים שמלווים שיעורים ושאלות */
@@ -146,8 +147,11 @@ export const STAGES: { id: Stage; title: string; range: [number, number] }[] = [
   { id: 'high', title: 'תיכון (י\'-י"ב)', range: [10, 12] },
 ];
 
+/** שם הכיתה: בעברית באות (ז'), ובשאר השפות במספר (7) */
+export const gradeName = (g: number) => (getLocale().code === 'he' ? GRADE_NAMES[g] : String(g));
+
 export function gradeLabel([a, b]: [number, number]): string {
-  return a === b ? `כיתה ${GRADE_NAMES[a]}` : `כיתות ${GRADE_NAMES[a]}–${GRADE_NAMES[b]}`;
+  return a === b ? T`כיתה ${gradeName(a)}` : T`כיתות ${gradeName(a)}–${gradeName(b)}`;
 }
 
 export function stageOfGrade(g: number): Stage {
