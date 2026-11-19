@@ -234,6 +234,79 @@ export function FigureView({ fig }: { fig: Figure }) {
         </svg>
       );
     }
+    case 'quad4': {
+      // קודקודים A, B, C, D נגד כיוון השעון, ונקודת חיתוך האלכסונים
+      const P: Record<string, [number, number][]> = {
+        parallelogram: [[40, 140], [200, 140], [250, 40], [90, 40]],
+        rectangle: [[45, 140], [245, 140], [245, 40], [45, 40]],
+        rhombus: [[145, 160], [245, 90], [145, 20], [45, 90]],
+        square: [[85, 150], [205, 150], [205, 30], [85, 30]],
+        kite: [[145, 165], [215, 65], [145, 20], [75, 65]],
+      };
+      const v = P[fig.kind];
+      // חיתוך האלכסונים AC ו-BD
+      const [A, B, C, D] = v;
+      const den = (A[0] - C[0]) * (B[1] - D[1]) - (A[1] - C[1]) * (B[0] - D[0]);
+      const t = ((A[0] - B[0]) * (B[1] - D[1]) - (A[1] - B[1]) * (B[0] - D[0])) / den;
+      const O: [number, number] = [A[0] + t * (C[0] - A[0]), A[1] + t * (C[1] - A[1])];
+      const showD = fig.diags ?? true;
+      const perp = fig.kind === 'rhombus' || fig.kind === 'square' || fig.kind === 'kite';
+      const mid = (p: [number, number], q: [number, number]): [number, number] => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+      // תווית של צלע: מעט מחוץ למרובע
+      const out = (p: [number, number], q: [number, number]): [number, number] => {
+        const m = mid(p, q);
+        const dx = m[0] - O[0], dy = m[1] - O[1], L0 = Math.hypot(dx, dy) || 1;
+        return [m[0] + (dx / L0) * 16, m[1] + (dy / L0) * 16];
+      };
+      const s1 = out(A, B), s2 = out(B, C);
+      return (
+        <svg viewBox="0 0 290 185" className="mx-auto w-full max-w-[290px]" role="img" aria-label={fig.kind}>
+          <polygon points={v.map((q) => q.join(',')).join(' ')} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          {showD && (
+            <g stroke={INK} strokeWidth="1.8" strokeDasharray="6 4">
+              <line x1={A[0]} y1={A[1]} x2={C[0]} y2={C[1]} />
+              <line x1={B[0]} y1={B[1]} x2={D[0]} y2={D[1]} />
+            </g>
+          )}
+          {showD && perp && (() => {
+            // סימן זווית ישרה בנקודת החיתוך
+            const u = [(C[0] - O[0]), (C[1] - O[1])], w = [(B[0] - O[0]), (B[1] - O[1])];
+            const nu = Math.hypot(u[0], u[1]), nw = Math.hypot(w[0], w[1]);
+            const a = [O[0] + (u[0] / nu) * 11, O[1] + (u[1] / nu) * 11], b = [O[0] + (w[0] / nw) * 11, O[1] + (w[1] / nw) * 11];
+            return <path d={`M${a[0]} ${a[1]} L${a[0] + b[0] - O[0]} ${a[1] + b[1] - O[1]} L${b[0]} ${b[1]}`} fill="none" stroke={INK} strokeWidth="1.5" />;
+          })()}
+          {(fig.kind === 'rectangle' || fig.kind === 'square') && <path d={`M${A[0] + 13} ${A[1]} v-13 h-13`} fill="none" stroke={INK} strokeWidth="1.5" />}
+          {(['A', 'B', 'C', 'D'] as const).map((n, i) => {
+            const q = v[i], dx = q[0] - O[0], dy = q[1] - O[1], L0 = Math.hypot(dx, dy) || 1;
+            return <Label key={n} x={q[0] + (dx / L0) * 14} y={q[1] + (dy / L0) * 14} bold>{n}</Label>;
+          })}
+          {fig.side && <Label x={s1[0]} y={s1[1]}>{fig.side}</Label>}
+          {fig.side2 && <Label x={s2[0]} y={s2[1]}>{fig.side2}</Label>}
+          {fig.d1 && <Label x={(A[0] + O[0]) / 2 + 12} y={(A[1] + O[1]) / 2} anchor="start">{fig.d1}</Label>}
+          {fig.d2 && <Label x={(B[0] + O[0]) / 2} y={(B[1] + O[1]) / 2 - 11}>{fig.d2}</Label>}
+          {fig.angle && <Label x={A[0] + 30} y={A[1] - 12} anchor="start">{fig.angle}</Label>}
+        </svg>
+      );
+    }
+    case 'table':
+      return (
+        <div className="overflow-x-auto py-1">
+          <table className="mx-auto border-collapse bg-white text-[18px]">
+            <tbody>
+              {fig.rows.map((r, i) => (
+                <tr key={i}>
+                  <th className="whitespace-nowrap border border-[#c9c4b6] bg-[#f6f4ee] px-3 py-1.5 font-display text-[16px] font-semibold">{r.label}</th>
+                  {r.cells.map((c, j) => (
+                    <td key={j} className="min-w-[2.6em] whitespace-nowrap border border-[#c9c4b6] px-3 py-1.5 text-center">
+                      <Tex tex={c} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
     case 'signtable': {
       const fn = fig.fn ?? 'f';
       const arrow = (d: '+' | '-') => (
