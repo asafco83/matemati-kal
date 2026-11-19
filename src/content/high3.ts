@@ -1424,69 +1424,70 @@ const solids: Topic = {
   levels: ['מנסרה וגליל', 'פירמידה, חרוט וכדור', 'קו יוצר ושטח מעטפת'],
   lesson: {
     intro: 'גוף במרחב תופס נפח. במנסרה ובגליל הנפח הוא שטח הבסיס כפול הגובה, ובפירמידה ובחרוט הוא שליש מזה. כך מחשבים כמה נכנס בפחית, בגביע גלידה או באוהל.',
-    before: ['צריך לדעת לחשב שטח של מצולע ושל עיגול ($\\pi r^2$).', 'צריך להכיר את משפט פיתגורס.'],
+    before: ['צריך לדעת לחשב שטח של מצולע ושל עיגול ($\\pi R^2$).', 'צריך להכיר את משפט פיתגורס.'],
     sections: [
       {
         title: 'מנסרה וגליל',
-        body: 'הנפח של מנסרה ושל גליל הוא שטח הבסיס כפול הגובה: $V = B \\cdot h$. בגליל הבסיס הוא עיגול, ולכן $V = \\pi r^2 h$.',
+        body: 'הנפח של מנסרה ושל גליל הוא שטח הבסיס כפול הגובה: $V = S \\cdot h$. בגליל הבסיס הוא עיגול, ולכן $V = \\pi R^2 h$.',
         detail: [
-          { figure: { type: 'solid', kind: 'cylinder', r: 'r', h: 'h' }, caption: 'גליל: רדיוס הבסיס $r$ והגובה $h$.' },
+          { figure: { type: 'solid', kind: 'cylinder', r: 'R', h: 'h' }, caption: 'גליל: רדיוס הבסיס $R$ והגובה $h$.' },
+          'בנוסחאון מסמנים: $S$ שטח הבסיס, $h$ הגובה, $R$ הרדיוס, $M$ שטח המעטפת ו-$F$ שטח הפנים.',
           'מנסרה היא גוף ששני הבסיסים שלו מצולעים שווים ומקבילים, והפאות הצדדיות שלו מלבנים. תיבה היא מנסרה שהבסיס שלה מלבן.',
           'חושבים על הגוף כעל ערימה של פרוסות שוות לבסיס. בכל פרוסה בעובי 1 יש $B$ יחידות נפח, ויש $h$ פרוסות כאלה.',
-          { tex: 'V = B \\cdot h', why: 'שטח הבסיס כפול הגובה' },
-          'בגליל הבסיס הוא עיגול, והשטח שלו $\\pi r^2$:',
-          { tex: 'V = \\pi r^2 \\cdot h' },
-          'דוגמה: גליל עם $r = 5$ ו-$h = 8$.',
+          { tex: 'V = S \\cdot h', why: 'שטח הבסיס כפול הגובה' },
+          'בגליל הבסיס הוא עיגול, והשטח שלו $\\pi R^2$:',
+          { tex: 'V = \\pi R^2 \\cdot h' },
+          'דוגמה: גליל עם $R = 5$ ו-$h = 8$.',
           { tex: 'V = \\pi \\cdot 5^2 \\cdot 8 = \\pi \\cdot 25 \\cdot 8 = 200\\pi \\approx 628.3', why: 'קודם תשובה מדויקת עם $\\pi$, ורק בסוף מחשבון' },
         ],
-        figure: { type: 'solid', kind: 'cylinder', r: 'r', h: 'h' },
+        figure: { type: 'solid', kind: 'cylinder', r: 'R', h: 'h' },
       },
       {
         title: 'פירמידה וחרוט',
-        body: 'הנפח של פירמידה ושל חרוט הוא שליש מנפח המנסרה או הגליל שיש להם אותו בסיס ואותו גובה: $V = \\frac{B \\cdot h}{3}$.',
+        body: 'הנפח של פירמידה ושל חרוט הוא שליש מנפח המנסרה או הגליל שיש להם אותו בסיס ואותו גובה: $V = \\frac{S \\cdot h}{3}$.',
         detail: [
           { figure: { type: 'solid', kind: 'pyramid', r: 'a', h: 'h' }, caption: 'פירמידה ישרה שהבסיס שלה ריבוע: הגובה יורד מהקודקוד למרכז הבסיס.' },
           'בפירמידה הבסיס הוא מצולע, וכל הפאות הצדדיות נפגשות בקודקוד אחד. בחרוט הבסיס הוא עיגול.',
           'אפשר לחלק קובייה ל-3 פירמידות שוות, ולכן נפח פירמידה הוא שליש מנפח המנסרה עם אותו בסיס ואותו גובה.',
-          { tex: 'V = \\frac{B \\cdot h}{3}' },
+          { tex: 'V = \\frac{S \\cdot h}{3}' },
           'בחרוט הבסיס הוא עיגול:',
-          { tex: 'V = \\frac{\\pi r^2 \\cdot h}{3}' },
-          'דוגמה: חרוט עם $r = 3$ ו-$h = 4$.',
+          { tex: 'V = \\frac{\\pi R^2 \\cdot h}{3}' },
+          'דוגמה: חרוט עם $R = 3$ ו-$h = 4$.',
           { tex: 'V = \\frac{\\pi \\cdot 3^2 \\cdot 4}{3} = \\frac{36\\pi}{3} = 12\\pi \\approx 37.7' },
           'הגובה $h$ הוא האנך מהקודקוד לבסיס, לא הצלע המשופעת.',
         ],
-        figure: { type: 'solid', kind: 'cone', r: 'r', h: 'h' },
+        figure: { type: 'solid', kind: 'cone', r: 'R', h: 'h' },
       },
       {
         title: 'קו יוצר ושטח מעטפת',
-        body: 'המעטפת היא הדופן של הגוף, בלי הבסיסים. שטח המעטפת של גליל הוא $2\\pi r h$. בחרוט הקו היוצר $\\ell$ מקיים $\\ell^2 = r^2 + h^2$, ושטח המעטפת הוא $\\pi r \\ell$.',
+        body: 'המעטפת היא הדופן של הגוף, בלי הבסיסים. שטח המעטפת של גליל הוא $2\\pi R h$. בחרוט הקו היוצר $\\ell$ מקיים $\\ell^2 = R^2 + h^2$, ושטח המעטפת הוא $\\pi R \\ell$.',
         detail: [
-          'מעטפת של גליל נפרשת למלבן: אורך המלבן הוא היקף הבסיס $2\\pi r$, והרוחב הוא הגובה $h$.',
-          { tex: 'S = 2\\pi r \\cdot h', why: 'שטח המלבן' },
-          { figure: { type: 'solid', kind: 'cone', r: 'r', h: 'h', l: 'ℓ' }, caption: 'בחרוט הגובה, הרדיוס והקו היוצר יוצרים משולש ישר זווית.' },
-          'הקו היוצר $\\ell$ הוא הקטע מהקודקוד של החרוט להיקף הבסיס. הוא היתר במשולש ישר זווית שהניצבים שלו $r$ ו-$h$.',
-          { tex: '\\ell^2 = r^2 + h^2', why: 'משפט פיתגורס' },
+          'מעטפת של גליל נפרשת למלבן: אורך המלבן הוא היקף הבסיס $2\\pi R$, והרוחב הוא הגובה $h$.',
+          { tex: 'M = 2\\pi R \\cdot h', why: 'שטח המלבן' },
+          { figure: { type: 'solid', kind: 'cone', r: 'R', h: 'h', l: 'ℓ' }, caption: 'בחרוט הגובה, הרדיוס והקו היוצר יוצרים משולש ישר זווית.' },
+          'הקו היוצר $\\ell$ הוא הקטע מהקודקוד של החרוט להיקף הבסיס. הוא היתר במשולש ישר זווית שהניצבים שלו $R$ ו-$h$.',
+          { tex: '\\ell^2 = R^2 + h^2', why: 'משפט פיתגורס' },
           'מעטפת של חרוט נפרשת לגזרה של עיגול, והשטח שלה:',
-          { tex: 'S = \\pi r \\ell' },
-          'דוגמה: חרוט עם $r = 3$ ו-$h = 4$.',
+          { tex: 'M = \\pi R \\ell' },
+          'דוגמה: חרוט עם $R = 3$ ו-$h = 4$.',
           { tex: '\\ell = \\sqrt{3^2 + 4^2} = \\sqrt{25} = 5' },
-          { tex: 'S = \\pi \\cdot 3 \\cdot 5 = 15\\pi \\approx 47.1' },
+          { tex: 'M = \\pi \\cdot 3 \\cdot 5 = 15\\pi \\approx 47.1' },
         ],
       },
       {
         title: 'כדור',
-        body: 'נפח כדור הוא $V = \\frac{4}{3}\\pi r^3$, ושטח הפנים שלו הוא $S = 4\\pi r^2$.',
+        body: 'נפח כדור הוא $V = \\frac{4}{3}\\pi R^3$, ושטח הפנים שלו הוא $F = 4\\pi R^2$.',
         detail: [
-          { figure: { type: 'solid', kind: 'sphere', r: 'r' }, caption: 'כדור עם רדיוס $r$.' },
-          'כל הנקודות על פני הכדור נמצאות באותו מרחק מהמרכז. המרחק הזה הוא הרדיוס $r$.',
-          { tex: 'V = \\frac{4}{3}\\pi r^3', why: 'נפח' },
-          { tex: 'S = 4\\pi r^2', why: 'שטח הפנים' },
-          'דוגמה: כדור עם $r = 6$.',
+          { figure: { type: 'solid', kind: 'sphere', r: 'R' }, caption: 'כדור עם רדיוס $R$.' },
+          'כל הנקודות על פני הכדור נמצאות באותו מרחק מהמרכז. המרחק הזה הוא הרדיוס $R$.',
+          { tex: 'V = \\frac{4}{3}\\pi R^3', why: 'נפח' },
+          { tex: 'F = 4\\pi R^2', why: 'שטח הפנים' },
+          'דוגמה: כדור עם $R = 6$.',
           { tex: 'V = \\frac{4}{3}\\pi \\cdot 6^3 = \\frac{4 \\cdot 216}{3}\\pi = 288\\pi \\approx 904.8' },
-          { tex: 'S = 4\\pi \\cdot 6^2 = 144\\pi \\approx 452.4' },
+          { tex: 'F = 4\\pi \\cdot 6^2 = 144\\pi \\approx 452.4' },
           'נפח נמדד ביחידות מעוקבות (סמ"ק), ושטח ביחידות ריבועיות (סמ"ר).',
         ],
-        figure: { type: 'solid', kind: 'sphere', r: 'r' },
+        figure: { type: 'solid', kind: 'sphere', r: 'R' },
       },
     ],
     method: [
@@ -1500,7 +1501,7 @@ const solids: Topic = {
         problem: 'גביע גלידה בצורת חרוט: רדיוס הבסיס 3 ס"מ והגובה 12 ס"מ. כמה סמ"ק גלידה נכנסים בו?',
         figure: { type: 'solid', kind: 'cone', r: '3', h: '12' },
         steps: [
-          { tex: 'V = \\frac{\\pi r^2 \\cdot h}{3}' },
+          { tex: 'V = \\frac{\\pi R^2 \\cdot h}{3}' },
           { tex: 'V = \\frac{\\pi \\cdot 3^2 \\cdot 12}{3} = \\frac{108\\pi}{3} = 36\\pi \\approx 113.1' },
           'נכנסים בגביע בערך 113 סמ"ק.',
         ],
@@ -1517,9 +1518,9 @@ const solids: Topic = {
           text: `מה הנפח של גליל שרדיוס הבסיס שלו ${r} ס"מ והגובה שלו ${h} ס"מ?`,
           figure: { type: 'solid', kind: 'cylinder', r: String(r), h: String(h) },
           answer: { type: 'number', value: round(v, 1), tol: PI_TOL, unit: 'סמ"ק' },
-          hint: 'שטח הבסיס $\\pi r^2$ כפול הגובה.',
+          hint: 'שטח הבסיס $\\pi R^2$ כפול הגובה.',
           solution: [
-            { tex: 'V = \\pi r^2 \\cdot h', why: 'נפח גליל' },
+            { tex: 'V = \\pi R^2 \\cdot h', why: 'נפח גליל' },
             { tex: `V = \\pi \\cdot ${r}^2 \\cdot ${h} = \\pi \\cdot ${r * r} \\cdot ${h} = ${r * r * h}\\pi` },
             { tex: `V \\approx ${n1(v)}`, why: 'מציבים $\\pi$ במחשבון' },
           ],
@@ -1532,8 +1533,8 @@ const solids: Topic = {
         answer: { type: 'number', value: a * a * h, unit: 'סמ"ק' },
         hint: 'שטח הבסיס כפול הגובה.',
         solution: [
-          { tex: `B = ${a}^2 = ${a * a}`, why: 'שטח הבסיס (ריבוע)' },
-          { tex: `V = B \\cdot h = ${a * a} \\cdot ${h} = ${a * a * h}`, why: 'נפח מנסרה' },
+          { tex: `S = ${a}^2 = ${a * a}`, why: 'שטח הבסיס (ריבוע)' },
+          { tex: `V = S \\cdot h = ${a * a} \\cdot ${h} = ${a * a * h}`, why: 'נפח מנסרה' },
         ],
       };
     }
@@ -1547,9 +1548,9 @@ const solids: Topic = {
           text: `מה הנפח של כדור שהרדיוס שלו ${r} ס"מ?`,
           figure: { type: 'solid', kind: 'sphere', r: String(r) },
           answer: { type: 'number', value: round(v, 1), tol: PI_TOL, unit: 'סמ"ק' },
-          hint: 'נפח כדור: $\\frac{4}{3}\\pi r^3$.',
+          hint: 'נפח כדור: $\\frac{4}{3}\\pi R^3$.',
           solution: [
-            { tex: 'V = \\frac{4}{3}\\pi r^3', why: 'נפח כדור' },
+            { tex: 'V = \\frac{4}{3}\\pi R^3', why: 'נפח כדור' },
             { tex: `V = \\frac{4}{3}\\pi \\cdot ${r}^3 = \\frac{4 \\cdot ${r ** 3}}{3}\\pi = ${k}\\pi` },
             { tex: `V \\approx ${n1(v)}` },
           ],
@@ -1568,7 +1569,7 @@ const solids: Topic = {
           answer: { type: 'number', value: round(v, 1), tol: PI_TOL, unit: 'סמ"ק' },
           hint: 'שליש מנפח הגליל עם אותו בסיס ואותו גובה.',
           solution: [
-            { tex: 'V = \\frac{\\pi r^2 \\cdot h}{3}', why: 'נפח חרוט' },
+            { tex: 'V = \\frac{\\pi R^2 \\cdot h}{3}', why: 'נפח חרוט' },
             { tex: `V = \\frac{\\pi \\cdot ${a}^2 \\cdot ${h}}{3} = \\frac{${a * a * h}\\pi}{3} = ${(a * a * h) / 3}\\pi` },
             { tex: `V \\approx ${n1(v)}` },
           ],
@@ -1580,8 +1581,8 @@ const solids: Topic = {
         answer: { type: 'number', value: (a * a * h) / 3, unit: 'סמ"ק' },
         hint: 'שטח הבסיס כפול הגובה, חלקי 3.',
         solution: [
-          { tex: `B = ${a}^2 = ${a * a}`, why: 'שטח הבסיס (ריבוע)' },
-          { tex: `V = \\frac{B \\cdot h}{3} = \\frac{${a * a} \\cdot ${h}}{3} = \\frac{${a * a * h}}{3} = ${(a * a * h) / 3}`, why: 'נפח פירמידה' },
+          { tex: `S = ${a}^2 = ${a * a}`, why: 'שטח הבסיס (ריבוע)' },
+          { tex: `V = \\frac{S \\cdot h}{3} = \\frac{${a * a} \\cdot ${h}}{3} = \\frac{${a * a * h}}{3} = ${(a * a * h) / 3}`, why: 'נפח פירמידה' },
         ],
       };
     }
@@ -1594,9 +1595,9 @@ const solids: Topic = {
         answer: { type: 'number', value: round(v, 1), tol: PI_TOL, unit: 'סמ"ר' },
         hint: 'המעטפת נפרשת למלבן: היקף הבסיס כפול הגובה.',
         solution: [
-          { tex: 'S = 2\\pi r \\cdot h', why: 'היקף הבסיס כפול הגובה' },
-          { tex: `S = 2\\pi \\cdot ${r} \\cdot ${h} = ${2 * r * h}\\pi` },
-          { tex: `S \\approx ${n1(v)}` },
+          { tex: 'M = 2\\pi R \\cdot h', why: 'היקף הבסיס כפול הגובה' },
+          { tex: `M = 2\\pi \\cdot ${r} \\cdot ${h} = ${2 * r * h}\\pi` },
+          { tex: `M \\approx ${n1(v)}` },
         ],
       };
     }
@@ -1606,15 +1607,236 @@ const solids: Topic = {
       text: `רדיוס הבסיס של חרוט הוא ${r} ס"מ והגובה שלו ${h} ס"מ. מה שטח המעטפת של החרוט?`,
       figure: { type: 'solid', kind: 'cone', r: String(r), h: String(h), l: '?' },
       answer: { type: 'number', value: round(v, 1), tol: PI_TOL, unit: 'סמ"ר' },
-      hint: 'קודם מוצאים את הקו היוצר לפי פיתגורס, ואז $\\pi r \\ell$.',
+      hint: 'קודם מוצאים את הקו היוצר לפי פיתגורס, ואז $\\pi R \\ell$.',
       solution: [
         { tex: `\\ell^2 = ${r}^2 + ${h}^2 = ${r * r} + ${h * h} = ${l * l}`, why: 'פיתגורס: הקו היוצר הוא היתר' },
         { tex: `\\ell = ${l}` },
-        { tex: `S = \\pi r \\ell = \\pi \\cdot ${r} \\cdot ${l} = ${r * l}\\pi`, why: 'שטח מעטפת חרוט' },
-        { tex: `S \\approx ${n1(v)}` },
+        { tex: `M = \\pi R \\ell = \\pi \\cdot ${r} \\cdot ${l} = ${r * l}\\pi`, why: 'שטח מעטפת חרוט' },
+        { tex: `M \\approx ${n1(v)}` },
       ],
     };
   },
 };
 
-export const highTopics3: Topic[] = [sineCosineLaw, unitCircle, trig3d, investigation, optimization, integrals, linearProgramming, statistics, regression, normal, vectors, solids];
+/* ---------- מספרים מרוכבים ---------- */
+
+/** a + bi כמו במחברת */
+function cx(a: number, b: number): string {
+  if (b === 0) return String(a);
+  const bi = b === 1 ? 'i' : b === -1 ? '-i' : `${b}i`;
+  if (a === 0) return bi;
+  return `${a} ${b < 0 ? '-' : '+'} ${Math.abs(b) === 1 ? '' : Math.abs(b)}i`;
+}
+/** מקדם כפול √s: c√3, או c אם s = 1 */
+const surd = (c: number, s: number) => (s === 1 ? String(c) : `${c === 1 ? '' : c === -1 ? '-' : c}\\sqrt{${s}}`);
+/** זוויות מיוחדות: קוסינוס וסינוס מדויקים */
+const TRIG: Record<number, [string, string]> = {
+  0: ['1', '0'], 30: ['\\frac{\\sqrt{3}}{2}', '\\frac{1}{2}'], 45: ['\\frac{\\sqrt{2}}{2}', '\\frac{\\sqrt{2}}{2}'], 60: ['\\frac{1}{2}', '\\frac{\\sqrt{3}}{2}'],
+  90: ['0', '1'], 120: ['-\\frac{1}{2}', '\\frac{\\sqrt{3}}{2}'], 135: ['-\\frac{\\sqrt{2}}{2}', '\\frac{\\sqrt{2}}{2}'], 150: ['-\\frac{\\sqrt{3}}{2}', '\\frac{1}{2}'],
+  180: ['-1', '0'], 210: ['-\\frac{\\sqrt{3}}{2}', '-\\frac{1}{2}'], 225: ['-\\frac{\\sqrt{2}}{2}', '-\\frac{\\sqrt{2}}{2}'], 240: ['-\\frac{1}{2}', '-\\frac{\\sqrt{3}}{2}'],
+  270: ['0', '-1'], 300: ['\\frac{1}{2}', '-\\frac{\\sqrt{3}}{2}'], 315: ['\\frac{\\sqrt{2}}{2}', '-\\frac{\\sqrt{2}}{2}'], 330: ['\\frac{\\sqrt{3}}{2}', '-\\frac{1}{2}'],
+};
+/** מספרים עם זווית מיוחדת: a = ca·√sa, b = cb·√sb, r = rc·√rs */
+const POLAR: { ca: number; sa: number; cb: number; sb: number; rc: number; rs: number; t: number }[] = [
+  { ca: 1, sa: 1, cb: 1, sb: 1, rc: 1, rs: 2, t: 45 }, { ca: -1, sa: 1, cb: 1, sb: 1, rc: 1, rs: 2, t: 135 },
+  { ca: -1, sa: 1, cb: -1, sb: 1, rc: 1, rs: 2, t: 225 }, { ca: 1, sa: 1, cb: -1, sb: 1, rc: 1, rs: 2, t: 315 },
+  { ca: 1, sa: 1, cb: 1, sb: 3, rc: 2, rs: 1, t: 60 }, { ca: 1, sa: 3, cb: 1, sb: 1, rc: 2, rs: 1, t: 30 },
+  { ca: -1, sa: 1, cb: 1, sb: 3, rc: 2, rs: 1, t: 120 }, { ca: -1, sa: 3, cb: 1, sb: 1, rc: 2, rs: 1, t: 150 },
+  { ca: -1, sa: 3, cb: -1, sb: 1, rc: 2, rs: 1, t: 210 }, { ca: -1, sa: 1, cb: -1, sb: 3, rc: 2, rs: 1, t: 240 },
+  { ca: 1, sa: 1, cb: -1, sb: 3, rc: 2, rs: 1, t: 300 }, { ca: 1, sa: 3, cb: -1, sb: 1, rc: 2, rs: 1, t: 330 },
+];
+/** a + bi כשהחלקים יכולים להיות עם שורש */
+function cxs(ca: number, sa: number, cb: number, sb: number): string {
+  const b = sb === 1 ? cx(0, cb) : `${surd(cb, sb)}i`;
+  return `${surd(ca, sa)} ${b.startsWith('-') ? '- ' + b.slice(1) : '+ ' + b}`;
+}
+/** איבר עם i אחרי סימן: + 3i, - i */
+const iTerm = (c: number) => (c === 1 ? '+ i' : c === -1 ? '- i' : `${sgn(c)}i`);
+/** ריבוע של c√s, עם סוגריים רק כשצריך */
+const sqTex = (c: number, s: number) => (c < 0 || s !== 1 ? `(${surd(c, s)})^2` : `${c}^2`);
+const polarTex = (r: string, t: number | string) => `${r === '1' ? '' : r}(\\cos ${t}° + i\\sin ${t}°)`;
+
+const complexNumbers: Topic = {
+  id: 'complex',
+  track: 'algebra',
+  title: 'מספרים מרוכבים',
+  grades: [12, 12],
+  icon: 'ⅈ',
+  units: [5],
+  summary: 'המספר $i$, ארבע הפעולות, צמוד, מישור גאוס, הצגה קוטבית ומשפט דה-מואבר.',
+  levels: ['פעולות בהצגה אלגברית', 'הצגה קוטבית', 'משפט דה-מואבר'],
+  lesson: {
+    intro: 'למשוואה $x^2 = -1$ אין פתרון במספרים הממשיים. מגדירים מספר חדש, $i$, שהריבוע שלו $-1$, ומקבלים את המספרים המרוכבים. בהם לכל משוואה ריבועית יש פתרון.',
+    before: ['צריך לדעת לפתוח סוגריים ולכנס איברים דומים.', 'צריך להכיר סינוס וקוסינוס של זוויות מיוחדות (30°, 45°, 60°).'],
+    sections: [
+      {
+        title: 'המספר i והצגה אלגברית',
+        body: 'המספר $i$ מקיים $i^2 = -1$. מספר מרוכב נכתב $z = a + bi$: $a$ הוא החלק הממשי ו-$b$ הוא החלק המדומה.',
+        detail: [
+          'במספרים הממשיים אין מספר שהריבוע שלו שלילי. לכן מגדירים מספר חדש:',
+          { tex: 'i^2 = -1' },
+          'עכשיו אפשר לפתור, למשל, $x^2 = -9$:',
+          { tex: 'x^2 = -9 \\Rightarrow x = \\pm\\sqrt{9} \\cdot i = \\pm 3i', why: 'כי $(3i)^2 = 9i^2 = -9$' },
+          'כל מספר מרוכב נכתב בצורה $z = a + bi$, כש-$a$ ו-$b$ ממשיים. למשל ב-$z = 4 - 7i$ החלק הממשי הוא 4 והחלק המדומה הוא $-7$.',
+          'שני מספרים מרוכבים שווים כשהחלקים הממשיים שווים וגם החלקים המדומים שווים.',
+        ],
+      },
+      {
+        title: 'חיבור, חיסור וכפל',
+        body: 'מחברים ומחסרים חלק ממשי עם חלק ממשי וחלק מדומה עם חלק מדומה. כופלים כמו שני סוגריים, ובסוף מחליפים את $i^2$ ב-$-1$.',
+        detail: [
+          'חיבור: $(2 + 3i) + (1 - 4i) = 3 - i$. מחברים $2 + 1$ ו-$3i - 4i$.',
+          'כפל: פותחים סוגריים כמו בביטוי אלגברי.',
+          { tex: '(2 + 3i)(1 - 4i) = 2 - 8i + 3i - 12i^2', why: 'כל איבר כפול כל איבר' },
+          { tex: '= 2 - 5i - 12 \\cdot (-1)', why: 'מכנסים, ו-$i^2 = -1$' },
+          { tex: '= 2 - 5i + 12 = 14 - 5i' },
+        ],
+      },
+      {
+        title: 'צמוד וחילוק',
+        body: 'הצמוד של $z = a + bi$ הוא $\\bar{z} = a - bi$. מכפלת מספר בצמוד שלו היא מספר ממשי: $z \\cdot \\bar{z} = a^2 + b^2$. כדי לחלק, כופלים את המונה ואת המכנה בצמוד של המכנה.',
+        detail: [
+          'הצמוד מחליף את הסימן של החלק המדומה: הצמוד של $3 + 2i$ הוא $3 - 2i$.',
+          { tex: '(a + bi)(a - bi) = a^2 - b^2 i^2 = a^2 + b^2', why: 'נוסחת הכפל המקוצר, ו-$i^2 = -1$' },
+          'בחילוק רוצים מכנה ממשי, ולכן כופלים את המונה ואת המכנה בצמוד של המכנה:',
+          { tex: '\\frac{5 + i}{1 + i} = \\frac{(5 + i)(1 - i)}{(1 + i)(1 - i)}', why: 'כופלים בצמוד של המכנה' },
+          { tex: '= \\frac{5 - 5i + i - i^2}{1 + 1} = \\frac{6 - 4i}{2} = 3 - 2i' },
+        ],
+      },
+      {
+        title: 'מישור גאוס והצגה קוטבית',
+        body: 'את $z = a + bi$ מציגים כנקודה $(a, b)$ במישור גאוס. המרחק מראשית הצירים הוא הערך המוחלט $|z| = r = \\sqrt{a^2 + b^2}$, ו-$\\theta$ היא הזווית עם החלק החיובי של ציר הממשיים. ההצגה הקוטבית: $z = r(\\cos\\theta + i\\sin\\theta)$.',
+        detail: [
+          'בציר האופקי (הציר הממשי, Re) מסמנים את החלק הממשי, ובציר האנכי (הציר המדומה, Im) את החלק המדומה.',
+          { figure: { type: 'graph', lines: [], points: [[1, 1.73]], pointLabels: ['z'], range: 3, axes: ['Re', 'Im'] }, caption: 'המספר $z = 1 + \\sqrt{3}i$ במישור גאוס.' },
+          'הערך המוחלט הוא המרחק מהראשית, לפי פיתגורס:',
+          { tex: 'r = |z| = \\sqrt{1^2 + (\\sqrt{3})^2} = \\sqrt{4} = 2' },
+          'במשולש ישר הזווית $a = r\\cos\\theta$ ו-$b = r\\sin\\theta$:',
+          { tex: '\\cos\\theta = \\frac{1}{2}, \\quad \\sin\\theta = \\frac{\\sqrt{3}}{2} \\Rightarrow \\theta = 60°', why: 'הנקודה ברביע הראשון' },
+          { tex: 'z = 2(\\cos 60° + i\\sin 60°)' },
+          'בודקים תמיד באיזה רביע הנקודה נמצאת, לפי הסימנים של $a$ ו-$b$. הזווית נמדדת מ-$0°$ עד $360°$.',
+        ],
+      },
+      {
+        title: 'כפל ומשפט דה-מואבר',
+        body: 'בכפל בהצגה קוטבית כופלים את הערכים המוחלטים ומחברים את הזוויות. לכן בחזקה: $[r(\\cos\\theta + i\\sin\\theta)]^n = r^n(\\cos n\\theta + i\\sin n\\theta)$.',
+        detail: [
+          { tex: 'z_1 \\cdot z_2 = r_1 \\cdot r_2[\\cos(\\theta_1 + \\theta_2) + i\\sin(\\theta_1 + \\theta_2)]', why: 'מהנוסחאון' },
+          'חזקה היא כפל חוזר, ולכן הערך המוחלט עולה בחזקה והזווית מוכפלת. זה משפט דה-מואבר.',
+          'דוגמה: $(1 + i)^8$. קודם הצגה קוטבית: $r = \\sqrt{2}$, $\\theta = 45°$.',
+          { tex: '(1 + i)^8 = (\\sqrt{2})^8(\\cos(8 \\cdot 45°) + i\\sin(8 \\cdot 45°))' },
+          { tex: '= 16(\\cos 360° + i\\sin 360°) = 16 \\cdot (1 + 0i) = 16', why: '$(\\sqrt{2})^8 = 2^4 = 16$' },
+          'בלי המשפט היינו צריכים לכפול 8 פעמים.',
+        ],
+      },
+      {
+        title: 'שורשים של מספר מרוכב',
+        body: 'למשוואה $z^n = R(\\cos\\varphi + i\\sin\\varphi)$ יש $n$ פתרונות. לכולם ערך מוחלט $\\sqrt[n]{R}$, והזוויות שלהם $\\frac{\\varphi}{n} + \\frac{360° \\cdot k}{n}$, עבור $k = 0, 1, \\ldots, n - 1$.',
+        detail: [
+          'בנוסחאון הזווית כתובה ברדיאנים, $\\frac{2k\\pi}{n}$. זה אותו דבר, כי $2\\pi$ רדיאנים הם $360°$.',
+          'דוגמה: $z^3 = 8i$. קודם רושמים את $8i$ בהצגה קוטבית:',
+          { tex: '8i = 8(\\cos 90° + i\\sin 90°)' },
+          { tex: 'r = \\sqrt[3]{8} = 2', why: 'הערך המוחלט של כל פתרון' },
+          { tex: '\\theta_k = \\frac{90°}{3} + \\frac{360° \\cdot k}{3} = 30° + 120° \\cdot k', why: '$k = 0, 1, 2$' },
+          { tex: 'z_0 = 2(\\cos 30° + i\\sin 30°), \; z_1 = 2(\\cos 150° + i\\sin 150°), \; z_2 = 2(\\cos 270° + i\\sin 270°)' },
+          'במישור גאוס הפתרונות יושבים על מעגל ברדיוס $\\sqrt[n]{R}$, והם קודקודים של מצולע משוכלל עם $n$ צלעות.',
+        ],
+      },
+    ],
+    method: [
+      'חיבור, חיסור וכפל: כמו בביטוי אלגברי, ומחליפים $i^2 = -1$.',
+      'חילוק: כופלים מונה ומכנה בצמוד של המכנה.',
+      'הצגה קוטבית: $r = \\sqrt{a^2 + b^2}$, ואת הזווית מוצאים לפי $\\cos\\theta = \\frac{a}{r}$ ו-$\\sin\\theta = \\frac{b}{r}$ (בודקים רביע).',
+      'חזקה: מעלים את $r$ בחזקה ומכפילים את הזווית (דה-מואבר).',
+    ],
+    examples: [
+      {
+        problem: 'חשבו את $\\frac{3 + 4i}{1 - 2i}$ ורשמו בצורה $a + bi$.',
+        steps: [
+          { tex: '\\frac{(3 + 4i)(1 + 2i)}{(1 - 2i)(1 + 2i)}', why: 'כופלים בצמוד של המכנה' },
+          { tex: '= \\frac{3 + 6i + 4i + 8i^2}{1 + 4} = \\frac{-5 + 10i}{5}' },
+          { tex: '= -1 + 2i' },
+        ],
+      },
+    ],
+    tips: ['$i^2 = -1$, ולכן $i^3 = -i$ ו-$i^4 = 1$.', 'בהצגה קוטבית בודקים את הרביע לפי הסימנים של $a$ ו-$b$, לפני שבוחרים זווית.', 'מכפלת מספר בצמוד שלו תמיד ממשית וחיובית: $a^2 + b^2$.'],
+  },
+  generate(level) {
+    if (level === 1) {
+      const nz = () => pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]);
+      if (Math.random() < 0.5) {
+        const a = nz(), b = nz(), c = nz(), d = nz();
+        const re = a * c - b * d, im = a * d + b * c;
+        return {
+          text: `חשבו את $(${cx(a, b)})(${cx(c, d)})$ ורשמו בצורה $a + bi$.`,
+          answer: { type: 'multi', labels: ['a', 'b'], values: [re, im], ordered: true },
+          hint: 'פותחים סוגריים, ובסוף מחליפים את $i^2$ ב-$-1$.',
+          solution: [
+            { tex: `(${cx(a, b)})(${cx(c, d)}) = ${a * c} ${iTerm(a * d)} ${iTerm(b * c)} ${iTerm(b * d)}^2`, why: 'כל איבר כפול כל איבר' },
+            { tex: `= ${a * c} ${a * d + b * c === 0 ? '' : iTerm(a * d + b * c)} ${sgn(b * d)} \\cdot (-1)`, why: '$i^2 = -1$' },
+            { tex: `= ${cx(re, im)}` },
+          ],
+        };
+      }
+      // חילוק: המנה (e + fi) והמכנה (c + di) שלמים, המונה הוא המכפלה שלהם
+      const c = nz(), d = nz(), e = ri(-5, 5), f = nz();
+      const p = e * c - f * d, q = e * d + f * c;
+      const n2 = c * c + d * d;
+      const nr = p * c + q * d, ni = q * c - p * d;
+      return {
+        text: `חשבו את $\\frac{${cx(p, q)}}{${cx(c, d)}}$ ורשמו בצורה $a + bi$.`,
+        answer: { type: 'multi', labels: ['a', 'b'], values: [e, f], ordered: true },
+        hint: 'כופלים את המונה ואת המכנה בצמוד של המכנה.',
+        solution: [
+          { tex: `\\frac{(${cx(p, q)})(${cx(c, -d)})}{(${cx(c, d)})(${cx(c, -d)})}`, why: 'כופלים בצמוד של המכנה' },
+          { tex: `= \\frac{${cx(nr, ni)}}{${c * c} + ${d * d}} = \\frac{${cx(nr, ni)}}{${n2}}`, why: 'במכנה: $a^2 + b^2$' },
+          { tex: `= ${cx(e, f)}` },
+        ],
+      };
+    }
+    if (level === 2) {
+      const z = pick(POLAR);
+      const k = pick([1, 1, 2, 3]);
+      const ca = z.ca * k, cb = z.cb * k, rc = z.rc * k;
+      const a2 = ca * ca * z.sa, b2 = cb * cb * z.sb;
+      const r = rc * Math.sqrt(z.rs);
+      const rTex = surd(rc, z.rs);
+      const quad = z.t < 90 ? 'הראשון' : z.t < 180 ? 'השני' : z.t < 270 ? 'השלישי' : 'הרביעי';
+      return {
+        text: `רשמו את $z = ${cxs(ca, z.sa, cb, z.sb)}$ בהצגה קוטבית $r(\\cos\\theta + i\\sin\\theta)$. ($\\theta$ במעלות, בין $0°$ ל-$360°$)`,
+        answer: { type: 'multi', labels: ['r', 'θ'], values: [round(r, 2), z.t], ordered: true, tol: 0.05 },
+        hint: '$r = \\sqrt{a^2 + b^2}$, ואת הזווית מוצאים לפי הסימנים של $a$ ו-$b$.',
+        solution: [
+          { tex: `r = \\sqrt{${sqTex(ca, z.sa)} + ${sqTex(cb, z.sb)}} = \\sqrt{${a2} + ${b2}} = ${rTex}`, why: 'הערך המוחלט' },
+          { tex: `\\cos\\theta = ${TRIG[z.t][0]}, \\quad \\sin\\theta = ${TRIG[z.t][1]}`, why: `$\\cos\\theta = \\frac{a}{r}$, $\\sin\\theta = \\frac{b}{r}$. הנקודה ברביע ${quad}` },
+          { tex: `\\theta = ${z.t}°` },
+          { tex: `z = ${polarTex(rTex, z.t)}` },
+        ],
+      };
+    }
+    // דה-מואבר: התוצאה על ציר
+    let z: (typeof POLAR)[number], n: number;
+    do {
+      z = pick(POLAR);
+      n = ri(2, 9);
+    } while ((n * z.t) % 90 !== 0 || (z.rs === 2 && n % 2 === 1) || (z.rs === 2 ? 2 ** (n / 2) : 2 ** n) > 600);
+    const R = z.rs === 2 ? 2 ** (n / 2) : 2 ** n;
+    const tot = n * z.t, phi = tot % 360;
+    const [cs, sn] = TRIG[phi].map(Number);
+    const re = R * cs, im = R * sn;
+    const rTex = surd(z.rc, z.rs);
+    return {
+      text: `חשבו את $(${cxs(z.ca, z.sa, z.cb, z.sb)})^{${n}}$ ורשמו בצורה $a + bi$.`,
+      answer: { type: 'multi', labels: ['a', 'b'], values: [re, im], ordered: true },
+      hint: 'קודם הצגה קוטבית, ואז משפט דה-מואבר: $r^n$ והזווית כפול $n$.',
+      solution: [
+        { tex: `${cxs(z.ca, z.sa, z.cb, z.sb)} = ${polarTex(rTex, z.t)}`, why: `$r = ${rTex}$, $\\theta = ${z.t}°$` },
+        { tex: `${z.rs === 1 ? rTex : `(${rTex})`}^{${n}}(\\cos(${n} \\cdot ${z.t}°) + i\\sin(${n} \\cdot ${z.t}°)) = ${polarTex(String(R), tot)}`, why: 'משפט דה-מואבר' },
+        ...(tot !== phi ? [{ tex: `${tot}° = ${phi}° + 360° \\cdot ${(tot - phi) / 360}`, why: 'מורידים סיבובים שלמים' }] : []),
+        { tex: `= ${R} \\cdot ${cx(cs, sn)} = ${cx(re, im)}`, why: `$\\cos ${phi}° = ${cs}$, $\\sin ${phi}° = ${sn}$` },
+      ],
+    };
+  },
+};
+
+export const highTopics3: Topic[] = [sineCosineLaw, unitCircle, trig3d, investigation, optimization, integrals, linearProgramming, statistics, regression, normal, vectors, solids, complexNumbers];

@@ -459,8 +459,8 @@ export function FigureView({ fig }: { fig: Figure }) {
           ))}
           <line x1="20" y1={O[1]} x2="260" y2={O[1]} stroke="#374151" strokeWidth="1.5" />
           <line x1={O[0]} y1="20" x2={O[0]} y2="260" stroke="#374151" strokeWidth="1.5" />
-          <text x="264" y={O[1] + 4} fontSize="11" fill="#374151">x</text>
-          <text x={O[0] - 3} y="14" fontSize="11" fill="#374151">y</text>
+          <text x="264" y={O[1] + 4} fontSize="11" fill="#374151">{fig.axes?.[0] ?? 'x'}</text>
+          <text x={O[0] - 3} y="14" fontSize="11" fill="#374151">{fig.axes?.[1] ?? 'y'}</text>
           <g clipPath="url(#plot)">
             {fig.region && <polygon points={fig.region.map(([x, y]) => P(x, y).join(',')).join(' ')} fill={ACCENT} fillOpacity="0.18" stroke="none" />}
             {fig.lines.map((ln, i) => {
