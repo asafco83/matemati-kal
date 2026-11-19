@@ -20,6 +20,8 @@ export type Figure =
       region?: [number, number][];
       /** שמות לנקודות, לפי הסדר של points */
       pointLabels?: string[];
+      /** שמות הצירים במקום x ו-y (למשל Re ו-Im במישור גאוס) */
+      axes?: [string, string];
     }
   /** משולש עם שמות קודקודים: A למטה משמאל, B למטה מימין, C למעלה. a מול A וכו' */
   | { type: 'triS'; a?: string; b?: string; c?: string; A?: string; B?: string; C?: string }
