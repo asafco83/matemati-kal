@@ -22,7 +22,9 @@ export type Figure =
   /** דיאגרמת עמודות */
   | { type: 'bars'; labels: string[]; values: number[]; step: number }
   /** חילוק ארוך כמו במחברת: המנה מעל, המחלק מימין לקו */
-  | { type: 'longdiv'; n: number; d: number }
+  | { type: 'longdiv'; n: number; d: number; upto?: number; from?: number }
+  /** כפל במאונך כמו במחברת, עם ספרות ההעברה. b חד-ספרתי או דו-ספרתי */
+  | { type: 'longmul'; a: number; b: number; upto?: number; from?: number }
   /** משוואה עם סימון של אגף שמאל ואגף ימין (TeX בכל צד) */
   | { type: 'eqsides'; left: string; right: string }
   /** מאזניים: מה יש בכל כף (TeX), ולאן הם נוטים */

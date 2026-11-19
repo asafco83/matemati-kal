@@ -291,8 +291,10 @@ export function FigureView({ fig }: { fig: Figure }) {
         </div>
       );
     }
+    case 'longmul':
+      return <LongMult a={fig.a} b={fig.b} upto={fig.upto} from={fig.from} />;
     case 'longdiv':
-      return <LongDivision n={fig.n} d={fig.d} />;
+      return <LongDivision n={fig.n} d={fig.d} upto={fig.upto} from={fig.from} />;
     case 'triS': {
       const A = [35, 140];
       const B = [255, 140];
@@ -360,11 +362,19 @@ export function FigureView({ fig }: { fig: Figure }) {
 /**
  * חילוק ארוך כמו שכותבים במחברת: המחולק, קו, והמחלק מימין לו.
  * המנה (והשארית בסוגריים) מעל המחולק, ומתחת לכל צעד: מינוס, מכפלה, קו, והשארית עם הספרה שירדה.
+ *
+ * שלבי הכתיבה (upto): 0 = המחולק והמחלק; לכל ספרה i:
+ * 1+3i ספרת המנה, 2+3i המכפלה שמחסרים, 3+3i מה שנשאר (עם הספרה שירדה).
+ * מה שנכתב בשלבים from..upto מסומן ברקע צהוב, כדי לראות מה נוסף עכשיו.
  */
-function LongDivision({ n, d }: { n: number; d: number }) {
+
+function LongDivision({ n, d, upto, from }: { n: number; d: number; upto?: number; from?: number }) {
   const ds = String(n).split('').map(Number);
   const N = ds.length;
-  type Row = { text: string; end: number; minus?: boolean; line?: boolean; accent?: boolean };
+  const last = 3 * N;
+  const U = upto ?? last;
+  const F = from ?? (upto === undefined ? last + 1 : U);
+  type Row = { text: string; end: number; stage: number; minus?: boolean; line?: boolean; accent?: boolean; arrowFrom?: number };
   const rows: Row[] = [];
   const q: number[] = [];
   let cur = 0;
@@ -372,53 +382,197 @@ function LongDivision({ n, d }: { n: number; d: number }) {
     cur = cur * 10 + dig;
     const k = Math.floor(cur / d);
     q.push(k);
-    if (i > 0) rows.push({ text: String(cur), end: i });
-    rows.push({ text: String(k * d), end: i, minus: true, line: true });
+    rows.push({ text: String(k * d), end: i, stage: 2 + 3 * i, minus: true, line: true });
     cur -= k * d;
+    if (i < N - 1) rows.push({ text: String(cur * 10 + ds[i + 1]), end: i + 1, stage: 3 + 3 * i, arrowFrom: i + 1 });
+    else rows.push({ text: String(cur), end: i, stage: 3 + 3 * i, accent: true });
   });
-  rows.push({ text: String(cur), end: N - 1, accent: true });
+  const r = cur;
+  const visible = rows.filter((row) => row.stage <= U);
   const COL = 17;
   const ROW = 34;
-  const left = 20;
+  const left = 22;
   const top = 8;
   const W = left + N * COL + 18 + String(d).length * 16 + 50;
-  const H = top + ROW * (rows.length + 2) + 6;
+  const H = top + ROW * (visible.length + 2) + 6;
   const x = (col: number) => left + col * COL + COL / 2;
   const ACC = '#e8590c';
+  const hl = (stage: number) => stage >= F && stage <= U;
+  const mark = (x1: number, x2: number, yBase: number, key: string) => <rect key={key} x={x1} y={yBase - 21} width={x2 - x1} height={28} rx={6} fill="#ffe45c" opacity={0.75} />;
   const digitsAt = (text: string, end: number, y: number, color: string, key: string) =>
     text.split('').map((c, j) => (
       <text key={`${key}${j}`} x={x(end - (text.length - 1 - j))} y={y} textAnchor="middle" fontSize="22" fontWeight="600" fill={color} fontFamily="Fredoka, sans-serif">
         {c}
       </text>
     ));
-  const r = cur;
+  const yRow = (i: number) => top + ROW * (i + 2) + 24;
+  const yDividend = top + ROW + 24;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: W * 1.1, direction: 'ltr' }} role="img" aria-label={`חילוק ארוך: ${n} חלקי ${d}, מנה ${Number(q.join(''))} ושארית ${r}`}>
-      {/* המנה והשארית */}
-      {digitsAt(q.join(''), N - 1, top + 24, ACC, 'q')}
-      <text x={x(N - 1) + COL / 2 + 8} y={top + 24} fontSize="20" fontWeight="600" fill={ACC} fontFamily="Fredoka, sans-serif">
-        ({r})
-      </text>
+      {/* המנה: כל ספרה מופיעה בשלב שלה */}
+      {q.map((k, i) =>
+        1 + 3 * i <= U ? (
+          <g key={`q${i}`}>
+            {hl(1 + 3 * i) && mark(x(i) - COL / 2, x(i) + COL / 2, top + 24, `qm${i}`)}
+            {digitsAt(String(k), i, top + 24, ACC, `q${i}`)}
+          </g>
+        ) : null,
+      )}
+      {U >= last && (
+        <text x={x(N - 1) + COL / 2 + 8} y={top + 24} fontSize="20" fontWeight="600" fill={ACC} fontFamily="Fredoka, sans-serif">
+          ({r})
+        </text>
+      )}
       {/* המחולק, הקו מעליו והמחלק */}
       <line x1={left + 2} y1={top + 32} x2={left + N * COL + 4} y2={top + 32} stroke={INK} strokeWidth="2" />
-      {digitsAt(String(n), N - 1, top + ROW + 24, INK, 'n')}
+      {hl(0) && mark(left, left + N * COL + 18 + String(d).length * 14, yDividend, 'dm')}
+      {digitsAt(String(n), N - 1, yDividend, INK, 'n')}
       <line x1={left + N * COL + 4} y1={top + 32} x2={left + N * COL + 4} y2={top + ROW + 32} stroke={INK} strokeWidth="2" />
-      <text x={left + N * COL + 12} y={top + ROW + 24} fontSize="22" fontWeight="600" fill={INK} fontFamily="Fredoka, sans-serif">
+      <text x={left + N * COL + 12} y={yDividend} fontSize="22" fontWeight="600" fill={INK} fontFamily="Fredoka, sans-serif">
         {d}
       </text>
-      {rows.map((row, i) => {
-        const y = top + ROW * (i + 2) + 24;
+      {visible.map((row, i) => {
+        const y = yRow(i);
         const startCol = row.end - row.text.length + 1;
         return (
           <g key={i}>
-            {row.minus && (
-              <line x1={x(startCol) - COL / 2 - 12} y1={y - 22} x2={x(startCol) - COL / 2 - 3} y2={y - 22} stroke={INK} strokeWidth="2" />
+            {hl(row.stage) && mark(x(startCol) - COL / 2 - (row.minus ? 14 : 2), x(row.end) + COL / 2, y, `m${i}`)}
+            {row.arrowFrom !== undefined && (
+              <g stroke="#9a978e" strokeWidth="1.4" fill="none">
+                <line x1={x(row.arrowFrom) + 6} y1={yDividend + 6} x2={x(row.arrowFrom) + 6} y2={y - 20} />
+                <path d={`M${x(row.arrowFrom) + 3} ${y - 25} l3 5 l3 -5`} />
+              </g>
             )}
+            {row.minus && <line x1={x(startCol) - COL / 2 - 12} y1={y - 22} x2={x(startCol) - COL / 2 - 3} y2={y - 22} stroke={INK} strokeWidth="2" />}
             {digitsAt(row.text, row.end, y, row.accent ? ACC : INK, `r${i}`)}
             {row.line && <line x1={x(startCol) - COL / 2 - 2} y1={y + 7} x2={x(row.end) + COL / 2 - 2} y2={y + 7} stroke={INK} strokeWidth="1.8" />}
           </g>
         );
       })}
+    </svg>
+  );
+}
+
+/** מספר השלבים בכפל במאונך (בלי שלב ההכנה 0) */
+function longMultStages(a: number, b: number) {
+  const L = String(a).length;
+  return b < 10 ? L : 2 * L + 2;
+}
+
+/**
+ * כפל במאונך כמו במחברת: המספרים מיושרים לימין, × משמאל למספר התחתון, קו,
+ * והתוצאה נכתבת ספרה אחר ספרה מימין לשמאל. ספרת ההעברה נכתבת קטנה מעל העמודה הבאה.
+ * במכפיל דו-ספרתי: שורה לאחדות, שורה לעשרות (עם 0 בסוף), קו, וסכום.
+ * שלבים: 0 = התרגיל; כל ספרה של התוצאה היא שלב. מה שנוסף בשלבים from..upto מסומן בצהוב.
+ */
+function LongMult({ a, b, upto, from }: { a: number; b: number; upto?: number; from?: number }) {
+  const da = String(a).split('').map(Number).reverse();
+  const L = da.length;
+  const last = longMultStages(a, b);
+  const U = upto ?? last;
+  const F = from ?? (upto === undefined ? last + 1 : U);
+  const two = b >= 10;
+  const u = b % 10;
+  const t = Math.floor(b / 10);
+  type Cell = { col: number; ch: string; stage: number; row: string; small?: boolean };
+  const cells: Cell[] = [];
+  /** שורת מכפלה בספרה אחת, עם העברות */
+  const partial = (m: number, row: string, shift: number, stage0: number) => {
+    let carry = 0;
+    da.forEach((d, i) => {
+      const v = d * m + carry;
+      const st = stage0 + i;
+      if (i < L - 1) {
+        cells.push({ col: i + shift, ch: String(v % 10), stage: st, row });
+        carry = Math.floor(v / 10);
+        // ההעברה נכתבת מעל הספרה הבאה של המספר העליון
+        if (carry) cells.push({ col: i + 1, ch: String(carry), stage: st, row: `carry-${row}`, small: true });
+      } else {
+        String(v)
+          .split('')
+          .reverse()
+          .forEach((c, j) => cells.push({ col: i + j + shift, ch: c, stage: st, row }));
+      }
+    });
+  };
+  partial(u, 'p1', 0, 1);
+  if (two) {
+    cells.push({ col: 0, ch: '0', stage: L + 1, row: 'p2' });
+    partial(t, 'p2', 1, L + 2);
+    String(a * b)
+      .split('')
+      .reverse()
+      .forEach((c, j) => cells.push({ col: j, ch: c, stage: 2 * L + 2, row: 'sum' }));
+  }
+  const cols = Math.max(String(a * b).length, String(b).length + 1, L + 1) + 1;
+  const COL = 17;
+  const W = cols * COL + 24;
+  const x = (col: number) => W - 12 - col * COL - COL / 2;
+  const rowsOrder = two ? ['carry', 'a', 'b', 'line1', 'p1', 'p2', 'line2', 'sum'] : ['carry', 'a', 'b', 'line1', 'p1'];
+  const visibleRows = rowsOrder.filter((r) => {
+    if (r === 'p2' || r === 'line2') return U >= L + 1;
+    if (r === 'sum') return U >= 2 * L + 2;
+    return true;
+  });
+  const yOf: Record<string, number> = {};
+  let y = 18;
+  visibleRows.forEach((r) => {
+    if (r === 'carry') {
+      yOf[r] = y;
+      y += 18;
+    } else if (r.startsWith('line')) {
+      yOf[r] = y - 9;
+      y += 4;
+    } else {
+      yOf[r] = y + 14;
+      y += 34;
+    }
+  });
+  const H = y + 4;
+  const ACC = '#e8590c';
+  const hl = (st: number) => st >= F && st <= U;
+  const digits = (n: number, rowY: number, key: string, color = INK) =>
+    String(n)
+      .split('')
+      .reverse()
+      .map((c, j) => (
+        <text key={`${key}${j}`} x={x(j)} y={rowY} textAnchor="middle" fontSize="22" fontWeight="600" fill={color} fontFamily="Fredoka, sans-serif">
+          {c}
+        </text>
+      ));
+  // ספרות ההעברה של השורה שעובדים עליה עכשיו בלבד
+  const carryRow = two && U >= L + 1 ? 'carry-p2' : 'carry-p1';
+  const resultColor = (row: string) => (row === 'sum' || (!two && row === 'p1') ? ACC : INK);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: W * 1.15, direction: 'ltr' }} role="img" aria-label={`כפל במאונך: ${a} כפול ${b} שווה ${a * b}`}>
+      {digits(a, yOf.a, 'a')}
+      {digits(b, yOf.b, 'b')}
+      <text x={x(String(b).length) - 2} y={yOf.b - 2} textAnchor="middle" fontSize="20" fill={INK}>
+        ×
+      </text>
+      <line x1={x(cols - 1) - COL / 2 + 4} y1={yOf.line1} x2={W - 8} y2={yOf.line1} stroke={INK} strokeWidth="2" />
+      {two && U >= 2 * L + 2 && (
+        <>
+          <line x1={x(cols - 1) - COL / 2 + 4} y1={yOf.line2} x2={W - 8} y2={yOf.line2} stroke={INK} strokeWidth="2" />
+          <text x={x(cols - 1)} y={yOf.p2} textAnchor="middle" fontSize="20" fill={INK}>
+            +
+          </text>
+        </>
+      )}
+      {cells
+        .filter((c) => c.stage <= U && (!c.small || c.row === carryRow))
+        .map((c, i) => {
+          const isCarry = !!c.small;
+          const cy = isCarry ? yOf.carry : yOf[c.row];
+          return (
+            <g key={i}>
+              {hl(c.stage) && <rect x={x(c.col) - (isCarry ? 7 : 10)} y={cy - (isCarry ? 13 : 21)} width={isCarry ? 14 : 20} height={isCarry ? 17 : 28} rx={5} fill="#ffe45c" opacity={0.75} />}
+              <text x={x(c.col)} y={cy} textAnchor="middle" fontSize={isCarry ? 14 : 22} fontWeight="600" fill={isCarry ? '#5b6475' : resultColor(c.row)} fontFamily="Fredoka, sans-serif">
+                {c.ch}
+              </text>
+            </g>
+          );
+        })}
     </svg>
   );
 }
