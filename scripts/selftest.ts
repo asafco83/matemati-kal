@@ -76,7 +76,14 @@ for (const t of [...topics, ...soonTopics]) {
 let count = 0;
 for (const t of topics) {
   const L = t.lesson;
-  [L.intro, ...L.method, ...L.tips, ...L.sections.flatMap((s) => [s.title, s.body])].forEach((s) => checkTex(`${t.id}/שיעור`, s));
+  [L.intro, ...(L.before ?? []), ...L.method, ...L.tips, ...L.sections.flatMap((s) => [s.title, s.body])].forEach((s) => checkTex(`${t.id}/שיעור`, s));
+  L.sections.forEach((s) =>
+    s.detail?.forEach((d) => {
+      if (typeof d === 'object' && 'figure' in d) {
+        if (d.caption) checkTex(`${t.id}/הסבר מלא`, d.caption);
+      } else checkStep(`${t.id}/הסבר מלא`, d);
+    }),
+  );
   L.examples.forEach((ex) => {
     checkTex(`${t.id}/דוגמה`, ex.problem);
     ex.steps.forEach((s) => checkStep(`${t.id}/דוגמה`, s));

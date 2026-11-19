@@ -46,7 +46,7 @@ export function Home() {
           <a href={`#/topic/${next.id}`} className="tint mt-6 flex flex-wrap items-center gap-x-6 gap-y-4 rounded-[28px] px-7 py-6 text-ink no-underline" style={tc(nextTrack.color)}>
             <span className="flex min-w-0 flex-[1_1_320px] flex-col gap-0.5">
               <span className="text-[15px] font-bold" style={{ color: nextTrack.color }}>
-                {seen ? 'ממשיכים מאיפה שעצרת' : 'מומלץ בשבילך'} · {nextTrack.title}
+                {seen ? 'ממשיכים מאיפה שעצרנו' : 'מומלץ בשבילך'} · {nextTrack.title}
               </span>
               <span className="font-display text-[30px] font-semibold">{next.title}</span>
               <span className="text-[17px] text-muted">{nextStars > 0 ? `השלמת ${nextStars} מתוך 3 רמות.` : next.summary}</span>

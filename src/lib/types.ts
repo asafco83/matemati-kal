@@ -58,9 +58,23 @@ export interface Example {
   steps: Step[];
 }
 
+/** צעד בהסבר המלא: שורת טקסט או מחברת, או שרטוט עם כיתוב */
+export type LessonStep = Step | { figure: Figure; caption?: string };
+
+export interface LessonSection {
+  title: string;
+  /** ההסבר המקוצר: העיקרון בכמה משפטים */
+  body: string;
+  figure?: Figure;
+  /** ההסבר המלא: צעד אחר צעד, בלי להניח ידע קודם */
+  detail?: LessonStep[];
+}
+
 export interface Lesson {
   intro: string;
-  sections: { title: string; body: string; figure?: Figure }[];
+  /** תזכורות לפני שמתחילים: מה צריך לדעת (מוצג בהסבר המלא) */
+  before?: string[];
+  sections: LessonSection[];
   /** שיטת העבודה, לפי הסדר */
   method: string[];
   examples: Example[];

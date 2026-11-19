@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { tracks } from '../content';
 import { markSeen } from '../lib/store';
-import { gradeLabel, type Example, type Topic } from '../lib/types';
+import { gradeLabel, type Example, type LessonStep, type Topic } from '../lib/types';
 import { FigureView } from './FigureView';
 import { Practice } from './Practice';
 import { StepView } from './StepView';
@@ -39,7 +39,7 @@ export function TopicPage({ topic }: { topic: Topic }) {
             value={tab}
             onChange={setTab}
             items={[
-              { id: 'learn', label: 'לומדים' },
+              { id: 'learn', label: 'למידה' },
               { id: 'examples', label: 'דוגמאות פתורות' },
               { id: 'practice', label: 'תרגול' },
             ]}
@@ -53,13 +53,82 @@ export function TopicPage({ topic }: { topic: Topic }) {
   );
 }
 
+type LearnMode = 'full' | 'short';
+const LEARN_KEY = 'matemati-kal:learn-mode';
+const readLearnMode = (): LearnMode => {
+  try {
+    return localStorage.getItem(LEARN_KEY) === 'short' ? 'short' : 'full';
+  } catch {
+    return 'full';
+  }
+};
+
+/** צעד אחד בהסבר המלא */
+function DetailStep({ step, color }: { step: LessonStep; color: string }) {
+  if (typeof step === 'object' && 'figure' in step) {
+    return (
+      <figure className="flex flex-col items-center gap-2">
+        <div className="w-full max-w-[300px]">
+          <FigureView fig={step.figure} />
+        </div>
+        {step.caption && (
+          <figcaption className="text-center text-[17px] text-muted">
+            <Rich text={step.caption} />
+          </figcaption>
+        )}
+      </figure>
+    );
+  }
+  // בהסבר, משפט נשאר משפט: קודם המילים ואחר כך התרגיל, כמו שקוראים
+  if (typeof step === 'string') return <Rich text={step} />;
+  return <StepView step={step} color={color} />;
+}
+
 function Learn({ topic, color, onNext }: { topic: Topic; color: string; onNext: () => void }) {
   const { lesson } = topic;
+  const hasDetail = lesson.sections.some((s) => s.detail?.length) || !!lesson.before?.length;
+  const [mode, setModeState] = useState<LearnMode>(readLearnMode);
+  const setMode = (m: LearnMode) => {
+    setModeState(m);
+    try {
+      localStorage.setItem(LEARN_KEY, m);
+    } catch {
+      /* אין אחסון: נשאר רק לביקור הזה */
+    }
+  };
+  const full = hasDetail && mode === 'full';
   return (
     <>
+      {hasDetail && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-[17px] text-muted">{full ? 'צעד אחר צעד, מההתחלה.' : 'רק העיקר, בקצרה.'}</p>
+          <Segmented<LearnMode>
+            small
+            label="רמת ההסבר"
+            value={mode}
+            onChange={setMode}
+            items={[
+              { id: 'full', label: 'הסבר מלא' },
+              { id: 'short', label: 'מקוצר' },
+            ]}
+          />
+        </div>
+      )}
       <p className="tint rounded-2xl px-6 py-5 text-xl leading-relaxed">
         <Rich text={lesson.intro} />
       </p>
+      {full && lesson.before && (
+        <aside className="card">
+          <h2 className="mb-2 font-display text-2xl font-semibold">לפני שמתחילים</h2>
+          <ul className="flex list-disc flex-col gap-2 ps-6 text-[19px] leading-relaxed">
+            {lesson.before.map((b, i) => (
+              <li key={i}>
+                <Rich text={b} />
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )}
       {lesson.sections.map((s, i) => (
         <section key={i} className="card flex flex-col gap-3.5">
           <h2 className="flex items-center gap-3 font-display text-2xl font-semibold">
@@ -70,12 +139,26 @@ function Learn({ topic, color, onNext }: { topic: Topic; color: string; onNext: 
             <p className="min-w-0 flex-[1_1_320px] text-[19px] leading-loose">
               <Rich text={s.body} />
             </p>
-            {s.figure && (
+            {s.figure && !(full && s.detail?.some((d) => typeof d === 'object' && 'figure' in d)) && (
               <div className="flex-[0_1_300px]">
                 <FigureView fig={s.figure} />
               </div>
             )}
           </div>
+          {full && s.detail && (
+            <ol className="mt-1 flex flex-col rounded-2xl bg-paper px-4 py-2 sm:px-6">
+              {s.detail.map((d, j) => (
+                <li key={j} className={`flex items-baseline gap-4 py-3.5 text-[19px] leading-loose ${j ? 'border-t border-line' : ''}`}>
+                  <span className="w-6 shrink-0 text-center font-display text-lg font-semibold" style={{ color }}>
+                    {i + 1}.{j + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <DetailStep step={d} color={color} />
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
         </section>
       ))}
       <section className="card">
