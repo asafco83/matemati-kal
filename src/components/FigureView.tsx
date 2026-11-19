@@ -175,6 +175,10 @@ export function FigureView({ fig }: { fig: Figure }) {
     }
     case 'solid':
       return <Solid fig={fig} />;
+    case 'circpts':
+      return <CirclePoints fig={fig} />;
+    case 'matches':
+      return <Matches fig={fig} />;
     case 'polygon': {
       const pts = Array.from({ length: fig.n }, (_, i) => {
         const t = -Math.PI / 2 + (i * 2 * Math.PI) / fig.n + (fig.n % 2 ? 0 : Math.PI / fig.n);
@@ -932,5 +936,115 @@ function Solid({ fig }: { fig: Extract<Figure, { type: 'solid' }> }) {
       )}
       {fig.r && <Label x={(A[0] + B[0]) / 2} y={A[1] + 16}>{fig.r}</Label>}
     </>,
+  );
+}
+
+/** מעגל עם נקודות, קטעים, זוויות ומשיק */
+function CirclePoints({ fig }: { fig: Extract<Figure, { type: 'circpts' }> }) {
+  const [cx, cy, R] = [150, 125, 82];
+  const pos: Record<string, [number, number]> = {};
+  if (fig.center) pos.O = [cx, cy];
+  for (const p of fig.pts) {
+    if (p.deg !== undefined) pos[p.n] = [cx + R * Math.cos((p.deg * Math.PI) / 180), cy - R * Math.sin((p.deg * Math.PI) / 180)];
+    else pos[p.n] = [cx + R * (p.x ?? 0), cy - R * (p.y ?? 0)];
+  }
+  const unit = (a: [number, number], b: [number, number]): [number, number] => {
+    const d = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    return [(b[0] - a[0]) / d, (b[1] - a[1]) / d];
+  };
+  const tan = fig.tangent && pos[fig.tangent];
+  let tanLine: [number, number, number, number] | null = null;
+  if (tan) {
+    const [ux, uy] = unit([cx, cy], tan);
+    tanLine = [tan[0] - uy * 150, tan[1] + ux * 150, tan[0] + uy * 150, tan[1] - ux * 150];
+  }
+  return (
+    <svg viewBox="0 0 300 250" className="mx-auto w-full max-w-[300px]" role="img" aria-label={T('מעגל')} style={{ direction: 'ltr' }}>
+      <defs>
+        <clipPath id="cpclip"><rect x="0" y="0" width="300" height="250" /></clipPath>
+      </defs>
+      <circle cx={cx} cy={cy} r={R} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" />
+      {tanLine && <line x1={tanLine[0]} y1={tanLine[1]} x2={tanLine[2]} y2={tanLine[3]} stroke={INK} strokeWidth="2" clipPath="url(#cpclip)" />}
+      {(fig.segs ?? []).map(([a, b], i) => pos[a] && pos[b] && <line key={i} x1={pos[a][0]} y1={pos[a][1]} x2={pos[b][0]} y2={pos[b][1]} stroke={INK} strokeWidth="2" />)}
+      {(fig.angles ?? []).map((g, i) => {
+        const V = pos[g.at], A = pos[g.a], B = pos[g.b];
+        if (!V || !A || !B) return null;
+        const u = unit(V, A), w = unit(V, B);
+        const r = 17;
+        const cross = u[0] * w[1] - u[1] * w[0];
+        const right = g.label === '90°';
+        const bis = unit([0, 0], [u[0] + w[0], u[1] + w[1]]);
+        return (
+          <g key={i}>
+            {right ? (
+              <polyline points={`${V[0] + u[0] * 11},${V[1] + u[1] * 11} ${V[0] + (u[0] + w[0]) * 11},${V[1] + (u[1] + w[1]) * 11} ${V[0] + w[0] * 11},${V[1] + w[1] * 11}`} fill="none" stroke={ACCENT} strokeWidth="2" />
+            ) : (
+              <path d={`M${V[0] + u[0] * r},${V[1] + u[1] * r} A${r},${r} 0 0 ${cross > 0 ? 1 : 0} ${V[0] + w[0] * r},${V[1] + w[1] * r}`} fill="none" stroke={ACCENT} strokeWidth="2.5" />
+            )}
+            {!right && <Label x={V[0] + bis[0] * 36} y={V[1] + bis[1] * 36}>{g.label}</Label>}
+          </g>
+        );
+      })}
+      {(fig.lens ?? []).map((l, i) => {
+        const A = pos[l.a], B = pos[l.b];
+        if (!A || !B) return null;
+        const [ux, uy] = unit(A, B);
+        const m: [number, number] = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2];
+        const side = (m[0] - cx) * -uy + (m[1] - cy) * ux >= 0 ? 1 : -1;
+        return <Label key={i} x={m[0] - uy * 13 * side} y={m[1] + ux * 13 * side}>{l.label}</Label>;
+      })}
+      {Object.entries(pos).map(([n, [x, y]]) => {
+        let out: [number, number] = unit([cx, cy], [x, y]);
+        if (n === 'O') {
+          // המרכז: התווית בצד שאין בו קטעים
+          const dirs = (fig.segs ?? []).filter((sg) => sg.includes('O')).map((sg) => pos[sg[0] === 'O' ? sg[1] : sg[0]]).filter(Boolean).map((q) => unit([cx, cy], q));
+          const sx = dirs.reduce((a, d) => a + d[0], 0), sy = dirs.reduce((a, d) => a + d[1], 0);
+          out = dirs.length && Math.hypot(sx, sy) > 0.1 ? unit([0, 0], [-sx, -sy]) : [0, 1];
+        }
+        return (
+          <g key={n}>
+            <circle cx={x} cy={y} r="3.5" fill={INK} />
+            <Label x={x + out[0] * 15} y={y + out[1] * 15} bold>{n}</Label>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+/** שורת גפרורים, כמו בספרי התבניות */
+function Matches({ fig }: { fig: Extract<Figure, { type: 'matches' }> }) {
+  const s = 40;
+  const sticks: [number, number, number, number][] = [];
+  if (fig.shape === 'squares') {
+    for (let i = 0; i < fig.n; i++) {
+      const x = 10 + i * s;
+      sticks.push([x, 10, x + s, 10], [x, 10 + s, x + s, 10 + s]);
+      if (i === 0) sticks.push([x, 10, x, 10 + s]);
+      sticks.push([x + s, 10, x + s, 10 + s]);
+    }
+  } else {
+    const h = s * 0.87;
+    for (let i = 0; i < fig.n; i++) {
+      const up = i % 2 === 0;
+      const x = 10 + (i * s) / 2;
+      const [x1, y1, x2, y2, x3, y3] = up ? [x, 10 + h, x + s, 10 + h, x + s / 2, 10] : [x, 10, x + s, 10, x + s / 2, 10 + h];
+      if (i === 0) sticks.push([x1, y1, x3, y3]);
+      sticks.push([x3, y3, x2, y2]);
+      sticks.push([x1, y1, x2, y2]);
+    }
+    // הצלע המשותפת נספרת פעם אחת: מסננים כפולים
+  }
+  const uniq = sticks.filter((a, i) => sticks.findIndex((b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]) + Math.abs(a[3] - b[3]) < 1) === i);
+  const W = 20 + (fig.shape === 'squares' ? fig.n * s : ((fig.n + 1) * s) / 2);
+  return (
+    <svg viewBox={`0 0 ${W} 60`} className="mx-auto w-full" style={{ maxWidth: Math.min(420, W * 1.4) }} role="img" aria-label={T('גפרורים')}>
+      {uniq.map(([x1, y1, x2, y2], i) => (
+        <g key={i}>
+          <line x1={x1 + (x2 - x1) * 0.06} y1={y1 + (y2 - y1) * 0.06} x2={x2 - (x2 - x1) * 0.06} y2={y2 - (y2 - y1) * 0.06} stroke="#c8a165" strokeWidth="4" strokeLinecap="round" />
+          <circle cx={x2 - (x2 - x1) * 0.08} cy={y2 - (y2 - y1) * 0.08} r="3.2" fill="#b3261e" />
+        </g>
+      ))}
+    </svg>
   );
 }
