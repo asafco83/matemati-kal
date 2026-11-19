@@ -114,7 +114,7 @@ export function Header({ route }: { route: Route }) {
       <>
         <GradeMenu own={profile.grade} ownUnits={profile.units} />
         <span aria-hidden="true" className="mx-1 h-6 w-px shrink-0 bg-white/55" />
-        <span className="text-[15px] font-semibold text-white">{T('בחרו מסלול למעלה כדי לראות את הנושאים שלו')}</span>
+        <span className="shrink-0 whitespace-nowrap text-[15px] font-semibold text-white">{T('בחרו מסלול למעלה כדי לראות את הנושאים שלו')}</span>
       </>
     );
   }

@@ -194,6 +194,16 @@ body {
 html:not([lang="he"]):not([lang="yi"]):not([lang="ar"]) body {
   hyphens: auto;
 }
+/* בכפתורים ובכותרות לא שוברים מילה באמצע */
+button,
+a,
+h1,
+h2,
+h3,
+legend,
+th {
+  hyphens: manual;
+}
 /* כתבים שהגופנים הרגילים לא מכסים */
 html[lang="ru"] {
   --font-sans: "Rubik", "Assistant", Arial, sans-serif;
