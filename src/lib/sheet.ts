@@ -7,20 +7,12 @@
  */
 import { useSyncExternalStore } from 'react';
 import { topicById, topics, tracks } from '../content';
-import type { Figure, Level, Question, Step } from './types';
+import type { Figure, Level, Pt, Question, Shape, Step } from './types';
+export type { Pt, Shape };
 import { activeProfile, getState } from './store';
 import { API_HELP, TUTOR_RULES } from './tutorGuide';
 
 /* ---------- בלוקים שהמורה מוסיף לדף ---------- */
-
-export type Pt = [number, number];
-export type Shape =
-  | { kind: 'line' | 'arrow'; from: Pt; to: Pt; color?: string; dashed?: boolean; label?: string }
-  | { kind: 'circle'; center: Pt; r: number; color?: string; fill?: string; dashed?: boolean }
-  | { kind: 'rect'; at: Pt; size: Pt; color?: string; fill?: string; dashed?: boolean }
-  | { kind: 'polygon' | 'path'; points: Pt[]; color?: string; fill?: string; dashed?: boolean }
-  | { kind: 'point'; at: Pt; label?: string; color?: string }
-  | { kind: 'text'; at: Pt; text: string; color?: string; size?: number };
 
 export type Block =
   | { type: 'text'; text: string }

@@ -2,6 +2,16 @@ import { getLocale, T } from '../i18n';
 export type Level = 1 | 2 | 3;
 
 /** שרטוטים פשוטים שמלווים שיעורים ושאלות */
+export type Pt = [number, number];
+/** צורה בשרטוט חופשי על משבצות (Figure מסוג draw) */
+export type Shape =
+  | { kind: 'line' | 'arrow'; from: Pt; to: Pt; color?: string; dashed?: boolean; label?: string }
+  | { kind: 'circle'; center: Pt; r: number; color?: string; fill?: string; dashed?: boolean }
+  | { kind: 'rect'; at: Pt; size: Pt; color?: string; fill?: string; dashed?: boolean }
+  | { kind: 'polygon' | 'path'; points: Pt[]; color?: string; fill?: string; dashed?: boolean }
+  | { kind: 'point'; at: Pt; label?: string; color?: string }
+  | { kind: 'text'; at: Pt; text: string; color?: string; size?: number };
+
 export type Figure =
   | { type: 'rect'; w: string; h: string }
   | { type: 'rtri'; bottom?: string; left?: string; hyp?: string; angle?: string }
@@ -59,6 +69,8 @@ export type Figure =
   | { type: 'clock'; h: number; m: number }
   /** זווית: קרן אחת ימינה והשנייה ב-deg מעלות. rest: גם ההמשך שמאלה (זווית צמודה) עם תווית */
   | { type: 'angle'; deg: number; label: string; rest?: string }
+  /** שרטוט חופשי על משבצות: היחידות הן משבצות, y כלפי מעלה, והראשית ב-origin */
+  | { type: 'draw'; width?: number; height?: number; origin?: Pt; axes?: boolean; grid?: boolean; shapes: Shape[] }
   | { type: 'polygon'; n: number; side?: string; /** קווים מקודקוד אחד לכל השאר */ diags?: boolean }
   /** דיאגרמת עמודות */
   | { type: 'bars'; labels: string[]; values: number[]; step: number }
