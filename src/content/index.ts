@@ -7,6 +7,7 @@ import { highTopics } from './high';
 import { highTopics2 } from './high2';
 import { highTopics3 } from './high3';
 import { middleTopics } from './middle';
+import { extraTopics } from './extra';
 
 export const tracks: Track[] = [
   { id: 'numbers', short: 'חשבון', title: 'מספרים וחשבון', icon: '🔢', color: '#4f46e5' },
@@ -19,7 +20,7 @@ export const tracks: Track[] = [
   { id: 'data', short: 'הסתברות', title: 'הסתברות וסטטיסטיקה', icon: '🎲', color: '#0d9488' },
 ];
 
-export const topics: Topic[] = [...elementaryTopics, ...elementaryTopics2, ...geometryDataTopics, ...middleTopics, ...algebraTopics2, ...highTopics, ...highTopics2, ...highTopics3];
+export const topics: Topic[] = [...elementaryTopics, ...elementaryTopics2, ...geometryDataTopics, ...middleTopics, ...algebraTopics2, ...highTopics, ...highTopics2, ...highTopics3, ...extraTopics];
 
 /** נושאים שמתוכננים ועדיין לא נכתבו. מוצגים באפור עם התווית "בקרוב" */
 /** נושאים שעדיין בהכנה. כרגע כולם מוכנים */

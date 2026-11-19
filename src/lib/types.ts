@@ -37,6 +37,22 @@ export type Figure =
   | { type: 'circle'; r?: string; d?: string }
   /** תיבה: אורך, רוחב, גובה */
   | { type: 'box'; a: string; b: string; c: string }
+  /**
+   * מעגל עם נקודות: על המעגל (deg, במעלות מהכיוון החיובי של x) או חופשיות (x, y ביחידות של רדיוס).
+   * O הוא המרכז. segs: קטעים בין נקודות. angles: קשת זווית בקודקוד at בין הקרניים אל a ואל b.
+   * tangent: ישר משיק בנקודה. lens: תווית על קטע.
+   */
+  | {
+      type: 'circpts';
+      pts: { n: string; deg?: number; x?: number; y?: number }[];
+      center?: boolean;
+      segs?: [string, string][];
+      angles?: { at: string; a: string; b: string; label: string }[];
+      tangent?: string;
+      lens?: { a: string; b: string; label: string }[];
+    }
+  /** שורת גפרורים: ריבועים (3n + 1 גפרורים) או משולשים (2n + 1) */
+  | { type: 'matches'; shape: 'squares' | 'triangles'; n: number }
   /** גוף סיבוב או פירמידה: r רדיוס (או צלע הבסיס בפירמידה), h גובה מקווקו, l קו יוצר */
   | { type: 'solid'; kind: 'cylinder' | 'cone' | 'sphere' | 'pyramid'; r?: string; h?: string; l?: string }
   | { type: 'polygon'; n: number; side?: string; /** קווים מקודקוד אחד לכל השאר */ diags?: boolean }
