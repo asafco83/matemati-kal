@@ -12,7 +12,7 @@ export default function App() {
   const profile = activeProfile(state);
 
   useEffect(() => {
-    syncProfile(profile?.id ?? null, profile?.grade ?? null);
+    syncProfile(profile?.id ?? null, profile?.grade ?? null, profile?.units);
   }, [profile?.id, profile?.grade]);
 
   if (!profile) {

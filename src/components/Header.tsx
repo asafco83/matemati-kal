@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { tracks } from '../content';
 import { useAuth } from '../lib/cloud';
-import { gradeTopics, inGrade, isSoon, setGrade, setMode, trackTopics, useNav, type AnyTopic, type GradeFilter, type Route } from '../lib/nav';
+import { gradeTopics, hasUnits, inGrade, isSoon, setGrade, setMode, setUnits, trackTopics, useNav, type AnyTopic, type GradeFilter, type Route, type UnitsFilter } from '../lib/nav';
+import { UNITS } from '../lib/types';
 import { activeProfile, selectProfile, stars, totals, useStore } from '../lib/store';
 import { GRADE_NAMES } from '../lib/types';
 import { Logo, StarIcon } from './ui';
@@ -85,6 +86,7 @@ export function Header({ route }: { route: Route }) {
           {gname(nav.grade)}
           {nav.grade === profile.grade && ` · הכיתה של ${profile.name}`}
         </span>
+        {hasUnits(nav.grade) && <UnitsSwitch own={profile.units} />}
         {pills(list, (t) => tracks.find((tr) => tr.id === t.track)?.color)}
       </>
     );
@@ -95,7 +97,7 @@ export function Header({ route }: { route: Route }) {
     const hidden = all.length - shown.length;
     row2 = (
       <>
-        <GradeMenu own={profile.grade} />
+        <GradeMenu own={profile.grade} ownUnits={profile.units} />
         <span aria-hidden="true" className="mx-1 h-6 w-px shrink-0 bg-white/55" />
         {pills(shown)}
         {shown.length === 0 && <span className="text-[15px] text-white">אין במסלול הזה נושאים ל{gname(nav.grade)}</span>}
@@ -109,7 +111,7 @@ export function Header({ route }: { route: Route }) {
   } else {
     row2 = (
       <>
-        <GradeMenu own={profile.grade} />
+        <GradeMenu own={profile.grade} ownUnits={profile.units} />
         <span aria-hidden="true" className="mx-1 h-6 w-px shrink-0 bg-white/55" />
         <span className="text-[15px] font-semibold text-white">בחרו מסלול למעלה כדי לראות את הנושאים שלו</span>
       </>
@@ -209,7 +211,27 @@ function ModeSwitch() {
 }
 
 /** תפריט נפתח לבחירת הכיתה שלפיה מסננים */
-function GradeMenu({ own }: { own: number }) {
+/** בחירת יח"ל בתוך שורת הנושאים, במצב "לפי כיתה" */
+function UnitsSwitch({ own }: { own?: number }) {
+  const nav = useNav();
+  return (
+    <div role="group" aria-label="רמת לימוד" className="flex shrink-0 items-center gap-0.5 rounded-full bg-white/15 p-0.5">
+      {([...UNITS, 'all'] as UnitsFilter[]).map((u) => (
+        <button
+          key={u}
+          type="button"
+          aria-pressed={nav.units === u}
+          onClick={() => setUnits(u)}
+          className={`min-h-8 rounded-full px-2.5 text-[13px] font-semibold ${nav.units === u ? 'bg-white text-ink' : 'text-white'} ${u === own && nav.units !== u ? 'underline' : ''}`}
+        >
+          {u === 'all' ? 'כל הרמות' : `${u} יח"ל`}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function GradeMenu({ own, ownUnits }: { own: number; ownUnits?: number }) {
   const nav = useNav();
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
@@ -245,7 +267,8 @@ function GradeMenu({ own }: { own: number }) {
           <path d="M4 6h16M7 12h10M10 18h4" />
         </svg>
         {gname(nav.grade)}
-        {nav.grade === own && ' · הכיתה שלי'}
+        {hasUnits(nav.grade) && nav.units !== 'all' && ` · ${nav.units} יח"ל`}
+        {nav.grade === own && (!hasUnits(nav.grade) || nav.units === (ownUnits ?? 'all')) && ' · הכיתה שלי'}
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d={open ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'} />
         </svg>
@@ -269,9 +292,31 @@ function GradeMenu({ own }: { own: number }) {
               );
             })}
           </div>
+          {hasUnits(nav.grade) && (
+            <div role="group" aria-label="רמת לימוד" className="flex items-center gap-1">
+              <span className="ms-1 me-1 text-[13px] font-semibold text-muted">יח"ל</span>
+              {([...UNITS, 'all'] as UnitsFilter[]).map((u) => (
+                <button
+                  key={u}
+                  type="button"
+                  aria-pressed={nav.units === u}
+                  onClick={() => setUnits(u)}
+                  className={`min-h-[34px] flex-1 rounded-lg border-2 font-display text-[15px] ${u === ownUnits ? 'border-ink' : 'border-transparent'} ${nav.units === u ? 'bg-ink font-semibold text-white' : 'bg-sand font-medium'}`}
+                >
+                  {u === 'all' ? 'הכול' : u}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="flex gap-1">
-            <button type="button" onClick={() => pick(own)} className="min-h-[34px] flex-1 rounded-lg border-2 border-ink bg-white px-2 text-[13px] font-bold">
-              הכיתה שלי ({GRADE_NAMES[own]})
+            <button
+              type="button"
+              onClick={() => {
+                setUnits(ownUnits ? (ownUnits as UnitsFilter) : 'all');
+                pick(own);
+              }} className="min-h-[34px] flex-1 rounded-lg border-2 border-ink bg-white px-2 text-[13px] font-bold">
+              הכיתה שלי ({GRADE_NAMES[own]}
+              {ownUnits ? ` · ${ownUnits} יח"ל` : ''})
             </button>
             <button
               type="button"

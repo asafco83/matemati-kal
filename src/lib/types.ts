@@ -84,6 +84,10 @@ export interface Lesson {
   tips: string[];
 }
 
+/** רמת הלימוד בתיכון: 3, 4 או 5 יחידות לימוד */
+export type Units = 3 | 4 | 5;
+export const UNITS: Units[] = [3, 4, 5];
+
 export interface Topic {
   id: string;
   track: string;
@@ -92,6 +96,8 @@ export interface Topic {
   grades: [number, number];
   summary: string;
   icon: string;
+  /** בתיכון: באילו רמות (יח"ל) הנושא נלמד, לפי תוכנית הלימודים של משרד החינוך. חסר = בכל הרמות */
+  units?: Units[];
   lesson: Lesson;
   /** תיאור קצר של כל רמה */
   levels: [string, string, string];

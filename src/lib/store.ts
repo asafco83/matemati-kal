@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import type { Level } from './types';
+import type { Level, Units } from './types';
 
 export const MASTERY_GOAL = 5;
 
@@ -11,6 +11,8 @@ export interface Profile {
   /** אינדקס ב-PROFILE_COLORS */
   color?: number;
   grade: number;
+  /** רמת הלימוד (יח"ל), רק בכיתות י'–י"ב */
+  units?: Units;
 }
 
 /** צבעי פרופיל. נפרדים מצבעי המסלולים כדי שלא יתבלבלו איתם */
@@ -81,9 +83,10 @@ export const useStore = () => useSyncExternalStore(subscribe, getState);
 
 export const activeProfile = (s: State) => s.profiles.find((p) => p.id === s.activeId) ?? null;
 
-export function addProfile(name: string, color: number, grade: number) {
+export function addProfile(name: string, color: number, grade: number, units?: Units) {
   const id = Math.random().toString(36).slice(2, 10);
-  commit({ ...state, profiles: [...state.profiles, { id, name, color, grade }], activeId: id });
+  const p: Profile = { id, name, color, grade, ...(grade >= 10 && units ? { units } : {}) };
+  commit({ ...state, profiles: [...state.profiles, p], activeId: id });
 }
 
 export function updateProfile(id: string, patch: Partial<Omit<Profile, 'id'>>) {

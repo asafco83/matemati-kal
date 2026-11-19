@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { signIn, signOutUser, useAuth } from '../lib/cloud';
 import { go } from '../lib/nav';
 import { addProfile, deleteProfile, PROFILE_COLORS, selectProfile, totals, useStore } from '../lib/store';
-import { GRADE_NAMES } from '../lib/types';
+import { GRADE_NAMES, UNITS, type Units } from '../lib/types';
 import { Avatar, Logo, StarIcon, StepNum, Tick } from './ui';
 
 function BareHeader({ end }: { end?: React.ReactNode }) {
@@ -142,7 +142,10 @@ export function ProfileList() {
                   <Avatar profile={p} />
                   <span className="flex flex-1 flex-col">
                     <span className="font-display text-xl font-semibold">{p.name}</span>
-                    <span className="text-[15px] text-muted">כיתה {GRADE_NAMES[p.grade]}</span>
+                    <span className="text-[15px] text-muted">
+                      כיתה {GRADE_NAMES[p.grade]}
+                      {p.grade >= 10 && p.units ? ` · ${p.units} יח"ל` : ''}
+                    </span>
                   </span>
                   <span className="flex items-center gap-1 font-bold text-[#b7791f]">
                     <StarIcon />
@@ -177,12 +180,13 @@ export function NewProfile() {
   const [name, setName] = useState('');
   const [color, setColor] = useState(1);
   const [grade, setGrade] = useState(4);
+  const [units, setUnits] = useState<Units>(4);
   const initial = name.trim().charAt(0) || '?';
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    addProfile(name.trim(), color, grade);
+    addProfile(name.trim(), color, grade, units);
     go('#/');
   };
 
@@ -245,6 +249,25 @@ export function NewProfile() {
             </div>
             <p className="mt-2 text-[15px] text-muted">לפי הכיתה נבחר אילו נושאים להציג קודם. תמיד אפשר לעבור לכיתות אחרות.</p>
           </fieldset>
+          {grade >= 10 && (
+            <fieldset>
+              <legend className="mb-2 font-display text-xl font-semibold">כמה יחידות לימוד?</legend>
+              <div className="flex flex-wrap gap-2">
+                {UNITS.map((u) => (
+                  <button
+                    key={u}
+                    type="button"
+                    aria-pressed={units === u}
+                    onClick={() => setUnits(u)}
+                    className={`min-h-12 rounded-[14px] px-5 font-display text-lg ${units === u ? 'bg-ink font-semibold text-white' : 'bg-sand font-medium'}`}
+                  >
+                    {u} יח"ל
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-[15px] text-muted">לפי תוכנית הלימודים, בכל רמה לומדים נושאים קצת אחרים. גם את זה אפשר לשנות בתפריט הכיתות.</p>
+            </fieldset>
+          )}
           <div>
             <button type="submit" disabled={!name.trim()} className="rounded-full bg-ink px-10 py-4 font-display text-xl font-semibold text-white disabled:bg-[#9a978e]">
               יוצאים לדרך ←
