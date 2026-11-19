@@ -1,13 +1,15 @@
+import { Tex } from './Tex';
 import type { Figure } from '../lib/types';
 
-const INK = '#312e81';
-const FILL = '#e0e7ff';
-const ACCENT = '#f59e0b';
+const INK = '#1d2433';
+/** גוון בהיר של צבע המסלול (המשתנה --tc מוגדר בדף הנושא) */
+const FILL = 'color-mix(in srgb, var(--tc, #4f46e5) 13%, white)';
+const ACCENT = '#f5b400';
 
 function Label({ x, y, children, anchor = 'middle', bold }: { x: number; y: number; children: string; anchor?: 'start' | 'middle' | 'end'; bold?: boolean }) {
   const q = children === '?';
   return (
-    <text x={x} y={y} textAnchor={anchor} dominantBaseline="middle" fontSize={q ? 20 : 15} fontWeight={q || bold ? 800 : 500} fill={q ? '#dc2626' : INK} style={{ direction: 'ltr', unicodeBidi: 'plaintext' }}>
+    <text x={x} y={y} textAnchor={anchor} dominantBaseline="middle" fontSize={q ? 20 : 16} fontWeight={q || bold ? 700 : 500} fontFamily="Fredoka, Arial, sans-serif" fill={q ? 'var(--tc, #b3261e)' : INK} style={{ direction: 'ltr', unicodeBidi: 'plaintext' }}>
       {children}
     </text>
   );
@@ -18,7 +20,7 @@ export function FigureView({ fig }: { fig: Figure }) {
     case 'rect':
       return (
         <svg viewBox="0 0 260 150" className="mx-auto w-full max-w-[260px]" role="img" aria-label="מלבן">
-          <rect x="50" y="20" width="160" height="90" fill={FILL} stroke={INK} strokeWidth="2.5" rx="2" />
+          <rect x="50" y="20" width="160" height="90" style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" rx="2" />
           <Label x={130} y={128}>{fig.w}</Label>
           <Label x={44} y={65} anchor="end">{fig.h}</Label>
         </svg>
@@ -30,7 +32,7 @@ export function FigureView({ fig }: { fig: Figure }) {
       const C = [40, 25];
       return (
         <svg viewBox="0 0 270 160" className="mx-auto w-full max-w-[270px]" role="img" aria-label="משולש ישר זווית">
-          <polygon points={`${A} ${B} ${C}`} fill={FILL} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          <polygon points={`${A} ${B} ${C}`} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
           <path d="M40 116 h14 v14" fill="none" stroke={INK} strokeWidth="1.5" />
           {fig.angle && (
             <>
@@ -49,7 +51,7 @@ export function FigureView({ fig }: { fig: Figure }) {
       return (
         <svg viewBox="0 0 300 165" className="mx-auto w-full max-w-[300px]" role="img" aria-label="משולש">
           {fig.ext !== undefined && <line x1="215" y1="135" x2="285" y2="135" stroke={INK} strokeWidth="2" strokeDasharray="5 4" />}
-          <polygon points="30,135 215,135 135,20" fill={FILL} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          <polygon points="30,135 215,135 135,20" style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
           {a && <Label x={66} y={122}>{a}</Label>}
           {b && <Label x={186} y={122}>{b}</Label>}
           {c && <Label x={134} y={52}>{c}</Label>}
@@ -111,9 +113,213 @@ export function FigureView({ fig }: { fig: Figure }) {
         </svg>
       );
     }
+    case 'triH': {
+      return (
+        <svg viewBox="0 0 280 165" className="mx-auto w-full max-w-[280px]" role="img" aria-label="משולש עם גובה">
+          <polygon points="30,135 240,135 95,25" style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          <line x1="95" y1="25" x2="95" y2="135" stroke={INK} strokeWidth="1.8" strokeDasharray="6 4" />
+          <path d="M95 121 h14 v14" fill="none" stroke={INK} strokeWidth="1.5" />
+          <Label x={135} y={152}>{fig.b}</Label>
+          <Label x={87} y={84} anchor="end">{fig.h}</Label>
+        </svg>
+      );
+    }
+    case 'quad': {
+      const pts = fig.kind === 'parallelogram' ? '30,135 200,135 250,30 80,30' : '30,135 250,135 190,30 90,30';
+      return (
+        <svg viewBox="0 0 280 165" className="mx-auto w-full max-w-[280px]" role="img" aria-label={fig.kind === 'parallelogram' ? 'מקבילית' : 'טרפז'}>
+          <polygon points={pts} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          <line x1="140" y1="30" x2="140" y2="135" stroke={INK} strokeWidth="1.8" strokeDasharray="6 4" />
+          <path d="M140 121 h14 v14" fill="none" stroke={INK} strokeWidth="1.5" />
+          <Label x={fig.kind === 'parallelogram' ? 115 : 140} y={152}>{fig.b}</Label>
+          <Label x={132} y={84} anchor="end">{fig.h}</Label>
+          {fig.top && <Label x={fig.kind === 'parallelogram' ? 165 : 140} y={16}>{fig.top}</Label>}
+        </svg>
+      );
+    }
+    case 'circle': {
+      return (
+        <svg viewBox="0 0 220 180" className="mx-auto w-full max-w-[220px]" role="img" aria-label="מעגל">
+          <circle cx="110" cy="90" r="75" style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" />
+          <circle cx="110" cy="90" r="3.5" fill={INK} />
+          {fig.r && (
+            <>
+              <line x1="110" y1="90" x2="185" y2="90" stroke={INK} strokeWidth="2" />
+              <Label x={148} y={78}>{fig.r}</Label>
+            </>
+          )}
+          {fig.d && (
+            <>
+              <line x1="35" y1="90" x2="185" y2="90" stroke={INK} strokeWidth="2" />
+              <Label x={110} y={106}>{fig.d}</Label>
+            </>
+          )}
+        </svg>
+      );
+    }
+    case 'box': {
+      // תיבה בהטלה: חזית, עומק באלכסון
+      const [x, y, w, h, dx, dy] = [40, 60, 150, 80, 50, -35];
+      return (
+        <svg viewBox="0 0 270 175" className="mx-auto w-full max-w-[270px]" role="img" aria-label="תיבה">
+          <polygon points={`${x},${y} ${x + dx},${y + dy} ${x + w + dx},${y + dy} ${x + w},${y}`} fill="color-mix(in srgb, var(--tc, #4f46e5) 22%, white)" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
+          <polygon points={`${x + w},${y} ${x + w + dx},${y + dy} ${x + w + dx},${y + dy + h} ${x + w},${y + h}`} fill="color-mix(in srgb, var(--tc, #4f46e5) 30%, white)" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
+          <rect x={x} y={y} width={w} height={h} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" />
+          <Label x={x + w / 2} y={y + h + 16}>{fig.a}</Label>
+          <Label x={x + w + dx / 2 + 12} y={y + h + dy / 2 + 14} anchor="start">{fig.b}</Label>
+          <Label x={x - 8} y={y + h / 2} anchor="end">{fig.c}</Label>
+        </svg>
+      );
+    }
+    case 'polygon': {
+      const pts = Array.from({ length: fig.n }, (_, i) => {
+        const t = -Math.PI / 2 + (i * 2 * Math.PI) / fig.n + (fig.n % 2 ? 0 : Math.PI / fig.n);
+        return [110 + 72 * Math.cos(t), 92 + 72 * Math.sin(t)];
+      });
+      const [p0, p1] = [pts[Math.floor(fig.n / 2)], pts[Math.floor(fig.n / 2) - 1]];
+      return (
+        <svg viewBox="0 0 220 185" className="mx-auto w-full max-w-[220px]" role="img" aria-label={`מצולע עם ${fig.n} צלעות`}>
+          <polygon points={pts.map((p) => p.join(',')).join(' ')} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          {fig.side && <Label x={(p0[0] + p1[0]) / 2} y={(p0[1] + p1[1]) / 2 + 14}>{fig.side}</Label>}
+          {fig.diags && pts.slice(2, -1).map((p, i) => <line key={i} x1={pts[0][0]} y1={pts[0][1]} x2={p[0]} y2={p[1]} stroke={INK} strokeWidth="1.8" strokeDasharray="6 4" />)}
+        </svg>
+      );
+    }
+    case 'bars': {
+      const max = Math.max(...fig.values);
+      const top = Math.ceil(max / fig.step) * fig.step;
+      const H = 150;
+      const Y = (v: number) => 170 - (v / top) * H;
+      const n = fig.values.length;
+      const bw = 200 / n;
+      return (
+        <svg viewBox="0 0 280 210" className="mx-auto w-full max-w-[360px]" role="img" aria-label="דיאגרמת עמודות" style={{ direction: 'ltr' }}>
+          {Array.from({ length: top / fig.step + 1 }, (_, i) => i * fig.step).map((v) => (
+            <g key={v}>
+              <line x1="50" y1={Y(v)} x2="265" y2={Y(v)} stroke="#e5e7eb" strokeWidth="1" />
+              <text x="42" y={Y(v) + 4} textAnchor="end" fontSize="12" fill="#5b6475">{v}</text>
+            </g>
+          ))}
+          <line x1="50" y1="170" x2="265" y2="170" stroke={INK} strokeWidth="2" />
+          <line x1="50" y1="15" x2="50" y2="170" stroke={INK} strokeWidth="2" />
+          {fig.values.map((v, i) => (
+            <g key={i}>
+              <rect x={58 + i * bw + bw * 0.15} y={Y(v)} width={bw * 0.7} height={170 - Y(v)} fill={i % 2 ? '#818cf8' : ACCENT} />
+              <text x={58 + i * bw + bw / 2} y="188" textAnchor="middle" fontSize="13" fontWeight="600" fill={INK} style={{ direction: 'rtl', unicodeBidi: 'plaintext' }}>{fig.labels[i]}</text>
+            </g>
+          ))}
+        </svg>
+      );
+    }
+    case 'parallel': {
+      // ישרים ב-y=55 וב-y=135, חותך שעולה ימינה
+      const X = [180, 120];
+      const Y = [55, 135];
+      const off = { tl: [-30, -16], tr: [26, -16], bl: [-26, 18], br: [30, 18] } as const;
+      return (
+        <svg viewBox="0 0 300 190" className="mx-auto w-full max-w-[300px]" role="img" aria-label="ישרים מקבילים וחותך" style={{ direction: 'ltr' }}>
+          {Y.map((y) => (
+            <g key={y}>
+              <line x1="20" y1={y} x2="280" y2={y} stroke={INK} strokeWidth="2.5" />
+              <path d={`M${262} ${y - 6} l8 6 l-8 6`} fill="none" stroke={INK} strokeWidth="2" />
+            </g>
+          ))}
+          <line x1="75" y1="195" x2="225" y2="-5" stroke={INK} strokeWidth="2.5" />
+          {fig.marks.map((m, i) => (
+            <g key={i}>
+              <circle cx={X[m.at] + off[m.q][0]} cy={Y[m.at] + off[m.q][1]} r="15" fill={m.label === '?' ? 'color-mix(in srgb, var(--tc, #b3261e) 15%, white)' : '#fff3bf'} />
+              <Label x={X[m.at] + off[m.q][0]} y={Y[m.at] + off[m.q][1]}>{m.label}</Label>
+            </g>
+          ))}
+        </svg>
+      );
+    }
+    case 'eqsides':
+      return (
+        <div dir="ltr" className="flex items-start justify-center gap-3 py-2 text-[26px]">
+          {[fig.left, null, fig.right].map((part, i) =>
+            part === null ? (
+              <span key={i} className="pt-1">
+                <Tex tex="=" />
+              </span>
+            ) : (
+              <div key={i} className="flex flex-col items-center">
+                <span className="rounded-lg px-2 pt-1" style={{ background: i === 0 ? 'color-mix(in srgb, var(--tc, #4f46e5) 14%, white)' : '#fff3bf' }}>
+                  <Tex tex={part} />
+                </span>
+                <svg viewBox="0 0 100 14" preserveAspectRatio="none" className="h-3.5 w-full" aria-hidden="true">
+                  <path d="M3 2 Q3 9 12 9 H42 Q50 9 50 13 Q50 9 58 9 H88 Q97 9 97 2" fill="none" stroke={INK} strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                </svg>
+                <span dir="rtl" className="font-display text-base font-semibold text-muted">{i === 0 ? 'אגף שמאל' : 'אגף ימין'}</span>
+              </div>
+            ),
+          )}
+        </div>
+      );
+    case 'balance': {
+      const t = (fig.tilt ?? 0) * 10;
+      // y של שפת הכף בכל צד
+      const rim = (side: -1 | 1) => 104 + side * t;
+      return (
+        <div className="relative mx-auto w-full max-w-[340px]" style={{ direction: 'ltr' }}>
+          <svg viewBox="0 0 340 190" className="w-full" role="img" aria-label="מאזניים">
+            <polygon points="170,52 150,170 190,170" fill="#d6d3c8" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
+            <rect x="120" y="170" width="100" height="9" rx="3" fill={INK} />
+            <line x1="62" y1={52 - t} x2="278" y2={52 + t} stroke={INK} strokeWidth="4" strokeLinecap="round" />
+            <circle cx="170" cy="52" r="6" fill={INK} />
+            {([-1, 1] as const).map((side) => {
+              const cx = side < 0 ? 62 : 278;
+              const top = 52 + side * t;
+              const y = rim(side);
+              return (
+                <g key={side}>
+                  <line x1={cx} y1={top} x2={cx - 54} y2={y} stroke={INK} strokeWidth="1.5" />
+                  <line x1={cx} y1={top} x2={cx + 54} y2={y} stroke={INK} strokeWidth="1.5" />
+                  <path d={`M${cx - 58} ${y} H${cx + 58} Q${cx + 50} ${y + 40} ${cx} ${y + 40} Q${cx - 50} ${y + 40} ${cx - 58} ${y} Z`} style={{ fill: side < 0 ? 'color-mix(in srgb, var(--tc, #4f46e5) 18%, white)' : '#fff3bf' }} stroke={INK} strokeWidth="2" />
+                </g>
+              );
+            })}
+          </svg>
+          {[fig.left, fig.right].map((txt, i) => (
+            <span
+              key={i}
+              className="absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[19px]"
+              style={{ left: `${((i ? 278 : 62) / 340) * 100}%`, top: `${((rim(i ? 1 : -1) + 19) / 190) * 100}%` }}
+            >
+              <Tex tex={txt} />
+            </span>
+          ))}
+        </div>
+      );
+    }
+    case 'colarith':
+      return <ColumnArith top={fig.top} bottom={fig.bottom} op={fig.op} upto={fig.upto} from={fig.from} />;
+    case 'longmul':
+      return <LongMult a={fig.a} b={fig.b} upto={fig.upto} from={fig.from} />;
+    case 'longdiv':
+      return <LongDivision n={fig.n} d={fig.d} upto={fig.upto} from={fig.from} />;
+    case 'triS': {
+      const A = [35, 140];
+      const B = [255, 140];
+      const C = [170, 25];
+      return (
+        <svg viewBox="0 0 290 170" className="mx-auto w-full max-w-[290px]" role="img" aria-label="משולש" style={{ direction: 'ltr' }}>
+          <polygon points={`${A} ${B} ${C}`} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          <Label x={22} y={150} bold>A</Label>
+          <Label x={268} y={150} bold>B</Label>
+          <Label x={170} y={12} bold>C</Label>
+          {fig.c && <Label x={145} y={157}>{fig.c}</Label>}
+          {fig.a && <Label x={225} y={78} anchor="start">{fig.a}</Label>}
+          {fig.b && <Label x={92} y={76} anchor="end">{fig.b}</Label>}
+          {fig.A && <Label x={70} y={128}>{fig.A}</Label>}
+          {fig.B && <Label x={222} y={128}>{fig.B}</Label>}
+          {fig.C && <Label x={170} y={52}>{fig.C}</Label>}
+        </svg>
+      );
+    }
     case 'graph': {
-      const R = 8; // טווח הצירים: מ-8- עד 8
-      const S = 15;
+      const R = fig.range ?? 8; // טווח הצירים: מ-R- עד R
+      const S = 120 / R;
       const P = (x: number, y: number) => [140 + x * S, 140 - y * S];
       const colors = ['#4f46e5', '#db2777'];
       return (
@@ -125,7 +331,7 @@ export function FigureView({ fig }: { fig: Figure }) {
             <g key={v}>
               <line x1={P(v, 0)[0]} y1="20" x2={P(v, 0)[0]} y2="260" stroke="#e5e7eb" strokeWidth="1" />
               <line x1="20" y1={P(0, v)[1]} x2="260" y2={P(0, v)[1]} stroke="#e5e7eb" strokeWidth="1" />
-              {v !== 0 && v % 2 === 0 && (
+              {v !== 0 && v % Math.max(1, Math.round(R / 4)) === 0 && (
                 <>
                   <text x={P(v, 0)[0]} y="153" textAnchor="middle" fontSize="9" fill="#6b7280">{v}</text>
                   <text x="134" y={P(0, v)[1] + 3} textAnchor="end" fontSize="9" fill="#6b7280">{v}</text>
@@ -143,6 +349,9 @@ export function FigureView({ fig }: { fig: Figure }) {
               const [x2, y2] = P(R, ln.m * R + ln.b);
               return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors[i % 2]} strokeWidth="2.5" />;
             })}
+            {(fig.curves ?? []).map((c, i) => (
+              <polyline key={`c${i}`} points={c.map(([x, y]) => P(x, Math.max(-3 * R, Math.min(3 * R, y))).join(',')).join(' ')} fill="none" stroke={colors[(fig.lines.length + i) % 2]} strokeWidth="2.5" strokeLinejoin="round" />
+            ))}
             {(fig.points ?? []).map(([x, y], i) => (
               <circle key={i} cx={P(x, y)[0]} cy={P(x, y)[1]} r="4.5" fill={ACCENT} stroke="#fff" strokeWidth="1.5" />
             ))}
@@ -151,4 +360,343 @@ export function FigureView({ fig }: { fig: Figure }) {
       );
     }
   }
+}
+
+/**
+ * חילוק ארוך כמו שכותבים במחברת: המחולק, קו, והמחלק מימין לו.
+ * המנה (והשארית בסוגריים) מעל המחולק, ומתחת לכל צעד: מינוס, מכפלה, קו, והשארית עם הספרה שירדה.
+ *
+ * שלבי הכתיבה (upto): 0 = המחולק והמחלק; לכל ספרה i:
+ * 1+3i ספרת המנה, 2+3i המכפלה שמחסרים, 3+3i מה שנשאר (עם הספרה שירדה).
+ * מה שנכתב בשלבים from..upto מסומן ברקע צהוב, כדי לראות מה נוסף עכשיו.
+ */
+
+function LongDivision({ n, d, upto, from }: { n: number; d: number; upto?: number; from?: number }) {
+  const ds = String(n).split('').map(Number);
+  const N = ds.length;
+  const last = 3 * N;
+  const U = upto ?? last;
+  const F = from ?? (upto === undefined ? last + 1 : U);
+  type Row = { text: string; end: number; stage: number; minus?: boolean; line?: boolean; accent?: boolean; arrowFrom?: number };
+  const rows: Row[] = [];
+  const q: number[] = [];
+  let cur = 0;
+  ds.forEach((dig, i) => {
+    cur = cur * 10 + dig;
+    const k = Math.floor(cur / d);
+    q.push(k);
+    rows.push({ text: String(k * d), end: i, stage: 2 + 3 * i, minus: true, line: true });
+    cur -= k * d;
+    if (i < N - 1) rows.push({ text: String(cur * 10 + ds[i + 1]), end: i + 1, stage: 3 + 3 * i, arrowFrom: i + 1 });
+    else rows.push({ text: String(cur), end: i, stage: 3 + 3 * i, accent: true });
+  });
+  const r = cur;
+  const visible = rows.filter((row) => row.stage <= U);
+  const COL = 17;
+  const ROW = 34;
+  const left = 22;
+  const top = 8;
+  const W = left + N * COL + 18 + String(d).length * 16 + 50;
+  const H = top + ROW * (visible.length + 2) + 6;
+  const x = (col: number) => left + col * COL + COL / 2;
+  const ACC = '#e8590c';
+  const hl = (stage: number) => stage >= F && stage <= U;
+  const mark = (x1: number, x2: number, yBase: number, key: string) => <rect key={key} x={x1} y={yBase - 21} width={x2 - x1} height={28} rx={6} fill="#ffe45c" opacity={0.75} />;
+  const digitsAt = (text: string, end: number, y: number, color: string, key: string) =>
+    text.split('').map((c, j) => (
+      <text key={`${key}${j}`} x={x(end - (text.length - 1 - j))} y={y} textAnchor="middle" fontSize="22" fontWeight="600" fill={color} fontFamily="Fredoka, sans-serif">
+        {c}
+      </text>
+    ));
+  const yRow = (i: number) => top + ROW * (i + 2) + 24;
+  const yDividend = top + ROW + 24;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: W * 1.1, direction: 'ltr' }} role="img" aria-label={`חילוק ארוך: ${n} חלקי ${d}, מנה ${Number(q.join(''))} ושארית ${r}`}>
+      {/* המנה: כל ספרה מופיעה בשלב שלה */}
+      {q.map((k, i) =>
+        1 + 3 * i <= U ? (
+          <g key={`q${i}`}>
+            {hl(1 + 3 * i) && mark(x(i) - COL / 2, x(i) + COL / 2, top + 24, `qm${i}`)}
+            {digitsAt(String(k), i, top + 24, ACC, `q${i}`)}
+          </g>
+        ) : null,
+      )}
+      {U >= last && (
+        <text x={x(N - 1) + COL / 2 + 8} y={top + 24} fontSize="20" fontWeight="600" fill={ACC} fontFamily="Fredoka, sans-serif">
+          ({r})
+        </text>
+      )}
+      {/* המחולק, הקו מעליו והמחלק */}
+      <line x1={left + 2} y1={top + 32} x2={left + N * COL + 4} y2={top + 32} stroke={INK} strokeWidth="2" />
+      {hl(0) && mark(left, left + N * COL + 18 + String(d).length * 14, yDividend, 'dm')}
+      {digitsAt(String(n), N - 1, yDividend, INK, 'n')}
+      <line x1={left + N * COL + 4} y1={top + 32} x2={left + N * COL + 4} y2={top + ROW + 32} stroke={INK} strokeWidth="2" />
+      <text x={left + N * COL + 12} y={yDividend} fontSize="22" fontWeight="600" fill={INK} fontFamily="Fredoka, sans-serif">
+        {d}
+      </text>
+      {visible.map((row, i) => {
+        const y = yRow(i);
+        const startCol = row.end - row.text.length + 1;
+        return (
+          <g key={i}>
+            {hl(row.stage) && mark(x(startCol) - COL / 2 - (row.minus ? 14 : 2), x(row.end) + COL / 2, y, `m${i}`)}
+            {row.arrowFrom !== undefined && (
+              <g stroke="#9a978e" strokeWidth="1.4" fill="none">
+                <line x1={x(row.arrowFrom) + 6} y1={yDividend + 6} x2={x(row.arrowFrom) + 6} y2={y - 20} />
+                <path d={`M${x(row.arrowFrom) + 3} ${y - 25} l3 5 l3 -5`} />
+              </g>
+            )}
+            {row.minus && <line x1={x(startCol) - COL / 2 - 12} y1={y - 22} x2={x(startCol) - COL / 2 - 3} y2={y - 22} stroke={INK} strokeWidth="2" />}
+            {digitsAt(row.text, row.end, y, row.accent ? ACC : INK, `r${i}`)}
+            {row.line && <line x1={x(startCol) - COL / 2 - 2} y1={y + 7} x2={x(row.end) + COL / 2 - 2} y2={y + 7} stroke={INK} strokeWidth="1.8" />}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+/** מספר השלבים בכפל במאונך (בלי שלב ההכנה 0) */
+function longMultStages(a: number, b: number) {
+  const L = String(a).length;
+  return b < 10 ? L : 2 * L + 2;
+}
+
+/**
+ * כפל במאונך כמו במחברת: המספרים מיושרים לימין, × משמאל למספר התחתון, קו,
+ * והתוצאה נכתבת ספרה אחר ספרה מימין לשמאל. ספרת ההעברה נכתבת קטנה מעל העמודה הבאה.
+ * במכפיל דו-ספרתי: שורה לאחדות, שורה לעשרות (עם 0 בסוף), קו, וסכום.
+ * שלבים: 0 = התרגיל; כל ספרה של התוצאה היא שלב. מה שנוסף בשלבים from..upto מסומן בצהוב.
+ */
+function LongMult({ a, b, upto, from }: { a: number; b: number; upto?: number; from?: number }) {
+  const da = String(a).split('').map(Number).reverse();
+  const L = da.length;
+  const last = longMultStages(a, b);
+  const U = upto ?? last;
+  const F = from ?? (upto === undefined ? last + 1 : U);
+  const two = b >= 10;
+  const u = b % 10;
+  const t = Math.floor(b / 10);
+  type Cell = { col: number; ch: string; stage: number; row: string; small?: boolean };
+  const cells: Cell[] = [];
+  /** שורת מכפלה בספרה אחת, עם העברות */
+  const partial = (m: number, row: string, shift: number, stage0: number) => {
+    let carry = 0;
+    da.forEach((d, i) => {
+      const v = d * m + carry;
+      const st = stage0 + i;
+      if (i < L - 1) {
+        cells.push({ col: i + shift, ch: String(v % 10), stage: st, row });
+        carry = Math.floor(v / 10);
+        // ההעברה נכתבת מעל הספרה הבאה של המספר העליון
+        if (carry) cells.push({ col: i + 1, ch: String(carry), stage: st, row: `carry-${row}`, small: true });
+      } else {
+        String(v)
+          .split('')
+          .reverse()
+          .forEach((c, j) => cells.push({ col: i + j + shift, ch: c, stage: st, row }));
+      }
+    });
+  };
+  partial(u, 'p1', 0, 1);
+  if (two) {
+    cells.push({ col: 0, ch: '0', stage: L + 1, row: 'p2' });
+    partial(t, 'p2', 1, L + 2);
+    String(a * b)
+      .split('')
+      .reverse()
+      .forEach((c, j) => cells.push({ col: j, ch: c, stage: 2 * L + 2, row: 'sum' }));
+  }
+  const cols = Math.max(String(a * b).length, String(b).length + 1, L + 1) + 1;
+  const COL = 17;
+  const W = cols * COL + 24;
+  const x = (col: number) => W - 12 - col * COL - COL / 2;
+  const rowsOrder = two ? ['carry', 'a', 'b', 'line1', 'p1', 'p2', 'line2', 'sum'] : ['carry', 'a', 'b', 'line1', 'p1'];
+  const visibleRows = rowsOrder.filter((r) => {
+    if (r === 'p2' || r === 'line2') return U >= L + 1;
+    if (r === 'sum') return U >= 2 * L + 2;
+    return true;
+  });
+  const yOf: Record<string, number> = {};
+  let y = 18;
+  visibleRows.forEach((r) => {
+    if (r === 'carry') {
+      yOf[r] = y;
+      y += 18;
+    } else if (r.startsWith('line')) {
+      yOf[r] = y - 9;
+      y += 4;
+    } else {
+      yOf[r] = y + 14;
+      y += 34;
+    }
+  });
+  const H = y + 4;
+  const ACC = '#e8590c';
+  const hl = (st: number) => st >= F && st <= U;
+  const digits = (n: number, rowY: number, key: string, color = INK) =>
+    String(n)
+      .split('')
+      .reverse()
+      .map((c, j) => (
+        <text key={`${key}${j}`} x={x(j)} y={rowY} textAnchor="middle" fontSize="22" fontWeight="600" fill={color} fontFamily="Fredoka, sans-serif">
+          {c}
+        </text>
+      ));
+  // ספרות ההעברה של השורה שעובדים עליה עכשיו בלבד
+  const carryRow = two && U >= L + 1 ? 'carry-p2' : 'carry-p1';
+  const resultColor = (row: string) => (row === 'sum' || (!two && row === 'p1') ? ACC : INK);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: W * 1.15, direction: 'ltr' }} role="img" aria-label={`כפל במאונך: ${a} כפול ${b} שווה ${a * b}`}>
+      {digits(a, yOf.a, 'a')}
+      {digits(b, yOf.b, 'b')}
+      <text x={x(String(b).length) - 2} y={yOf.b - 2} textAnchor="middle" fontSize="20" fill={INK}>
+        ×
+      </text>
+      <line x1={x(cols - 1) - COL / 2 + 4} y1={yOf.line1} x2={W - 8} y2={yOf.line1} stroke={INK} strokeWidth="2" />
+      {two && U >= 2 * L + 2 && (
+        <>
+          <line x1={x(cols - 1) - COL / 2 + 4} y1={yOf.line2} x2={W - 8} y2={yOf.line2} stroke={INK} strokeWidth="2" />
+          <text x={x(cols - 1)} y={yOf.p2} textAnchor="middle" fontSize="20" fill={INK}>
+            +
+          </text>
+        </>
+      )}
+      {cells
+        .filter((c) => c.stage <= U && (!c.small || c.row === carryRow))
+        .map((c, i) => {
+          const isCarry = !!c.small;
+          const cy = isCarry ? yOf.carry : yOf[c.row];
+          return (
+            <g key={i}>
+              {hl(c.stage) && <rect x={x(c.col) - (isCarry ? 7 : 10)} y={cy - (isCarry ? 13 : 21)} width={isCarry ? 14 : 20} height={isCarry ? 17 : 28} rx={5} fill="#ffe45c" opacity={0.75} />}
+              <text x={x(c.col)} y={cy} textAnchor="middle" fontSize={isCarry ? 14 : 22} fontWeight="600" fill={isCarry ? '#5b6475' : resultColor(c.row)} fontFamily="Fredoka, sans-serif">
+                {c.ch}
+              </text>
+            </g>
+          );
+        })}
+    </svg>
+  );
+}
+
+/** מיישר שני מספרים (גם עשרוניים) לעמודות: ספרות מימין לשמאל, והנקודה במקום קבוע */
+function alignColumns(top: string, bottom: string) {
+  const dec = (s: string) => (s.includes('.') ? s.split('.')[1].length : 0);
+  const D = Math.max(dec(top), dec(bottom));
+  const pad = (s: string) => {
+    const [i, f = ''] = s.split('.');
+    return { int: i, frac: f.padEnd(D, '0') };
+  };
+  return { a: pad(top), b: pad(bottom), D };
+}
+
+/**
+ * חיבור או חיסור במאונך כמו במחברת. מחשבים עמודה אחר עמודה מימין לשמאל.
+ * בחיבור: ספרת העברה קטנה מעל העמודה הבאה. בחיסור: כשהספרה למעלה קטנה מדי,
+ * פורטים: מוחקים את הספרה שמשמאל, כותבים מעליה אחת פחות, וכותבים 1 קטן לפני הספרה הנוכחית.
+ * שלבים: 0 = התרגיל, ואחר כך עמודה אחת בכל שלב (מימין). מה שנוסף בשלבים from..upto מסומן.
+ */
+function ColumnArith({ top, bottom, op, upto, from }: { top: string; bottom: string; op: '+' | '-'; upto?: number; from?: number }) {
+  const { a, b, D } = alignColumns(top, bottom);
+  // ספרות שהושלמו כ-0 אחרי הנקודה (לא נכתבו בתרגיל המקורי) מוצגות באפור
+  const decOf = (s: string) => (s.includes('.') ? s.split('.')[1].length : 0);
+  const padA = D - decOf(top);
+  const padB = D - decOf(bottom);
+  // ספרות מימין לשמאל, בלי הנקודה
+  const A = (a.int + a.frac).split('').map(Number).reverse();
+  const B = (b.int + b.frac).split('').map(Number).reverse();
+  const n = Math.max(A.length, B.length);
+  type Mark = { col: number; ch: string; stage: number; kind: 'res' | 'carry' | 'borrowNew' | 'borrowOne' | 'cross' };
+  const marks: Mark[] = [];
+  const work = [...A];
+  let carry = 0;
+  let stages = 0;
+  for (let i = 0; i < n; i++) {
+    const st = i + 1;
+    const x = work[i] ?? 0;
+    const y = B[i] ?? 0;
+    if (op === '+') {
+      const v = x + y + carry;
+      const lastCol = i === n - 1;
+      if (lastCol) String(v).split('').reverse().forEach((c, j) => marks.push({ col: i + j, ch: c, stage: st, kind: 'res' }));
+      else {
+        marks.push({ col: i, ch: String(v % 10), stage: st, kind: 'res' });
+        carry = Math.floor(v / 10);
+        if (carry) marks.push({ col: i + 1, ch: String(carry), stage: st, kind: 'carry' });
+      }
+    } else {
+      let cur = x;
+      if (cur < y) {
+        // פורטים מהעמודה הבאה (ואם היא 0, ממשיכים הלאה)
+        let k = i + 1;
+        while (work[k] === 0) k++;
+        for (let j = k; j > i; j--) {
+          marks.push({ col: j, ch: '', stage: st, kind: 'cross' });
+          work[j] = j === k ? work[j] - 1 : 9;
+          marks.push({ col: j, ch: String(work[j]), stage: st, kind: 'borrowNew' });
+        }
+        marks.push({ col: i, ch: '1', stage: st, kind: 'borrowOne' });
+        cur += 10;
+      }
+      const v = cur - y;
+      // לא כותבים אפסים מובילים בתוצאה (חוץ מעמודת האחדות ומה שמימין לנקודה)
+      const leading = i > D && i >= n - 1 && v === 0;
+      if (!leading) marks.push({ col: i, ch: String(v), stage: st, kind: 'res' });
+    }
+    stages = st;
+  }
+  const U = upto ?? stages;
+  const F = from ?? (upto === undefined ? stages + 1 : U);
+  const COL = 30;
+  const cols = n + 2;
+  const W = cols * COL + 20;
+  const x = (col: number) => W - 10 - col * COL - COL / 2 - (D && col >= D ? 7 : 0);
+  const yCarry = 18;
+  const yTop = 50;
+  const yBot = 84;
+  const yLine = 93;
+  const yRes = 122;
+  const H = 134;
+  const ACC = '#e8590c';
+  const shown = marks.filter((m) => m.stage <= U);
+  const crossed = new Set(shown.filter((m) => m.kind === 'cross').map((m) => m.col));
+  const hl = (st: number) => st >= F && st <= U;
+  const digitRow = (digits: number[], y: number, key: string, pad: number, crossCols?: Set<number>) =>
+    digits.map((d, i) => (
+      <g key={`${key}${i}`}>
+        <text x={x(i)} y={y} textAnchor="middle" fontSize="22" fontWeight="600" fill={i < pad ? '#b5b1a6' : INK} fontFamily="Fredoka, sans-serif">
+          {d}
+        </text>
+        {crossCols?.has(i) && <line x1={x(i) - 6} y1={y + 2} x2={x(i) + 6} y2={y - 16} stroke={ACC} strokeWidth="2" />}
+      </g>
+    ));
+  const point = (y: number) => D > 0 && <circle cx={x(D) + COL / 2 + 3} cy={y - 2} r="2.4" fill={INK} />;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: W * 1.15, direction: 'ltr' }} role="img" aria-label={`${top} ${op === '+' ? 'ועוד' : 'פחות'} ${bottom}, במאונך`}>
+      {digitRow(A, yTop, 't', padA, crossed)}
+      {point(yTop)}
+      {digitRow(B, yBot, 'b', padB)}
+      {point(yBot)}
+      <text x={x(Math.max(A.length, B.length))} y={yBot - 2} textAnchor="middle" fontSize="22" fill={INK}>
+        {op === '+' ? '+' : '−'}
+      </text>
+      <line x1={x(Math.max(A.length, B.length)) - 10} y1={yLine} x2={W - 6} y2={yLine} stroke={INK} strokeWidth="2" />
+      {U >= stages && point(yRes)}
+      {shown.map((m, i) => {
+        if (m.kind === 'cross') return null;
+        const small = m.kind !== 'res';
+        const y = m.kind === 'res' ? yRes : m.kind === 'borrowOne' ? yTop - 10 : yCarry + 8;
+        const cx = m.kind === 'borrowOne' ? x(m.col) - 14 : x(m.col);
+        return (
+          <g key={i}>
+            {hl(m.stage) && <rect x={cx - (small ? 7 : 10)} y={y - (small ? 13 : 21)} width={small ? 14 : 20} height={small ? 17 : 28} rx={5} fill="#ffe45c" opacity={0.75} />}
+            <text x={cx} y={y} textAnchor="middle" fontSize={small ? 14 : 22} fontWeight="600" fill={m.kind === 'res' ? ACC : '#5b6475'} fontFamily="Fredoka, sans-serif">
+              {m.ch}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
 }

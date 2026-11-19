@@ -1,17 +1,147 @@
 @import "tailwindcss";
 @import "katex/dist/katex.min.css";
 
+/*
+ * עיצוב I: אדר כהה, תיבות לבנות על רקע מחברת משובצת עדין,
+ * כותרות ומספרים בגופן עגול (Fredoka), טקסט רץ ב-Assistant.
+ */
 @theme {
-  --font-sans: "Rubik", "Heebo", "Arial Hebrew", Arial, sans-serif;
+  --font-sans: "Assistant", "Arial Hebrew", Arial, sans-serif;
+  --font-display: "Fredoka", Arial, sans-serif;
+  --color-ink: #1d2433;
+  --color-muted: #5b6475;
+  --color-line: #dedbd2;
+  --color-sand: #efece4;
+  --color-paper: #f8f7f2;
+  --color-marker: #ffe45c;
+  --color-sun: #ffd43b;
+  --color-slate-nav: #33405e;
+  --color-dim: #8791a5;
 }
 
 html {
-  background: #f5f5fb;
-  color: #1f2340;
+  color: var(--color-ink);
+  background-color: var(--color-paper);
+  background-image:
+    linear-gradient(rgba(52, 104, 190, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 104, 190, 0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(29, 36, 51, 0.12);
+  padding: 24px;
+}
+
+/* צבע המסלול מגיע במשתנה --tc; הגוון הבהיר נגזר ממנו */
+/* על רקע צבעוני, מסגרת התרגיל נגזרת מצבע הרקע עצמו ולא מצבע המסלול */
+.tint {
+  background: color-mix(in srgb, var(--tc) 13%, white);
+  --mi-bg: color-mix(in srgb, var(--tc) 5%, white);
+  --mi-line: color-mix(in srgb, var(--tc) 32%, white);
+}
+
+/* תיבת "שימו לב" ורמז */
+.note {
+  background: #fff3bf;
+  --mi-bg: #fffaf0;
+  --mi-line: #ead27a;
+}
+
+.marker {
+  background: var(--color-marker);
+  padding: 4px 12px;
+  border-radius: 8px;
+  /* כשהסימון נשבר לשתי שורות, כל שורה מקבלת פינות וריווח משלה */
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  --mi-bg: #fff6c2;
+  --mi-line: #d8b400;
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 .katex {
   font-size: 1.12em;
+}
+
+/* מה שמקלידים בתיבת התשובה, כמו `1 1/2` */
+.typed {
+  display: inline-block;
+  margin: 0 0.15em;
+  padding: 0 0.45em;
+  border-radius: 6px;
+  background: white;
+  border: 1.5px solid #c9c5b9;
+  border-bottom-width: 3px;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  line-height: 1.5;
+  unicode-bidi: isolate;
+  white-space: pre;
+}
+
+/* תיבת תשובה שמוצג בה שבר: הטקסט המוקלד שקוף גם כשמסמנים אותו,
+   והסימון מופיע כרקע עדין מאחורי השבר */
+.frac-input::selection {
+  color: transparent;
+  background: color-mix(in srgb, var(--tc, #4f46e5) 22%, white);
+}
+
+/* תיבת המספר החסר: בגובה הספרות ובאמצען */
+.katex .blank-box {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 0.72em;
+  height: 0.9em;
+  border: 0.06em solid currentColor;
+  border-radius: 0.12em;
+  /* מרכז התיבה בגובה 0.32em, כמו מרכז הספרות */
+  vertical-align: -0.13em;
+  margin: 0 0.06em;
+}
+
+/* משתנים (x, y, a...) באות ישרה ולא נטויה, כדי ש-x ייראה כמו x שכותבים ביד */
+.katex .mathnormal {
+  font-family: KaTeX_Main, KaTeX_Math, serif;
+  font-style: normal;
+}
+
+/* קו הביטול (\cancel) בצבע המסלול ועבה מעט, כמו קו בעט */
+.katex svg line {
+  stroke: var(--tc, #dc2626);
+  stroke-width: 0.07em;
+}
+
+/* רווחים צפופים יותר סביב + − × = כדי שהתרגיל ייקרא כיחידה אחת */
+.katex .mspace[style*="0.2222em"] {
+  margin-right: 0.14em !important;
+}
+.katex .mspace[style*="0.2778em"] {
+  margin-right: 0.19em !important;
+}
+
+/* מתמטיקה בתוך משפט: מסגרת עדינה בצבע המסלול שמבדילה אותה מהטקסט */
+.mi {
+  display: inline-block;
+  margin: 0.1em 0.3em;
+  padding: 0.5em;
+  border-radius: 8px;
+  background: var(--mi-bg, color-mix(in srgb, var(--tc, #5b6475) 3%, white));
+  box-shadow: inset 0 0 0 1px var(--mi-line, color-mix(in srgb, var(--tc, #5b6475) 10%, white));
+  line-height: 1.55;
+  white-space: nowrap;
+}
+/* כשאחרי התרגיל בא סימן פיסוק, הוא נצמד אליו */
+.mi-p {
+  margin-left: 0.08em; /* הפיסוק בא משמאל, כי השורה מימין לשמאל */
 }
 
 .q-latex .katex {
@@ -40,6 +170,18 @@ button:disabled {
   animation: pop 0.18s ease-out;
 }
 
+/* הסימן ✔ נכתב כמו בעט: התחלה איטית ומשיכה מהירה למעלה */
+@keyframes tick-pen {
+  from { stroke-dashoffset: 1.1; }
+  to { stroke-dashoffset: 0; }
+}
+
+.tick-pen {
+  stroke-dasharray: 1 2;
+  animation: tick-pen 0.42s cubic-bezier(0.55, 0, 0.75, 0.6) 0.12s backwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pop { animation: none; }
+  .tick-pen { animation: none; }
 }

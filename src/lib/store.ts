@@ -1,13 +1,28 @@
 import { useSyncExternalStore } from 'react';
-import type { Level } from './types';
+import type { Level, Units } from './types';
 
 export const MASTERY_GOAL = 5;
 
 export interface Profile {
   id: string;
   name: string;
-  avatar: string;
+  /** שדה ישן (דמות אימוג'י). נשמר לתאימות לאחור, לא מוצג */
+  avatar?: string;
+  /** אינדקס ב-PROFILE_COLORS */
+  color?: number;
   grade: number;
+  /** רמת הלימוד (יח"ל), רק בכיתות י'–י"ב */
+  units?: Units;
+}
+
+/** צבעי פרופיל. נפרדים מצבעי המסלולים כדי שלא יתבלבלו איתם */
+export const PROFILE_COLORS = ['#e8590c', '#1c7ed6', '#2f9e44', '#ae3ec9', '#f08c00', '#0c8599', '#c2255c', '#5c7cfa'];
+
+export function profileColor(p: Profile): string {
+  if (p.color !== undefined) return PROFILE_COLORS[p.color % PROFILE_COLORS.length];
+  let h = 0;
+  for (const ch of p.id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return PROFILE_COLORS[h % PROFILE_COLORS.length];
 }
 
 export interface LevelStat {
@@ -68,9 +83,10 @@ export const useStore = () => useSyncExternalStore(subscribe, getState);
 
 export const activeProfile = (s: State) => s.profiles.find((p) => p.id === s.activeId) ?? null;
 
-export function addProfile(name: string, avatar: string, grade: number) {
+export function addProfile(name: string, color: number, grade: number, units?: Units) {
   const id = Math.random().toString(36).slice(2, 10);
-  commit({ ...state, profiles: [...state.profiles, { id, name, avatar, grade }], activeId: id });
+  const p: Profile = { id, name, color, grade, ...(grade >= 10 && units ? { units } : {}) };
+  commit({ ...state, profiles: [...state.profiles, p], activeId: id });
 }
 
 export function updateProfile(id: string, patch: Partial<Omit<Profile, 'id'>>) {
@@ -103,8 +119,8 @@ export function stars(s: State, topicId: string): number {
   return ([1, 2, 3] as Level[]).filter((l) => lv[l]?.mastered).length;
 }
 
-export function totals(s: State) {
-  const pid = s.activeId;
+export function totals(s: State, profileId?: string) {
+  const pid = profileId ?? s.activeId;
   const all = pid ? Object.values(s.progress[pid] ?? {}) : [];
   let correct = 0;
   let starCount = 0;
