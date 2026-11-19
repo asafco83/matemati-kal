@@ -9,6 +9,16 @@ export const lcm = (a: number, b: number) => (a * b) / gcd(a, b);
 /** LaTeX עם שילוב ערכים, בלי צורך להכפיל לוכסנים */
 export const L = String.raw;
 
+/** שאלת בחירה: מערבבים את האפשרויות, כדי שהתשובה הנכונה לא תהיה תמיד באותו מקום */
+export function mixChoice(opts: string[], correct = 0): Extract<Answer, { type: 'choice' }> {
+  const order = opts.map((_, i) => i);
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return { type: 'choice', options: order.map((i) => opts[i]), correct: order.indexOf(correct) };
+}
+
 /** שבר מצומצם ב-LaTeX (או מספר שלם אם המכנה 1) */
 export function fracTex(n: number, d: number): string {
   const g = gcd(n, d) || 1;

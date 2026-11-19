@@ -1,5 +1,5 @@
 import type { Step, Topic } from '../lib/types';
-import { L, par, pick, ri, sgn } from '../lib/util';
+import { L, mixChoice, par, pick, ri, sgn } from '../lib/util';
 
 /* ---------- עזרים ---------- */
 
@@ -314,7 +314,7 @@ const inequalities: Topic = {
       return {
         text: 'פתרו את אי-השוויון:',
         latex: `${a}x ${sgn(b)} ${sym} ${a * x0 + b}`,
-        answer: { type: 'choice', options: opts, correct: 0 },
+        answer: mixChoice(opts),
         hint: 'המקדם של x שלילי. מה קורה לסימן כשמחלקים בשלילי?',
         solution: [
           { tex: `${a}x ${sgn(b)} ${sym} ${a * x0 + b}`, op: b > 0 ? `- ${b}` : `+ ${-b}` },
@@ -334,7 +334,7 @@ const inequalities: Topic = {
     return {
       text: 'פתרו את אי-השוויון:',
       latex: `${cx(a) === '0x' ? '' : cx(a)} ${sgn(b)} ${sym} ${cx(c)} ${sgn(d)}`.replace(/^ \+ /, '').trim(),
-      answer: { type: 'choice', options: opts, correct: 0 },
+      answer: mixChoice(opts),
       hint: 'מעבירים את האיקסים שמאלה. אם המקדם יוצא שלילי, הסימן מתהפך בחילוק.',
       solution: [
         { tex: `${a === 0 ? '' : cx(a)} ${a === 0 ? b : sgn(b)} ${sym} ${cx(c)} ${sgn(d)}`.trim(), op: `- ${cx(c)}` },
@@ -998,7 +998,7 @@ const congruence: Topic = {
         const opts = [`$${ang(Q2)} = ${ang(E)}$`, `$${ang(P)} = ${ang(D)}$`, `$${ang(R)} = ${ang(F)}$`, `$${s(P, R)} = ${s(D, F)}$`];
         return {
           text: `נתון: $${s(P, Q2)} = ${s(D, E)}$ ו-$${s(Q2, R)} = ${s(E, F)}$. איזה נתון נוסף יוכיח חפיפה לפי צ.ז.צ?`,
-          answer: { type: 'choice', options: opts, correct: 0 },
+          answer: mixChoice(opts),
           hint: 'ב-צ.ז.צ הזווית חייבת להיות בין שתי הצלעות הנתונות.',
           solution: [`הצלעות $${s(P, Q2)}$ ו-$${s(Q2, R)}$ נפגשות בקודקוד $${Q2}$.`, `לכן צריך את הזווית שביניהן: $${ang(Q2)} = ${ang(E)}$`],
         };
@@ -1006,7 +1006,7 @@ const congruence: Topic = {
       const opts = [`$${s(P, Q2)} = ${s(D, E)}$`, `$${s(Q2, R)} = ${s(E, F)}$`, `$${s(P, R)} = ${s(D, F)}$`, `$${ang(R)} = ${ang(F)}$`];
       return {
         text: `נתון: $${ang(P)} = ${ang(D)}$ ו-$${ang(Q2)} = ${ang(E)}$. איזה נתון נוסף יוכיח חפיפה לפי ז.צ.ז?`,
-        answer: { type: 'choice', options: opts, correct: 0 },
+        answer: mixChoice(opts),
         hint: 'ב-ז.צ.ז הצלע חייבת להיות בין שתי הזוויות הנתונות.',
         solution: [`הזוויות $${P}$ ו-$${Q2}$ נמצאות בשני הקצוות של הצלע $${s(P, Q2)}$.`, `לכן צריך: $${s(P, Q2)} = ${s(D, E)}$`],
       };
