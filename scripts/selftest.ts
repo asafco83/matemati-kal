@@ -35,6 +35,10 @@ function checkTex(where: string, text: string, isLatex = false) {
 
 function checkStep(where: string, s: Step) {
   if (typeof s === 'string') return checkTex(where, s);
+  if ('figure' in s) {
+    if (s.caption) checkTex(where, s.caption);
+    return;
+  }
   checkTex(where, s.tex, true);
   if (s.op) checkTex(where, s.op, true);
   if (s.why) checkTex(where, s.why);
@@ -78,11 +82,7 @@ for (const t of topics) {
   const L = t.lesson;
   [L.intro, ...(L.before ?? []), ...L.method, ...L.tips, ...L.sections.flatMap((s) => [s.title, s.body])].forEach((s) => checkTex(`${t.id}/שיעור`, s));
   L.sections.forEach((s) =>
-    s.detail?.forEach((d) => {
-      if (typeof d === 'object' && 'figure' in d) {
-        if (d.caption) checkTex(`${t.id}/הסבר מלא`, d.caption);
-      } else checkStep(`${t.id}/הסבר מלא`, d);
-    }),
+    s.detail?.forEach((d) => checkStep(`${t.id}/הסבר מלא`, d)),
   );
   L.examples.forEach((ex) => {
     checkTex(`${t.id}/דוגמה`, ex.problem);

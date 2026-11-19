@@ -21,6 +21,8 @@ export type Figure =
   | { type: 'polygon'; n: number; side?: string }
   /** דיאגרמת עמודות */
   | { type: 'bars'; labels: string[]; values: number[]; step: number }
+  /** חילוק ארוך כמו במחברת: המנה מעל, המחלק מימין לקו */
+  | { type: 'longdiv'; n: number; d: number }
   /** שני ישרים מקבילים וחותך. at: 0 = הצומת העליון, 1 = התחתון. q: הרביע של הזווית */
   | { type: 'parallel'; marks: { at: 0 | 1; q: 'tl' | 'tr' | 'bl' | 'br'; label: string }[] };
 
@@ -36,7 +38,7 @@ export type Answer =
  * שורת מחברת: tex היא המשוואה כפי שכותבים אותה, op היא הפעולה שכותבים לצידה (למשל "- 8" או "\\div 5"),
  * ו-why מסבירה במילים למה עושים את הצעד (מוצגת בפתרון המלא).
  */
-export type Step = string | { tex: string; op?: string; why?: string };
+export type Step = string | { tex: string; op?: string; why?: string } | { figure: Figure; caption?: string };
 
 export interface Question {
   /** ניסוח השאלה. $...$ מסמן מתמטיקה */
@@ -59,7 +61,7 @@ export interface Example {
 }
 
 /** צעד בהסבר המלא: שורת טקסט או מחברת, או שרטוט עם כיתוב */
-export type LessonStep = Step | { figure: Figure; caption?: string };
+export type LessonStep = Step;
 
 export interface LessonSection {
   title: string;

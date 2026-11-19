@@ -1,4 +1,5 @@
 import type { Step } from '../lib/types';
+import { FigureView } from './FigureView';
 import { Rich, Tex } from './Tex';
 
 /**
@@ -7,6 +8,18 @@ import { Rich, Tex } from './Tex';
  * בפתרון המלא מופיע מתחת גם הסבר קצר למה עושים את הצעד.
  */
 export function StepView({ step, color, showWhy = true }: { step: Step; color: string; showWhy?: boolean }) {
+  if (typeof step === 'object' && 'figure' in step) {
+    return (
+      <figure className="flex flex-col items-start gap-2">
+        <FigureView fig={step.figure} />
+        {step.caption && (
+          <figcaption className="text-base leading-snug text-muted">
+            <Rich text={step.caption} />
+          </figcaption>
+        )}
+      </figure>
+    );
+  }
   if (typeof step === 'string') {
     // שורה בנוסח "מחברים: $c^2 = 676$" מוצגת כשורת מחברת: המשוואה, ומתחתיה ההסבר
     const m = step.match(/^([^$]+?):\s*\$([^$]+)\$\s*\.?$/);

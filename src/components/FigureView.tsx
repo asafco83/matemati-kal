@@ -232,6 +232,8 @@ export function FigureView({ fig }: { fig: Figure }) {
         </svg>
       );
     }
+    case 'longdiv':
+      return <LongDivision n={fig.n} d={fig.d} />;
     case 'triS': {
       const A = [35, 140];
       const B = [255, 140];
@@ -294,4 +296,70 @@ export function FigureView({ fig }: { fig: Figure }) {
       );
     }
   }
+}
+
+/**
+ * חילוק ארוך כמו שכותבים במחברת: המחולק, קו, והמחלק מימין לו.
+ * המנה (והשארית בסוגריים) מעל המחולק, ומתחת לכל צעד: מינוס, מכפלה, קו, והשארית עם הספרה שירדה.
+ */
+function LongDivision({ n, d }: { n: number; d: number }) {
+  const ds = String(n).split('').map(Number);
+  const N = ds.length;
+  type Row = { text: string; end: number; minus?: boolean; line?: boolean; accent?: boolean };
+  const rows: Row[] = [];
+  const q: number[] = [];
+  let cur = 0;
+  ds.forEach((dig, i) => {
+    cur = cur * 10 + dig;
+    const k = Math.floor(cur / d);
+    q.push(k);
+    if (i > 0) rows.push({ text: String(cur), end: i });
+    rows.push({ text: String(k * d), end: i, minus: true, line: true });
+    cur -= k * d;
+  });
+  rows.push({ text: String(cur), end: N - 1, accent: true });
+  const COL = 17;
+  const ROW = 34;
+  const left = 20;
+  const top = 8;
+  const W = left + N * COL + 18 + String(d).length * 16 + 50;
+  const H = top + ROW * (rows.length + 2) + 6;
+  const x = (col: number) => left + col * COL + COL / 2;
+  const ACC = '#e8590c';
+  const digitsAt = (text: string, end: number, y: number, color: string, key: string) =>
+    text.split('').map((c, j) => (
+      <text key={`${key}${j}`} x={x(end - (text.length - 1 - j))} y={y} textAnchor="middle" fontSize="22" fontWeight="600" fill={color} fontFamily="Fredoka, sans-serif">
+        {c}
+      </text>
+    ));
+  const r = cur;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: W * 1.1, direction: 'ltr' }} role="img" aria-label={`חילוק ארוך: ${n} חלקי ${d}, מנה ${Number(q.join(''))} ושארית ${r}`}>
+      {/* המנה והשארית */}
+      {digitsAt(q.join(''), N - 1, top + 24, ACC, 'q')}
+      <text x={x(N - 1) + COL / 2 + 8} y={top + 24} fontSize="20" fontWeight="600" fill={ACC} fontFamily="Fredoka, sans-serif">
+        ({r})
+      </text>
+      {/* המחולק, הקו מעליו והמחלק */}
+      <line x1={left + 2} y1={top + 32} x2={left + N * COL + 4} y2={top + 32} stroke={INK} strokeWidth="2" />
+      {digitsAt(String(n), N - 1, top + ROW + 24, INK, 'n')}
+      <line x1={left + N * COL + 4} y1={top + 32} x2={left + N * COL + 4} y2={top + ROW + 32} stroke={INK} strokeWidth="2" />
+      <text x={left + N * COL + 12} y={top + ROW + 24} fontSize="22" fontWeight="600" fill={INK} fontFamily="Fredoka, sans-serif">
+        {d}
+      </text>
+      {rows.map((row, i) => {
+        const y = top + ROW * (i + 2) + 24;
+        const startCol = row.end - row.text.length + 1;
+        return (
+          <g key={i}>
+            {row.minus && (
+              <line x1={x(startCol) - COL / 2 - 12} y1={y - 22} x2={x(startCol) - COL / 2 - 3} y2={y - 22} stroke={INK} strokeWidth="2" />
+            )}
+            {digitsAt(row.text, row.end, y, row.accent ? ACC : INK, `r${i}`)}
+            {row.line && <line x1={x(startCol) - COL / 2 - 2} y1={y + 7} x2={x(row.end) + COL / 2 - 2} y2={y + 7} stroke={INK} strokeWidth="1.8" />}
+          </g>
+        );
+      })}
+    </svg>
+  );
 }
