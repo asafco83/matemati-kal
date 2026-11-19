@@ -133,7 +133,9 @@ function Learn({ topic, color, onNext }: { topic: Topic; color: string; onNext: 
         <section key={i} className="card flex flex-col gap-3.5">
           <h2 className="flex items-center gap-3 font-display text-2xl font-semibold">
             <StepNum n={i + 1} color={color} />
-            {s.title}
+            <span>
+              <Rich text={s.title} />
+            </span>
           </h2>
           <div className="flex flex-wrap items-center gap-x-10 gap-y-4">
             <p className="min-w-0 flex-[1_1_320px] text-[19px] leading-loose">

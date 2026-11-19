@@ -1,3 +1,4 @@
+import { Tex } from './Tex';
 import type { Figure } from '../lib/types';
 
 const INK = '#1d2433';
@@ -230,6 +231,64 @@ export function FigureView({ fig }: { fig: Figure }) {
             </g>
           ))}
         </svg>
+      );
+    }
+    case 'eqsides':
+      return (
+        <div dir="ltr" className="flex items-start justify-center gap-3 py-2 text-[26px]">
+          {[fig.left, null, fig.right].map((part, i) =>
+            part === null ? (
+              <span key={i} className="pt-1">
+                <Tex tex="=" />
+              </span>
+            ) : (
+              <div key={i} className="flex flex-col items-center">
+                <span className="rounded-lg px-2 pt-1" style={{ background: i === 0 ? 'color-mix(in srgb, var(--tc, #4f46e5) 14%, white)' : '#fff3bf' }}>
+                  <Tex tex={part} />
+                </span>
+                <svg viewBox="0 0 100 14" preserveAspectRatio="none" className="h-3.5 w-full" aria-hidden="true">
+                  <path d="M3 2 Q3 9 12 9 H42 Q50 9 50 13 Q50 9 58 9 H88 Q97 9 97 2" fill="none" stroke={INK} strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                </svg>
+                <span dir="rtl" className="font-display text-base font-semibold text-muted">{i === 0 ? 'אגף שמאל' : 'אגף ימין'}</span>
+              </div>
+            ),
+          )}
+        </div>
+      );
+    case 'balance': {
+      const t = (fig.tilt ?? 0) * 10;
+      // y של שפת הכף בכל צד
+      const rim = (side: -1 | 1) => 104 + side * t;
+      return (
+        <div className="relative mx-auto w-full max-w-[340px]" style={{ direction: 'ltr' }}>
+          <svg viewBox="0 0 340 190" className="w-full" role="img" aria-label="מאזניים">
+            <polygon points="170,52 150,170 190,170" fill="#d6d3c8" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
+            <rect x="120" y="170" width="100" height="9" rx="3" fill={INK} />
+            <line x1="62" y1={52 - t} x2="278" y2={52 + t} stroke={INK} strokeWidth="4" strokeLinecap="round" />
+            <circle cx="170" cy="52" r="6" fill={INK} />
+            {([-1, 1] as const).map((side) => {
+              const cx = side < 0 ? 62 : 278;
+              const top = 52 + side * t;
+              const y = rim(side);
+              return (
+                <g key={side}>
+                  <line x1={cx} y1={top} x2={cx - 54} y2={y} stroke={INK} strokeWidth="1.5" />
+                  <line x1={cx} y1={top} x2={cx + 54} y2={y} stroke={INK} strokeWidth="1.5" />
+                  <path d={`M${cx - 58} ${y} H${cx + 58} Q${cx + 50} ${y + 40} ${cx} ${y + 40} Q${cx - 50} ${y + 40} ${cx - 58} ${y} Z`} style={{ fill: side < 0 ? 'color-mix(in srgb, var(--tc, #4f46e5) 18%, white)' : '#fff3bf' }} stroke={INK} strokeWidth="2" />
+                </g>
+              );
+            })}
+          </svg>
+          {[fig.left, fig.right].map((txt, i) => (
+            <span
+              key={i}
+              className="absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[19px]"
+              style={{ left: `${((i ? 278 : 62) / 340) * 100}%`, top: `${((rim(i ? 1 : -1) + 19) / 190) * 100}%` }}
+            >
+              <Tex tex={txt} />
+            </span>
+          ))}
+        </div>
       );
     }
     case 'longdiv':
