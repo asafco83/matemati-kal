@@ -6,11 +6,11 @@ import { FigureView } from './FigureView';
 import { StepView } from './StepView';
 import { Rich, Tex } from './Tex';
 import { PrimaryButton, Tick, Segmented, StarIcon } from './ui';
-import { T } from '../i18n';
+import { N, T } from '../i18n';
 
 type Phase = 'asking' | 'wrong' | 'correct' | 'revealed';
 
-const LEVEL_NAMES = ['קל', 'בינוני', 'מאתגר'];
+const LEVEL_NAMES = [N('קל'), N('בינוני'), N('מאתגר')];
 const ERR = '#b3261e';
 
 export function Practice({ topic, color }: { topic: Topic; color: string }) {
@@ -81,7 +81,7 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
           label: (
             <span className="flex items-center gap-1.5">
               {T(LEVEL_NAMES[lv - 1])}
-              {lv === level && <span className="hidden font-semibold sm:inline">· {topic.levels[lv - 1]}</span>}
+              {lv === level && <span className="hidden font-semibold sm:inline">· {T(topic.levels[lv - 1])}</span>}
               {levelStat(state, topic.id, lv).mastered && (
                 <span className="text-[#b7791f]">
                   <StarIcon />

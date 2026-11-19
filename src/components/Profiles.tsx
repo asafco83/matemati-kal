@@ -4,7 +4,7 @@ import { go, setGrade as setNavGrade, setUnits as setNavUnits } from '../lib/nav
 import { addProfile, deleteProfile, PROFILE_COLORS, profileColor, selectProfile, totals, updateProfile, useStore, type Profile } from '../lib/store';
 import { GRADE_NAMES, gradeName, UNITS, type Units } from '../lib/types';
 import { Avatar, LanguageSwitch, Logo, PencilIcon, StarIcon, StepNum, Tick } from './ui';
-import { LOCALES, T } from '../i18n';
+import { LOCALES, N, T } from '../i18n';
 
 function BareHeader({ end }: { end?: React.ReactNode }) {
   return (
@@ -39,9 +39,9 @@ function AuthCorner() {
 /* ---------- ברוכים הבאים ---------- */
 
 const STEPS = [
-  ['לומדים', 'הסבר קצר וברור, עם שרטוטים ושיטת עבודה.', '#db2777'],
-  ['דוגמאות פתורות', 'פתרון שנחשף צעד אחר צעד.', '#059669'],
-  ['מתרגלים', 'שלוש רמות, רמז כשנתקעים ופתרון מלא לכל שאלה.', '#4f46e5'],
+  [N('לומדים'), N('הסבר קצר וברור, עם שרטוטים ושיטת עבודה.'), '#db2777'],
+  [N('דוגמאות פתורות'), N('פתרון שנחשף צעד אחר צעד.'), '#059669'],
+  [N('מתרגלים'), N('שלוש רמות, רמז כשנתקעים ופתרון מלא לכל שאלה.'), '#4f46e5'],
 ] as const;
 
 function Frac({ n, d }: { n: number; d: number }) {
