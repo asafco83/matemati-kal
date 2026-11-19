@@ -55,6 +55,10 @@ export type Figure =
   | { type: 'matches'; shape: 'squares' | 'triangles'; n: number }
   /** גוף סיבוב או פירמידה: r רדיוס (או צלע הבסיס בפירמידה), h גובה מקווקו, l קו יוצר */
   | { type: 'solid'; kind: 'cylinder' | 'cone' | 'sphere' | 'pyramid'; r?: string; h?: string; l?: string }
+  /** שעון מחוגים */
+  | { type: 'clock'; h: number; m: number }
+  /** זווית: קרן אחת ימינה והשנייה ב-deg מעלות. rest: גם ההמשך שמאלה (זווית צמודה) עם תווית */
+  | { type: 'angle'; deg: number; label: string; rest?: string }
   | { type: 'polygon'; n: number; side?: string; /** קווים מקודקוד אחד לכל השאר */ diags?: boolean }
   /** דיאגרמת עמודות */
   | { type: 'bars'; labels: string[]; values: number[]; step: number }

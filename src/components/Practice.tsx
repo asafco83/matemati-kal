@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { reportContext } from '../lib/sheet';
 import { levelStat, MASTERY_GOAL, recordAnswer, restartLevel, totals, useStore } from '../lib/store';
 import type { Level, Question, Topic } from '../lib/types';
 import { checkAnswer, isFilled } from '../lib/util';
@@ -46,6 +47,10 @@ export function Practice({ topic, color }: { topic: Topic; color: string }) {
     if (phase === 'asking') firstInput.current?.focus({ preventScroll: true });
     if (phase === 'correct' || phase === 'revealed') nextBtn.current?.focus({ preventScroll: true });
   }, [phase, q]);
+
+  useEffect(() => {
+    reportContext({ level, question: q, status: phase, attempts: tries });
+  }, [level, q, phase, tries]);
 
   const changeLevel = (lv: Level) => {
     if (lv === level) return;
