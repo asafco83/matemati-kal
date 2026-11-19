@@ -1,3 +1,4 @@
+import { getLocale, T } from '../i18n';
 export type Level = 1 | 2 | 3;
 
 /** שרטוטים פשוטים שמלווים שיעורים ושאלות */
@@ -32,6 +33,12 @@ export type Figure =
   /** מאזניים: מה יש בכל כף (TeX), ולאן הם נוטים */
   | { type: 'balance'; left: string; right: string; tilt?: -1 | 0 | 1 }
   /** שני ישרים מקבילים וחותך. at: 0 = הצומת העליון, 1 = התחתון. q: הרביע של הזווית */
+  /** מרובע מיוחד עם אלכסונים: מקבילית, מלבן, מעוין, ריבוע, דלתון */
+  | { type: 'quad4'; kind: 'parallelogram' | 'rectangle' | 'rhombus' | 'square' | 'kite'; d1?: string; d2?: string; side?: string; side2?: string; angle?: string; diags?: boolean }
+  /** טבלה בכיוון הקריאה של השפה: בכל שורה כותרת ואחריה תאים (מתמטיקה) */
+  | { type: 'table'; rows: { label: string; cells: string[] }[] }
+  /** טבלת סימנים של הנגזרת, כמו בחקירה במחברת: שורת x, שורת f'(x) ושורת f(x) עם חצים */
+  | { type: 'signtable'; cols: { x: string; d: '+' | '-' | '0'; f?: 'max' | 'min' }[]; fn?: string }
   | { type: 'parallel'; marks: { at: 0 | 1; q: 'tl' | 'tr' | 'bl' | 'br'; label: string }[] };
 
 export type Answer =
@@ -140,8 +147,11 @@ export const STAGES: { id: Stage; title: string; range: [number, number] }[] = [
   { id: 'high', title: 'תיכון (י\'-י"ב)', range: [10, 12] },
 ];
 
+/** שם הכיתה: בעברית באות (ז'), ובשאר השפות במספר (7) */
+export const gradeName = (g: number) => (getLocale().code === 'he' ? GRADE_NAMES[g] : String(g));
+
 export function gradeLabel([a, b]: [number, number]): string {
-  return a === b ? `כיתה ${GRADE_NAMES[a]}` : `כיתות ${GRADE_NAMES[a]}–${GRADE_NAMES[b]}`;
+  return a === b ? T`כיתה ${gradeName(a)}` : T`כיתות ${gradeName(a)}–${gradeName(b)}`;
 }
 
 export function stageOfGrade(g: number): Stage {

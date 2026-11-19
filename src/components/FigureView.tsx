@@ -1,5 +1,6 @@
 import { Tex } from './Tex';
 import type { Figure } from '../lib/types';
+import { getLocale, localizeNumber, T } from '../i18n';
 
 const INK = '#1d2433';
 /** גוון בהיר של צבע המסלול (המשתנה --tc מוגדר בדף הנושא) */
@@ -10,7 +11,7 @@ function Label({ x, y, children, anchor = 'middle', bold }: { x: number; y: numb
   const q = children === '?';
   return (
     <text x={x} y={y} textAnchor={anchor} dominantBaseline="middle" fontSize={q ? 20 : 16} fontWeight={q || bold ? 700 : 500} fontFamily="Fredoka, Arial, sans-serif" fill={q ? 'var(--tc, #b3261e)' : INK} style={{ direction: 'ltr', unicodeBidi: 'plaintext' }}>
-      {children}
+      {localizeNumber(T(children))}
     </text>
   );
 }
@@ -19,7 +20,7 @@ export function FigureView({ fig }: { fig: Figure }) {
   switch (fig.type) {
     case 'rect':
       return (
-        <svg viewBox="0 0 260 150" className="mx-auto w-full max-w-[260px]" role="img" aria-label="מלבן">
+        <svg viewBox="0 0 260 150" className="mx-auto w-full max-w-[260px]" role="img" aria-label={T('מלבן')}>
           <rect x="50" y="20" width="160" height="90" style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" rx="2" />
           <Label x={130} y={128}>{fig.w}</Label>
           <Label x={44} y={65} anchor="end">{fig.h}</Label>
@@ -31,7 +32,7 @@ export function FigureView({ fig }: { fig: Figure }) {
       const B = [220, 130];
       const C = [40, 25];
       return (
-        <svg viewBox="0 0 270 160" className="mx-auto w-full max-w-[270px]" role="img" aria-label="משולש ישר זווית">
+        <svg viewBox="0 0 270 160" className="mx-auto w-full max-w-[270px]" role="img" aria-label={T('משולש ישר זווית')}>
           <polygon points={`${A} ${B} ${C}`} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
           <path d="M40 116 h14 v14" fill="none" stroke={INK} strokeWidth="1.5" />
           {fig.angle && (
@@ -49,7 +50,7 @@ export function FigureView({ fig }: { fig: Figure }) {
     case 'tri': {
       const [a, b, c] = fig.angles;
       return (
-        <svg viewBox="0 0 300 165" className="mx-auto w-full max-w-[300px]" role="img" aria-label="משולש">
+        <svg viewBox="0 0 300 165" className="mx-auto w-full max-w-[300px]" role="img" aria-label={T('משולש')}>
           {fig.ext !== undefined && <line x1="215" y1="135" x2="285" y2="135" stroke={INK} strokeWidth="2" strokeDasharray="5 4" />}
           <polygon points="30,135 215,135 135,20" style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
           {a && <Label x={66} y={122}>{a}</Label>}
@@ -67,7 +68,7 @@ export function FigureView({ fig }: { fig: Figure }) {
     case 'fracbar': {
       const w = 240 / fig.parts;
       return (
-        <svg viewBox="0 0 260 60" className="mx-auto w-full max-w-[320px]" role="img" aria-label={`${fig.filled} חלקים מתוך ${fig.parts}`}>
+        <svg viewBox="0 0 260 60" className="mx-auto w-full max-w-[320px]" role="img" aria-label={T(`${fig.filled} חלקים מתוך ${fig.parts}`)}>
           {Array.from({ length: fig.parts }, (_, i) => (
             <rect key={i} x={10 + i * w} y="10" width={w} height="40" fill={i < fig.filled ? ACCENT : '#fff'} stroke={INK} strokeWidth="2" />
           ))}
@@ -77,7 +78,7 @@ export function FigureView({ fig }: { fig: Figure }) {
     case 'array': {
       const s = 26;
       return (
-        <svg viewBox={`0 0 ${fig.cols * s + 10} ${fig.rows * s + 10}`} className="mx-auto w-full" style={{ maxWidth: fig.cols * s + 10 }} role="img" aria-label={`${fig.rows} שורות של ${fig.cols}`}>
+        <svg viewBox={`0 0 ${fig.cols * s + 10} ${fig.rows * s + 10}`} className="mx-auto w-full" style={{ maxWidth: fig.cols * s + 10 }} role="img" aria-label={T(`${fig.rows} שורות של ${fig.cols}`)}>
           {Array.from({ length: fig.rows * fig.cols }, (_, i) => (
             <circle key={i} cx={5 + s / 2 + (i % fig.cols) * s} cy={5 + s / 2 + Math.floor(i / fig.cols) * s} r="9" fill={Math.floor(i / fig.cols) % 2 ? '#818cf8' : ACCENT} />
           ))}
@@ -101,7 +102,7 @@ export function FigureView({ fig }: { fig: Figure }) {
         );
       });
       return (
-        <svg viewBox="0 0 320 85" className="mx-auto w-full max-w-[420px]" role="img" aria-label="ציר מספרים" style={{ direction: "ltr" }}>
+        <svg viewBox="0 0 320 85" className="mx-auto w-full max-w-[420px]" role="img" aria-label={T('ציר מספרים')} style={{ direction: "ltr" }}>
           <line x1="10" y1="55" x2="310" y2="55" stroke={INK} strokeWidth="2" />
           {Array.from({ length: n + 1 }, (_, i) => (
             <g key={i}>
@@ -115,7 +116,7 @@ export function FigureView({ fig }: { fig: Figure }) {
     }
     case 'triH': {
       return (
-        <svg viewBox="0 0 280 165" className="mx-auto w-full max-w-[280px]" role="img" aria-label="משולש עם גובה">
+        <svg viewBox="0 0 280 165" className="mx-auto w-full max-w-[280px]" role="img" aria-label={T('משולש עם גובה')}>
           <polygon points="30,135 240,135 95,25" style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
           <line x1="95" y1="25" x2="95" y2="135" stroke={INK} strokeWidth="1.8" strokeDasharray="6 4" />
           <path d="M95 121 h14 v14" fill="none" stroke={INK} strokeWidth="1.5" />
@@ -127,7 +128,7 @@ export function FigureView({ fig }: { fig: Figure }) {
     case 'quad': {
       const pts = fig.kind === 'parallelogram' ? '30,135 200,135 250,30 80,30' : '30,135 250,135 190,30 90,30';
       return (
-        <svg viewBox="0 0 280 165" className="mx-auto w-full max-w-[280px]" role="img" aria-label={fig.kind === 'parallelogram' ? 'מקבילית' : 'טרפז'}>
+        <svg viewBox="0 0 280 165" className="mx-auto w-full max-w-[280px]" role="img" aria-label={fig.kind === 'parallelogram' ? T('מקבילית') : T('טרפז')}>
           <polygon points={pts} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
           <line x1="140" y1="30" x2="140" y2="135" stroke={INK} strokeWidth="1.8" strokeDasharray="6 4" />
           <path d="M140 121 h14 v14" fill="none" stroke={INK} strokeWidth="1.5" />
@@ -139,7 +140,7 @@ export function FigureView({ fig }: { fig: Figure }) {
     }
     case 'circle': {
       return (
-        <svg viewBox="0 0 220 180" className="mx-auto w-full max-w-[220px]" role="img" aria-label="מעגל">
+        <svg viewBox="0 0 220 180" className="mx-auto w-full max-w-[220px]" role="img" aria-label={T('מעגל')}>
           <circle cx="110" cy="90" r="75" style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" />
           <circle cx="110" cy="90" r="3.5" fill={INK} />
           {fig.r && (
@@ -161,7 +162,7 @@ export function FigureView({ fig }: { fig: Figure }) {
       // תיבה בהטלה: חזית, עומק באלכסון
       const [x, y, w, h, dx, dy] = [40, 60, 150, 80, 50, -35];
       return (
-        <svg viewBox="0 0 270 175" className="mx-auto w-full max-w-[270px]" role="img" aria-label="תיבה">
+        <svg viewBox="0 0 270 175" className="mx-auto w-full max-w-[270px]" role="img" aria-label={T('תיבה')}>
           <polygon points={`${x},${y} ${x + dx},${y + dy} ${x + w + dx},${y + dy} ${x + w},${y}`} fill="color-mix(in srgb, var(--tc, #4f46e5) 22%, white)" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
           <polygon points={`${x + w},${y} ${x + w + dx},${y + dy} ${x + w + dx},${y + dy + h} ${x + w},${y + h}`} fill="color-mix(in srgb, var(--tc, #4f46e5) 30%, white)" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
           <rect x={x} y={y} width={w} height={h} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" />
@@ -178,7 +179,7 @@ export function FigureView({ fig }: { fig: Figure }) {
       });
       const [p0, p1] = [pts[Math.floor(fig.n / 2)], pts[Math.floor(fig.n / 2) - 1]];
       return (
-        <svg viewBox="0 0 220 185" className="mx-auto w-full max-w-[220px]" role="img" aria-label={`מצולע עם ${fig.n} צלעות`}>
+        <svg viewBox="0 0 220 185" className="mx-auto w-full max-w-[220px]" role="img" aria-label={T(`מצולע עם ${fig.n} צלעות`)}>
           <polygon points={pts.map((p) => p.join(',')).join(' ')} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
           {fig.side && <Label x={(p0[0] + p1[0]) / 2} y={(p0[1] + p1[1]) / 2 + 14}>{fig.side}</Label>}
           {fig.diags && pts.slice(2, -1).map((p, i) => <line key={i} x1={pts[0][0]} y1={pts[0][1]} x2={p[0]} y2={p[1]} stroke={INK} strokeWidth="1.8" strokeDasharray="6 4" />)}
@@ -193,7 +194,7 @@ export function FigureView({ fig }: { fig: Figure }) {
       const n = fig.values.length;
       const bw = 200 / n;
       return (
-        <svg viewBox="0 0 280 210" className="mx-auto w-full max-w-[360px]" role="img" aria-label="דיאגרמת עמודות" style={{ direction: 'ltr' }}>
+        <svg viewBox="0 0 280 210" className="mx-auto w-full max-w-[360px]" role="img" aria-label={T('דיאגרמת עמודות')} style={{ direction: 'ltr' }}>
           {Array.from({ length: top / fig.step + 1 }, (_, i) => i * fig.step).map((v) => (
             <g key={v}>
               <line x1="50" y1={Y(v)} x2="265" y2={Y(v)} stroke="#e5e7eb" strokeWidth="1" />
@@ -217,7 +218,7 @@ export function FigureView({ fig }: { fig: Figure }) {
       const Y = [55, 135];
       const off = { tl: [-30, -16], tr: [26, -16], bl: [-26, 18], br: [30, 18] } as const;
       return (
-        <svg viewBox="0 0 300 190" className="mx-auto w-full max-w-[300px]" role="img" aria-label="ישרים מקבילים וחותך" style={{ direction: 'ltr' }}>
+        <svg viewBox="0 0 300 190" className="mx-auto w-full max-w-[300px]" role="img" aria-label={T('ישרים מקבילים וחותך')} style={{ direction: 'ltr' }}>
           {Y.map((y) => (
             <g key={y}>
               <line x1="20" y1={y} x2="280" y2={y} stroke={INK} strokeWidth="2.5" />
@@ -232,6 +233,116 @@ export function FigureView({ fig }: { fig: Figure }) {
             </g>
           ))}
         </svg>
+      );
+    }
+    case 'quad4': {
+      // קודקודים A, B, C, D נגד כיוון השעון, ונקודת חיתוך האלכסונים
+      const P: Record<string, [number, number][]> = {
+        parallelogram: [[40, 140], [200, 140], [250, 40], [90, 40]],
+        rectangle: [[45, 140], [245, 140], [245, 40], [45, 40]],
+        rhombus: [[145, 160], [245, 90], [145, 20], [45, 90]],
+        square: [[85, 150], [205, 150], [205, 30], [85, 30]],
+        kite: [[145, 165], [215, 65], [145, 20], [75, 65]],
+      };
+      const v = P[fig.kind];
+      // חיתוך האלכסונים AC ו-BD
+      const [A, B, C, D] = v;
+      const den = (A[0] - C[0]) * (B[1] - D[1]) - (A[1] - C[1]) * (B[0] - D[0]);
+      const t = ((A[0] - B[0]) * (B[1] - D[1]) - (A[1] - B[1]) * (B[0] - D[0])) / den;
+      const O: [number, number] = [A[0] + t * (C[0] - A[0]), A[1] + t * (C[1] - A[1])];
+      const showD = fig.diags ?? true;
+      const perp = fig.kind === 'rhombus' || fig.kind === 'square' || fig.kind === 'kite';
+      const mid = (p: [number, number], q: [number, number]): [number, number] => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+      // תווית של צלע: מעט מחוץ למרובע
+      const out = (p: [number, number], q: [number, number]): [number, number] => {
+        const m = mid(p, q);
+        const dx = m[0] - O[0], dy = m[1] - O[1], L0 = Math.hypot(dx, dy) || 1;
+        return [m[0] + (dx / L0) * 16, m[1] + (dy / L0) * 16];
+      };
+      const s1 = out(A, B), s2 = out(B, C);
+      return (
+        <svg viewBox="0 0 290 185" className="mx-auto w-full max-w-[290px]" role="img" aria-label={fig.kind}>
+          <polygon points={v.map((q) => q.join(',')).join(' ')} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          {showD && (
+            <g stroke={INK} strokeWidth="1.8" strokeDasharray="6 4">
+              <line x1={A[0]} y1={A[1]} x2={C[0]} y2={C[1]} />
+              <line x1={B[0]} y1={B[1]} x2={D[0]} y2={D[1]} />
+            </g>
+          )}
+          {showD && perp && (() => {
+            // סימן זווית ישרה בנקודת החיתוך
+            const u = [(C[0] - O[0]), (C[1] - O[1])], w = [(B[0] - O[0]), (B[1] - O[1])];
+            const nu = Math.hypot(u[0], u[1]), nw = Math.hypot(w[0], w[1]);
+            const a = [O[0] + (u[0] / nu) * 11, O[1] + (u[1] / nu) * 11], b = [O[0] + (w[0] / nw) * 11, O[1] + (w[1] / nw) * 11];
+            return <path d={`M${a[0]} ${a[1]} L${a[0] + b[0] - O[0]} ${a[1] + b[1] - O[1]} L${b[0]} ${b[1]}`} fill="none" stroke={INK} strokeWidth="1.5" />;
+          })()}
+          {(fig.kind === 'rectangle' || fig.kind === 'square') && <path d={`M${A[0] + 13} ${A[1]} v-13 h-13`} fill="none" stroke={INK} strokeWidth="1.5" />}
+          {(['A', 'B', 'C', 'D'] as const).map((n, i) => {
+            const q = v[i], dx = q[0] - O[0], dy = q[1] - O[1], L0 = Math.hypot(dx, dy) || 1;
+            return <Label key={n} x={q[0] + (dx / L0) * 14} y={q[1] + (dy / L0) * 14} bold>{n}</Label>;
+          })}
+          {fig.side && <Label x={s1[0]} y={s1[1]}>{fig.side}</Label>}
+          {fig.side2 && <Label x={s2[0]} y={s2[1]}>{fig.side2}</Label>}
+          {fig.d1 && <Label x={(A[0] + O[0]) / 2 + 12} y={(A[1] + O[1]) / 2} anchor="start">{fig.d1}</Label>}
+          {fig.d2 && <Label x={(B[0] + O[0]) / 2} y={(B[1] + O[1]) / 2 - 11}>{fig.d2}</Label>}
+          {fig.angle && <Label x={A[0] + 30} y={A[1] - 12} anchor="start">{fig.angle}</Label>}
+        </svg>
+      );
+    }
+    case 'table':
+      return (
+        <div className="overflow-x-auto py-1">
+          <table className="mx-auto border-collapse bg-white text-[18px]">
+            <tbody>
+              {fig.rows.map((r, i) => (
+                <tr key={i}>
+                  <th className="whitespace-nowrap border border-[#c9c4b6] bg-[#f6f4ee] px-3 py-1.5 font-display text-[16px] font-semibold">{T(r.label)}</th>
+                  {r.cells.map((c, j) => (
+                    <td key={j} className="min-w-[2.6em] whitespace-nowrap border border-[#c9c4b6] px-3 py-1.5 text-center">
+                      <Tex tex={c} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    case 'signtable': {
+      const fn = fig.fn ?? 'f';
+      const arrow = (d: '+' | '-') => (
+        <svg viewBox="0 0 28 28" width="26" height="26" aria-label={d === '+' ? T('עולה') : T('יורדת')} className="mx-auto">
+          <path d={d === '+' ? 'M5 23 L23 5 M11 5 H23 V17' : 'M5 5 L23 23 M23 11 V23 H11'} fill="none" stroke={INK} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+      const cell = 'whitespace-nowrap border border-[#c9c4b6] px-2.5 py-1.5 text-center';
+      return (
+        <div dir="ltr" className="overflow-x-auto py-1">
+          <table className="mx-auto border-collapse bg-white text-[17px]">
+            <tbody>
+              <tr>
+                <th className={`${cell} bg-[#f6f4ee]`}><Tex tex="x" /></th>
+                {fig.cols.map((c, i) => (
+                  <td key={i} className={`${cell} ${c.d === '0' ? 'bg-[#fff8db]' : ''}`}><Tex tex={c.x} /></td>
+                ))}
+              </tr>
+              <tr>
+                <th className={`${cell} bg-[#f6f4ee]`}><Tex tex={`${fn}'(x)`} /></th>
+                {fig.cols.map((c, i) => (
+                  <td key={i} className={`${cell} font-semibold ${c.d === '0' ? 'bg-[#fff8db]' : ''}`}><Tex tex={c.d === '-' ? '-' : c.d} /></td>
+                ))}
+              </tr>
+              <tr>
+                <th className={`${cell} bg-[#f6f4ee]`}><Tex tex={`${fn}(x)`} /></th>
+                {fig.cols.map((c, i) => (
+                  <td key={i} className={`${cell} ${c.d === '0' ? 'bg-[#fff8db] text-sm font-bold' : ''}`}>
+                    {c.d === '0' ? (c.f ?? '') : arrow(c.d)}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
       );
     }
     case 'eqsides':
@@ -250,7 +361,7 @@ export function FigureView({ fig }: { fig: Figure }) {
                 <svg viewBox="0 0 100 14" preserveAspectRatio="none" className="h-3.5 w-full" aria-hidden="true">
                   <path d="M3 2 Q3 9 12 9 H42 Q50 9 50 13 Q50 9 58 9 H88 Q97 9 97 2" fill="none" stroke={INK} strokeWidth="2" vectorEffect="non-scaling-stroke" />
                 </svg>
-                <span dir="rtl" className="font-display text-base font-semibold text-muted">{i === 0 ? 'אגף שמאל' : 'אגף ימין'}</span>
+                <span dir={getLocale().dir} className="font-display text-base font-semibold text-muted">{i === 0 ? T('אגף שמאל') : T('אגף ימין')}</span>
               </div>
             ),
           )}
@@ -262,7 +373,7 @@ export function FigureView({ fig }: { fig: Figure }) {
       const rim = (side: -1 | 1) => 104 + side * t;
       return (
         <div className="relative mx-auto w-full max-w-[340px]" style={{ direction: 'ltr' }}>
-          <svg viewBox="0 0 340 190" className="w-full" role="img" aria-label="מאזניים">
+          <svg viewBox="0 0 340 190" className="w-full" role="img" aria-label={T('מאזניים')}>
             <polygon points="170,52 150,170 190,170" fill="#d6d3c8" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
             <rect x="120" y="170" width="100" height="9" rx="3" fill={INK} />
             <line x1="62" y1={52 - t} x2="278" y2={52 + t} stroke={INK} strokeWidth="4" strokeLinecap="round" />
@@ -303,7 +414,7 @@ export function FigureView({ fig }: { fig: Figure }) {
       const B = [255, 140];
       const C = [170, 25];
       return (
-        <svg viewBox="0 0 290 170" className="mx-auto w-full max-w-[290px]" role="img" aria-label="משולש" style={{ direction: 'ltr' }}>
+        <svg viewBox="0 0 290 170" className="mx-auto w-full max-w-[290px]" role="img" aria-label={T('משולש')} style={{ direction: 'ltr' }}>
           <polygon points={`${A} ${B} ${C}`} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
           <Label x={22} y={150} bold>A</Label>
           <Label x={268} y={150} bold>B</Label>
@@ -323,7 +434,7 @@ export function FigureView({ fig }: { fig: Figure }) {
       const P = (x: number, y: number) => [140 + x * S, 140 - y * S];
       const colors = ['#4f46e5', '#db2777'];
       return (
-        <svg viewBox="0 0 280 280" className="mx-auto w-full max-w-[280px]" role="img" aria-label="גרף" style={{ direction: "ltr" }}>
+        <svg viewBox="0 0 280 280" className="mx-auto w-full max-w-[280px]" role="img" aria-label={T('גרף')} style={{ direction: "ltr" }}>
           <defs>
             <clipPath id="plot"><rect x="20" y="20" width="240" height="240" /></clipPath>
           </defs>
@@ -411,7 +522,7 @@ function LongDivision({ n, d, upto, from }: { n: number; d: number; upto?: numbe
   const yRow = (i: number) => top + ROW * (i + 2) + 24;
   const yDividend = top + ROW + 24;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: W * 1.1, direction: 'ltr' }} role="img" aria-label={`חילוק ארוך: ${n} חלקי ${d}, מנה ${Number(q.join(''))} ושארית ${r}`}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: W * 1.1, direction: 'ltr' }} role="img" aria-label={T(`חילוק ארוך: ${n} חלקי ${d}, מנה ${Number(q.join(''))} ושארית ${r}`)}>
       {/* המנה: כל ספרה מופיעה בשלב שלה */}
       {q.map((k, i) =>
         1 + 3 * i <= U ? (
@@ -547,7 +658,7 @@ function LongMult({ a, b, upto, from }: { a: number; b: number; upto?: number; f
   const carryRow = two && U >= L + 1 ? 'carry-p2' : 'carry-p1';
   const resultColor = (row: string) => (row === 'sum' || (!two && row === 'p1') ? ACC : INK);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: W * 1.15, direction: 'ltr' }} role="img" aria-label={`כפל במאונך: ${a} כפול ${b} שווה ${a * b}`}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: W * 1.15, direction: 'ltr' }} role="img" aria-label={T(`כפל במאונך: ${a} כפול ${b} שווה ${a * b}`)}>
       {digits(a, yOf.a, 'a')}
       {digits(b, yOf.b, 'b')}
       <text x={x(String(b).length) - 2} y={yOf.b - 2} textAnchor="middle" fontSize="20" fill={INK}>
@@ -671,9 +782,16 @@ function ColumnArith({ top, bottom, op, upto, from }: { top: string; bottom: str
         {crossCols?.has(i) && <line x1={x(i) - 6} y1={y + 2} x2={x(i) + 6} y2={y - 16} stroke={ACC} strokeWidth="2" />}
       </g>
     ));
-  const point = (y: number) => D > 0 && <circle cx={x(D) + COL / 2 + 3} cy={y - 2} r="2.4" fill={INK} />;
+  // הנקודה העשרונית, או פסיק בשפות שבהן כותבים כך
+  const point = (y: number) =>
+    D > 0 &&
+    (getLocale().decimalComma ? (
+      <path d={`M${x(D) + COL / 2 + 4} ${y - 3} q 1.5 4 -2.5 8`} fill="none" stroke={INK} strokeWidth="2.6" strokeLinecap="round" />
+    ) : (
+      <circle cx={x(D) + COL / 2 + 3} cy={y - 2} r="2.4" fill={INK} />
+    ));
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: W * 1.15, direction: 'ltr' }} role="img" aria-label={`${top} ${op === '+' ? 'ועוד' : 'פחות'} ${bottom}, במאונך`}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: W * 1.15, direction: 'ltr' }} role="img" aria-label={T(`${top} ${op === '+' ? T('ועוד') : T('פחות')} ${bottom}, במאונך`)}>
       {digitRow(A, yTop, 't', padA, crossed)}
       {point(yTop)}
       {digitRow(B, yBot, 'b', padB)}

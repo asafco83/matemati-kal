@@ -1,5 +1,6 @@
-import { useId, type CSSProperties, type ReactNode } from 'react';
-import { profileColor, type Profile } from '../lib/store';
+import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { getLocale, LOCALES, T } from '../i18n';
+import { profileColor, setLanguage, type Profile } from '../lib/store';
 
 /** משתנה CSS עם צבע המסלול, לשימוש ב-.tint ובמחלקות שמבוססות על --tc */
 export const tc = (color: string): CSSProperties => ({ ['--tc' as string]: color });
@@ -33,7 +34,7 @@ export function Logo() {
       <span className="grid h-[34px] w-[34px] place-items-center rounded-[10px] bg-sun text-ink">
         <Tick />
       </span>
-      מתמטי-קל
+      {T('מתמטי-קל')}
     </a>
   );
 }
@@ -92,7 +93,7 @@ export function Segmented<T extends string>({
   small?: boolean;
 }) {
   return (
-    <div role="group" aria-label={label} className="flex w-full gap-1 rounded-[24px] bg-sand p-1 sm:w-auto">
+    <div role="group" aria-label={T(label)} className="flex w-full gap-1 rounded-[24px] bg-sand p-1 sm:w-auto">
       {items.map((it) => (
         <button
           key={it.id}
@@ -101,7 +102,7 @@ export function Segmented<T extends string>({
           onClick={() => onChange(it.id)}
           className={`flex-1 rounded-[20px] px-2.5 leading-tight sm:flex-none ${small ? 'min-h-9 text-[15px] sm:px-4' : 'min-h-11 text-base sm:px-5'} ${value === it.id ? 'bg-white font-bold shadow-sm' : 'font-semibold text-muted hover:text-ink'}`}
         >
-          {it.label}
+          {typeof it.label === 'string' ? T(it.label) : it.label}
         </button>
       ))}
     </div>
@@ -118,5 +119,61 @@ export function PrimaryButton({ color, children, onClick, href }: { color: strin
     <button type="button" onClick={onClick} className={cls} style={{ background: color }}>
       {children}
     </button>
+  );
+}
+
+/* ---------- בחירת שפה: מהכותרת, מכל מסך ---------- */
+
+export function LanguageSwitch({ className = '' }: { className?: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const cur = getLocale();
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+  return (
+    <div ref={ref} className={`relative shrink-0 ${className}`}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-label={T('שפה')}
+        className="flex min-h-10 items-center gap-1.5 rounded-full bg-white/15 px-3 text-[15px] font-semibold text-white hover:bg-white/25"
+      >
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9M12 3C9.5 5.5 8.2 8.5 8.2 12s1.3 6.5 3.8 9" />
+        </svg>
+        <span lang={cur.code}>{cur.name}</span>
+      </button>
+      {open && (
+        <ul role="listbox" aria-label={T('שפה')} className="absolute end-0 top-full z-50 mt-2 grid max-h-[70vh] w-56 overflow-y-auto rounded-2xl bg-white p-1.5 text-ink shadow-xl">
+          {LOCALES.map((l) => (
+            <li key={l.code}>
+              <button
+                type="button"
+                role="option"
+                aria-selected={l.code === cur.code}
+                lang={l.code}
+                dir={l.dir}
+                onClick={() => {
+                  setOpen(false);
+                  setLanguage(l.code);
+                }}
+                className={`flex min-h-10 w-full items-center rounded-xl px-3 text-start text-[16px] ${l.code === cur.code ? 'bg-ink font-semibold text-white' : 'hover:bg-sand'}`}
+              >
+                {l.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

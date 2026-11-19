@@ -1,12 +1,31 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { setLocale } from './i18n';
 import { Header } from './components/Header';
 import { Home, TrackPage } from './components/Home';
 import { EditProfile, NewProfile, ProfileList, Welcome } from './components/Profiles';
 import { TopicPage } from './components/TopicPage';
 import { syncProfile, useRoute } from './lib/nav';
-import { activeProfile, useStore } from './lib/store';
+import { activeProfile, currentLang, useStore } from './lib/store';
 
+/**
+ * טוען את השפה לפני שמציגים את המסכים, וכשהיא מתחלפת בונה את כל המסכים מחדש
+ * (key), כך שכל טקסט מוצג בשפה החדשה.
+ */
 export default function App() {
+  const lang = currentLang(useStore());
+  const [ready, setReady] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    setLocale(lang).then(() => alive && setReady(lang));
+    return () => {
+      alive = false;
+    };
+  }, [lang]);
+  if (!ready) return null;
+  return <Screens key={ready} />;
+}
+
+function Screens() {
   const state = useStore();
   const route = useRoute();
   const profile = activeProfile(state);

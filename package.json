@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "tsx scripts/selftest.ts"
+    "test": "tsx scripts/selftest.ts && tsx scripts/i18n-check.ts && tsx scripts/i18n-render.ts"
   },
   "dependencies": {
     "firebase": "^13.4.0",
