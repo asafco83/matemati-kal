@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { signIn, signOutUser, useAuth } from '../lib/cloud';
-import { go } from '../lib/nav';
-import { addProfile, deleteProfile, PROFILE_COLORS, selectProfile, totals, useStore } from '../lib/store';
+import { go, setGrade as setNavGrade, setUnits as setNavUnits } from '../lib/nav';
+import { addProfile, deleteProfile, PROFILE_COLORS, profileColor, selectProfile, totals, updateProfile, useStore, type Profile } from '../lib/store';
 import { GRADE_NAMES, UNITS, type Units } from '../lib/types';
-import { Avatar, Logo, StarIcon, StepNum, Tick } from './ui';
+import { Avatar, Logo, PencilIcon, StarIcon, StepNum, Tick } from './ui';
 
 function BareHeader({ end }: { end?: React.ReactNode }) {
   return (
@@ -152,6 +152,9 @@ export function ProfileList() {
                     <span className="text-ink">{totals(state, p.id).stars}</span>
                   </span>
                 </button>
+                <a href={`#/edit-profile/${p.id}`} aria-label={`עריכת הפרופיל של ${p.name}`} title="עריכה" className="grid h-11 w-11 place-items-center rounded-full text-muted no-underline hover:text-ink">
+                  <PencilIcon />
+                </a>
                 {confirm === p.id ? (
                   <button type="button" onClick={() => deleteProfile(p.id)} className="min-h-11 rounded-full bg-red-700 px-3 text-sm font-bold text-white">
                     למחוק?
@@ -176,17 +179,39 @@ export function ProfileList() {
 /* ---------- פרופיל חדש ---------- */
 
 export function NewProfile() {
+  return <ProfileForm />;
+}
+
+/* ---------- עריכת פרופיל: שם, צבע, כיתה ויח"ל. ההתקדמות נשמרת ---------- */
+
+export function EditProfile({ id }: { id: string }) {
   const state = useStore();
-  const [name, setName] = useState('');
-  const [color, setColor] = useState(1);
-  const [grade, setGrade] = useState(4);
-  const [units, setUnits] = useState<Units>(4);
+  const profile = state.profiles.find((p) => p.id === id);
+  useEffect(() => {
+    if (!profile) go('#/');
+  }, [profile]);
+  return profile ? <ProfileForm edit={profile} /> : null;
+}
+
+function ProfileForm({ edit }: { edit?: Profile }) {
+  const state = useStore();
+  const [name, setName] = useState(edit?.name ?? '');
+  const [color, setColor] = useState(edit ? PROFILE_COLORS.indexOf(profileColor(edit)) : 1);
+  const [grade, setGrade] = useState(edit?.grade ?? 4);
+  const [units, setUnits] = useState<Units>(edit?.units ?? 4);
   const initial = name.trim().charAt(0) || '?';
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    addProfile(name.trim(), color, grade, units);
+    if (edit) {
+      updateProfile(edit.id, { name: name.trim(), color, grade, units: grade >= 10 ? units : undefined });
+      // אם זה הפרופיל הפעיל, התפריט עובר לכיתה החדשה
+      if (state.activeId === edit.id) {
+        setNavGrade(grade);
+        setNavUnits(grade >= 10 ? units : 'all');
+      }
+    } else addProfile(name.trim(), color, grade, units);
     go('#/');
   };
 
@@ -196,7 +221,7 @@ export function NewProfile() {
         end={
           state.profiles.length > 0 && (
             <a href="#/" className="text-[15px] font-semibold text-white">
-              → חזרה לרשימת הפרופילים
+              → {edit && state.activeId === edit.id ? 'חזרה' : 'חזרה לרשימת הפרופילים'}
             </a>
           )
         }
@@ -204,14 +229,14 @@ export function NewProfile() {
       <main className="mx-auto max-w-[640px] px-4 pb-16 pt-9 sm:px-6">
         <form onSubmit={submit} className="card flex flex-col gap-7 sm:p-8">
           <div>
-            <h1 className="font-display text-[40px] font-semibold">פרופיל חדש</h1>
-            <p className="mt-1 text-[19px] text-muted">כמה פרטים קטנים, ומתחילים ללמוד.</p>
+            <h1 className="font-display text-[40px] font-semibold">{edit ? 'עריכת פרופיל' : 'פרופיל חדש'}</h1>
+            <p className="mt-1 text-[19px] text-muted">{edit ? 'אפשר לתקן את השם או לעבור כיתה. הכוכבים וההתקדמות נשמרים.' : 'כמה פרטים קטנים, ומתחילים ללמוד.'}</p>
           </div>
           <div>
             <label htmlFor="pname" className="mb-2 block font-display text-xl font-semibold">
-              איך קוראים לך?
+              {edit ? 'שם' : 'איך קוראים לך?'}
             </label>
-            <input id="pname" value={name} onChange={(e) => setName(e.target.value)} maxLength={20} autoFocus className="h-14 w-full max-w-[360px] rounded-[14px] border-2 border-ink bg-white px-4 text-xl" />
+            <input id="pname" value={name} onChange={(e) => setName(e.target.value)} maxLength={20} autoFocus={!edit} className="h-14 w-full max-w-[360px] rounded-[14px] border-2 border-ink bg-white px-4 text-xl" />
           </div>
           <fieldset>
             <legend className="font-display text-xl font-semibold">בחרו צבע לפרופיל שלך</legend>
@@ -270,7 +295,7 @@ export function NewProfile() {
           )}
           <div>
             <button type="submit" disabled={!name.trim()} className="rounded-full bg-ink px-10 py-4 font-display text-xl font-semibold text-white disabled:bg-[#9a978e]">
-              יוצאים לדרך ←
+              {edit ? 'שמירה' : 'יוצאים לדרך ←'}
             </button>
           </div>
         </form>

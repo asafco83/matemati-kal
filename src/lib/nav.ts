@@ -72,7 +72,7 @@ export function gradeTopics(g: GradeFilter): AnyTopic[] {
 
 /* ---------- ניתוב לפי ה-hash ---------- */
 
-export type Route = { name: 'home' } | { name: 'track'; id: string } | { name: 'topic'; topic: Topic } | { name: 'new-profile' };
+export type Route = { name: 'home' } | { name: 'track'; id: string } | { name: 'topic'; topic: Topic } | { name: 'new-profile' } | { name: 'edit-profile'; id: string };
 
 function parse(hash: string): Route {
   const topic = hash.match(/^#\/topic\/([\w-]+)/);
@@ -83,6 +83,8 @@ function parse(hash: string): Route {
   const track = hash.match(/^#\/track\/([\w-]+)/);
   if (track) return { name: 'track', id: track[1] };
   if (hash.startsWith('#/new-profile')) return { name: 'new-profile' };
+  const edit = hash.match(/^#\/edit-profile\/([\w-]+)/);
+  if (edit) return { name: 'edit-profile', id: edit[1] };
   return { name: 'home' };
 }
 

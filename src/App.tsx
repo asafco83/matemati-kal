@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Header } from './components/Header';
 import { Home, TrackPage } from './components/Home';
-import { NewProfile, ProfileList, Welcome } from './components/Profiles';
+import { EditProfile, NewProfile, ProfileList, Welcome } from './components/Profiles';
 import { TopicPage } from './components/TopicPage';
 import { syncProfile, useRoute } from './lib/nav';
 import { activeProfile, useStore } from './lib/store';
@@ -17,9 +17,11 @@ export default function App() {
 
   if (!profile) {
     if (route.name === 'new-profile') return <NewProfile />;
+    if (route.name === 'edit-profile') return <EditProfile id={route.id} />;
     return state.profiles.length ? <ProfileList /> : <Welcome />;
   }
   if (route.name === 'new-profile') return <NewProfile />;
+  if (route.name === 'edit-profile') return <EditProfile id={route.id} />;
 
   return (
     <div className="min-h-screen pb-16">
