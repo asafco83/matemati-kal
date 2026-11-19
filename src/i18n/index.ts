@@ -116,3 +116,9 @@ export function T(strings: TemplateStringsArray | string, ...values: unknown[]):
 
 /** מסמן מחרוזת לתרגום בלי לתרגם אותה עכשיו (התרגום נעשה כשמציגים אותה) */
 export const N = (s: string) => s;
+
+/** לבדיקות בלבד (מחוץ לדפדפן): קובע שפה ומילון בלי לטעון קובץ ובלי לגעת בדף */
+export function setLocaleForTest(code: string, d: Record<string, string>) {
+  current = localeInfo(code);
+  dict = code === DEFAULT_LOCALE ? {} : d;
+}
