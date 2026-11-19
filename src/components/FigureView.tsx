@@ -303,9 +303,9 @@ export function FigureView({ fig }: { fig: Figure }) {
             <tbody>
               {fig.rows.map((r, i) => (
                 <tr key={i}>
-                  <th className="whitespace-nowrap border border-[#c9c4b6] bg-[#f6f4ee] px-3 py-1.5 font-display text-[16px] font-semibold">{T(r.label)}</th>
+                  {fig.rows.some((row) => row.label) && <th className="whitespace-nowrap border border-[#c9c4b6] bg-[#f6f4ee] px-3 py-1.5 font-display text-[16px] font-semibold">{r.label ? T(r.label) : ''}</th>}
                   {r.cells.map((c, j) => (
-                    <td key={j} className="min-w-[2.6em] whitespace-nowrap border border-[#c9c4b6] px-3 py-1.5 text-center">
+                    <td key={j} className={`min-w-[2.6em] whitespace-nowrap border border-[#c9c4b6] px-3 py-1.5 text-center ${!fig.rows.some((row) => row.label) && i === 0 ? 'bg-[#f6f4ee]' : ''}`}>
                       <Tex tex={c} />
                     </td>
                   ))}
