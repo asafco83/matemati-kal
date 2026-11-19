@@ -217,3 +217,14 @@ html[lang="am"] {
   --font-sans: "Noto Sans Ethiopic", Arial, sans-serif;
   --font-display: "Noto Sans Ethiopic", Arial, sans-serif;
 }
+
+/* דף הטיוטה: נייר משבצות. בחצי מסך האפליקציה זזה הצידה כדי שיראו את שניהם */
+.sheet-paper {
+  background-image: linear-gradient(#dfe6f1 1px, transparent 1px), linear-gradient(90deg, #dfe6f1 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+@media (min-width: 1024px) {
+  html.sheet-half body {
+    padding-left: 50vw;
+  }
+}

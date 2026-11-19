@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { tracks } from '../content';
+import { onTabRequest, reportContext, takeTabRequest } from '../lib/sheet';
 import { markSeen } from '../lib/store';
 import { gradeLabel, type Example, type LessonStep, type Topic } from '../lib/types';
 import { FigureView } from './FigureView';
@@ -22,6 +23,19 @@ export function TopicPage({ topic }: { topic: Topic }) {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [tab]);
+  // המורה הפרטי (window.mathTutor) יכול לבקש לשונית, ויודע באיזו לשונית התלמיד נמצא
+  useEffect(() => {
+    const apply = () => {
+      const t = takeTabRequest();
+      if (t) setTab(t);
+    };
+    apply();
+    return onTabRequest(apply);
+  }, []);
+  useEffect(() => {
+    reportContext(tab === 'practice' ? { topicId: topic.id, tab } : { topicId: topic.id, tab, question: null, level: null, status: null });
+  }, [topic.id, tab]);
+  useEffect(() => () => reportContext({ topicId: null, tab: null, question: null, level: null, status: null }), []);
 
   return (
     <NotationContext.Provider value={notationForGrade(topic.grades[0])}>

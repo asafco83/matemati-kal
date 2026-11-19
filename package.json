@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsx scripts/gen-tutor.ts && tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "tsx scripts/selftest.ts && tsx scripts/i18n-check.ts && tsx scripts/i18n-render.ts"
   },

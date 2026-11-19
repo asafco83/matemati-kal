@@ -179,6 +179,50 @@ export function FigureView({ fig }: { fig: Figure }) {
       return <CirclePoints fig={fig} />;
     case 'matches':
       return <Matches fig={fig} />;
+    case 'clock': {
+      const ma = (fig.m / 60) * 2 * Math.PI;
+      const ha = (((fig.h % 12) + fig.m / 60) / 12) * 2 * Math.PI;
+      const hand = (a: number, len: number, w: number, color: string) => <line x1="100" y1="100" x2={100 + len * Math.sin(a)} y2={100 - len * Math.cos(a)} stroke={color} strokeWidth={w} strokeLinecap="round" />;
+      return (
+        <svg viewBox="0 0 200 200" className="mx-auto w-full max-w-[200px]" role="img" aria-label={T('שעון')}>
+          <circle cx="100" cy="100" r="92" style={{ fill: FILL }} stroke={INK} strokeWidth="3" />
+          {Array.from({ length: 60 }, (_, i) => {
+            const a = (i / 60) * 2 * Math.PI, big = i % 5 === 0;
+            return <line key={i} x1={100 + (big ? 80 : 85) * Math.sin(a)} y1={100 - (big ? 80 : 85) * Math.cos(a)} x2={100 + 90 * Math.sin(a)} y2={100 - 90 * Math.cos(a)} stroke={INK} strokeWidth={big ? 2.2 : 0.8} />;
+          })}
+          {Array.from({ length: 12 }, (_, i) => {
+            const a = ((i + 1) / 12) * 2 * Math.PI;
+            return <Label key={i} x={100 + 68 * Math.sin(a)} y={100 - 68 * Math.cos(a)} bold>{String(i + 1)}</Label>;
+          })}
+          {hand(ha, 42, 6, INK)}
+          {hand(ma, 56, 3.5, 'var(--tc, #b3261e)')}
+          <circle cx="100" cy="100" r="5" fill={INK} />
+        </svg>
+      );
+    }
+    case 'angle': {
+      const r = (fig.deg * Math.PI) / 180;
+      const vx = 130, vy = 130, len = 105;
+      const ex = vx + len * Math.cos(r), ey = vy - len * Math.sin(r);
+      const arc = (from: number, to: number, rad: number) => {
+        const a = (from * Math.PI) / 180, b = (to * Math.PI) / 180;
+        return `M ${vx + rad * Math.cos(a)} ${vy - rad * Math.sin(a)} A ${rad} ${rad} 0 ${to - from > 180 ? 1 : 0} 0 ${vx + rad * Math.cos(b)} ${vy - rad * Math.sin(b)}`;
+      };
+      const mid = (from: number, to: number, rad: number) => [vx + rad * Math.cos((((from + to) / 2) * Math.PI) / 180), vy - rad * Math.sin((((from + to) / 2) * Math.PI) / 180)];
+      const [lx, ly] = mid(0, fig.deg, fig.deg < 40 ? 80 : 46);
+      const [rx, ry] = mid(fig.deg, 180, 180 - fig.deg < 40 ? 80 : 46);
+      return (
+        <svg viewBox="0 0 260 150" className="mx-auto w-full max-w-[280px]" role="img" aria-label={T('זווית')}>
+          <line x1={fig.rest ? vx - len : vx} y1={vy} x2={vx + len} y2={vy} stroke={INK} strokeWidth="2.5" strokeLinecap="round" />
+          <line x1={vx} y1={vy} x2={ex} y2={ey} stroke={INK} strokeWidth="2.5" strokeLinecap="round" />
+          {fig.deg === 90 ? <path d={`M ${vx + 16} ${vy} v -16 h -16`} fill="none" stroke={ACCENT} strokeWidth="2.5" /> : <path d={arc(0, fig.deg, 26)} fill="none" stroke={ACCENT} strokeWidth="2.5" />}
+          {fig.rest && <path d={arc(fig.deg, 180, 20)} fill="none" stroke="var(--tc, #4f46e5)" strokeWidth="2.5" />}
+          <Label x={lx} y={ly}>{fig.label}</Label>
+          {fig.rest && <Label x={rx} y={ry}>{fig.rest}</Label>}
+          <circle cx={vx} cy={vy} r="3.5" fill={INK} />
+        </svg>
+      );
+    }
     case 'polygon': {
       const pts = Array.from({ length: fig.n }, (_, i) => {
         const t = -Math.PI / 2 + (i * 2 * Math.PI) / fig.n + (fig.n % 2 ? 0 : Math.PI / fig.n);
