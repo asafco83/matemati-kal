@@ -18,11 +18,13 @@ export type Figure =
   | { type: 'circle'; r?: string; d?: string }
   /** תיבה: אורך, רוחב, גובה */
   | { type: 'box'; a: string; b: string; c: string }
-  | { type: 'polygon'; n: number; side?: string }
+  | { type: 'polygon'; n: number; side?: string; /** קווים מקודקוד אחד לכל השאר */ diags?: boolean }
   /** דיאגרמת עמודות */
   | { type: 'bars'; labels: string[]; values: number[]; step: number }
   /** חילוק ארוך כמו במחברת: המנה מעל, המחלק מימין לקו */
   | { type: 'longdiv'; n: number; d: number; upto?: number; from?: number }
+  /** חיבור או חיסור במאונך, עם העברה או פריטה. המספרים כמחרוזות (גם עשרוניים) */
+  | { type: 'colarith'; top: string; bottom: string; op: '+' | '-'; upto?: number; from?: number }
   /** כפל במאונך כמו במחברת, עם ספרות ההעברה. b חד-ספרתי או דו-ספרתי */
   | { type: 'longmul'; a: number; b: number; upto?: number; from?: number }
   /** משוואה עם סימון של אגף שמאל ואגף ימין (TeX בכל צד) */

@@ -181,6 +181,7 @@ export function FigureView({ fig }: { fig: Figure }) {
         <svg viewBox="0 0 220 185" className="mx-auto w-full max-w-[220px]" role="img" aria-label={`מצולע עם ${fig.n} צלעות`}>
           <polygon points={pts.map((p) => p.join(',')).join(' ')} style={{ fill: FILL }} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
           {fig.side && <Label x={(p0[0] + p1[0]) / 2} y={(p0[1] + p1[1]) / 2 + 14}>{fig.side}</Label>}
+          {fig.diags && pts.slice(2, -1).map((p, i) => <line key={i} x1={pts[0][0]} y1={pts[0][1]} x2={p[0]} y2={p[1]} stroke={INK} strokeWidth="1.8" strokeDasharray="6 4" />)}
         </svg>
       );
     }
@@ -291,6 +292,8 @@ export function FigureView({ fig }: { fig: Figure }) {
         </div>
       );
     }
+    case 'colarith':
+      return <ColumnArith top={fig.top} bottom={fig.bottom} op={fig.op} upto={fig.upto} from={fig.from} />;
     case 'longmul':
       return <LongMult a={fig.a} b={fig.b} upto={fig.upto} from={fig.from} />;
     case 'longdiv':
@@ -573,6 +576,127 @@ function LongMult({ a, b, upto, from }: { a: number; b: number; upto?: number; f
             </g>
           );
         })}
+    </svg>
+  );
+}
+
+/** מיישר שני מספרים (גם עשרוניים) לעמודות: ספרות מימין לשמאל, והנקודה במקום קבוע */
+function alignColumns(top: string, bottom: string) {
+  const dec = (s: string) => (s.includes('.') ? s.split('.')[1].length : 0);
+  const D = Math.max(dec(top), dec(bottom));
+  const pad = (s: string) => {
+    const [i, f = ''] = s.split('.');
+    return { int: i, frac: f.padEnd(D, '0') };
+  };
+  return { a: pad(top), b: pad(bottom), D };
+}
+
+/**
+ * חיבור או חיסור במאונך כמו במחברת. מחשבים עמודה אחר עמודה מימין לשמאל.
+ * בחיבור: ספרת העברה קטנה מעל העמודה הבאה. בחיסור: כשהספרה למעלה קטנה מדי,
+ * פורטים: מוחקים את הספרה שמשמאל, כותבים מעליה אחת פחות, וכותבים 1 קטן לפני הספרה הנוכחית.
+ * שלבים: 0 = התרגיל, ואחר כך עמודה אחת בכל שלב (מימין). מה שנוסף בשלבים from..upto מסומן.
+ */
+function ColumnArith({ top, bottom, op, upto, from }: { top: string; bottom: string; op: '+' | '-'; upto?: number; from?: number }) {
+  const { a, b, D } = alignColumns(top, bottom);
+  // ספרות שהושלמו כ-0 אחרי הנקודה (לא נכתבו בתרגיל המקורי) מוצגות באפור
+  const decOf = (s: string) => (s.includes('.') ? s.split('.')[1].length : 0);
+  const padA = D - decOf(top);
+  const padB = D - decOf(bottom);
+  // ספרות מימין לשמאל, בלי הנקודה
+  const A = (a.int + a.frac).split('').map(Number).reverse();
+  const B = (b.int + b.frac).split('').map(Number).reverse();
+  const n = Math.max(A.length, B.length);
+  type Mark = { col: number; ch: string; stage: number; kind: 'res' | 'carry' | 'borrowNew' | 'borrowOne' | 'cross' };
+  const marks: Mark[] = [];
+  const work = [...A];
+  let carry = 0;
+  let stages = 0;
+  for (let i = 0; i < n; i++) {
+    const st = i + 1;
+    const x = work[i] ?? 0;
+    const y = B[i] ?? 0;
+    if (op === '+') {
+      const v = x + y + carry;
+      const lastCol = i === n - 1;
+      if (lastCol) String(v).split('').reverse().forEach((c, j) => marks.push({ col: i + j, ch: c, stage: st, kind: 'res' }));
+      else {
+        marks.push({ col: i, ch: String(v % 10), stage: st, kind: 'res' });
+        carry = Math.floor(v / 10);
+        if (carry) marks.push({ col: i + 1, ch: String(carry), stage: st, kind: 'carry' });
+      }
+    } else {
+      let cur = x;
+      if (cur < y) {
+        // פורטים מהעמודה הבאה (ואם היא 0, ממשיכים הלאה)
+        let k = i + 1;
+        while (work[k] === 0) k++;
+        for (let j = k; j > i; j--) {
+          marks.push({ col: j, ch: '', stage: st, kind: 'cross' });
+          work[j] = j === k ? work[j] - 1 : 9;
+          marks.push({ col: j, ch: String(work[j]), stage: st, kind: 'borrowNew' });
+        }
+        marks.push({ col: i, ch: '1', stage: st, kind: 'borrowOne' });
+        cur += 10;
+      }
+      const v = cur - y;
+      // לא כותבים אפסים מובילים בתוצאה (חוץ מעמודת האחדות ומה שמימין לנקודה)
+      const leading = i > D && i >= n - 1 && v === 0;
+      if (!leading) marks.push({ col: i, ch: String(v), stage: st, kind: 'res' });
+    }
+    stages = st;
+  }
+  const U = upto ?? stages;
+  const F = from ?? (upto === undefined ? stages + 1 : U);
+  const COL = 30;
+  const cols = n + 2;
+  const W = cols * COL + 20;
+  const x = (col: number) => W - 10 - col * COL - COL / 2 - (D && col >= D ? 7 : 0);
+  const yCarry = 18;
+  const yTop = 50;
+  const yBot = 84;
+  const yLine = 93;
+  const yRes = 122;
+  const H = 134;
+  const ACC = '#e8590c';
+  const shown = marks.filter((m) => m.stage <= U);
+  const crossed = new Set(shown.filter((m) => m.kind === 'cross').map((m) => m.col));
+  const hl = (st: number) => st >= F && st <= U;
+  const digitRow = (digits: number[], y: number, key: string, pad: number, crossCols?: Set<number>) =>
+    digits.map((d, i) => (
+      <g key={`${key}${i}`}>
+        <text x={x(i)} y={y} textAnchor="middle" fontSize="22" fontWeight="600" fill={i < pad ? '#b5b1a6' : INK} fontFamily="Fredoka, sans-serif">
+          {d}
+        </text>
+        {crossCols?.has(i) && <line x1={x(i) - 6} y1={y + 2} x2={x(i) + 6} y2={y - 16} stroke={ACC} strokeWidth="2" />}
+      </g>
+    ));
+  const point = (y: number) => D > 0 && <circle cx={x(D) + COL / 2 + 3} cy={y - 2} r="2.4" fill={INK} />;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: W * 1.15, direction: 'ltr' }} role="img" aria-label={`${top} ${op === '+' ? 'ועוד' : 'פחות'} ${bottom}, במאונך`}>
+      {digitRow(A, yTop, 't', padA, crossed)}
+      {point(yTop)}
+      {digitRow(B, yBot, 'b', padB)}
+      {point(yBot)}
+      <text x={x(Math.max(A.length, B.length))} y={yBot - 2} textAnchor="middle" fontSize="22" fill={INK}>
+        {op === '+' ? '+' : '−'}
+      </text>
+      <line x1={x(Math.max(A.length, B.length)) - 10} y1={yLine} x2={W - 6} y2={yLine} stroke={INK} strokeWidth="2" />
+      {U >= stages && point(yRes)}
+      {shown.map((m, i) => {
+        if (m.kind === 'cross') return null;
+        const small = m.kind !== 'res';
+        const y = m.kind === 'res' ? yRes : m.kind === 'borrowOne' ? yTop - 10 : yCarry + 8;
+        const cx = m.kind === 'borrowOne' ? x(m.col) - 14 : x(m.col);
+        return (
+          <g key={i}>
+            {hl(m.stage) && <rect x={cx - (small ? 7 : 10)} y={y - (small ? 13 : 21)} width={small ? 14 : 20} height={small ? 17 : 28} rx={5} fill="#ffe45c" opacity={0.75} />}
+            <text x={cx} y={y} textAnchor="middle" fontSize={small ? 14 : 22} fontWeight="600" fill={m.kind === 'res' ? ACC : '#5b6475'} fontFamily="Fredoka, sans-serif">
+              {m.ch}
+            </text>
+          </g>
+        );
+      })}
     </svg>
   );
 }
