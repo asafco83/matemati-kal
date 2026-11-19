@@ -43,8 +43,13 @@ export const DEFAULT_LOCALE: LocaleCode = 'he';
 export const localeInfo = (code: string | undefined): LocaleInfo => LOCALES.find((l) => l.code === code) ?? LOCALES[0];
 
 // כל קובץ שפה נטען בנפרד, רק כשצריך אותו
-const loaders: Record<string, () => Promise<{ default: Record<string, string> }>> =
-  typeof import.meta.glob === 'function' ? import.meta.glob<{ default: Record<string, string> }>('./locales/*.json') : {};
+// Vite מחליף את import.meta.glob ברשימת הקבצים בזמן הבנייה. מחוץ ל-Vite (סקריפטים) אין שפות לטעון
+let loaders: Record<string, () => Promise<{ default: Record<string, string> }>> = {};
+try {
+  loaders = import.meta.glob<{ default: Record<string, string> }>('./locales/*.json');
+} catch {
+  /* מחוץ ל-Vite */
+}
 
 let current: LocaleInfo = LOCALES[0];
 let dict: Record<string, string> = {};
