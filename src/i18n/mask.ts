@@ -24,8 +24,9 @@ export interface Masked {
 
 export function mask(text: string): Masked {
   const tokens: string[] = [];
-  const key = text.replace(TOKEN_RE, (m) => {
-    tokens.push(m);
+  const key = text.replace(TOKEN_RE, (m, offset: number) => {
+    // "ב-4": המקף שייך לאות היחס שלפניו, לא למספר. המפתח לא משתנה, אבל המספר שחוזר לתרגום הוא 4 ולא -4
+    tokens.push(m[0] === '-' && /[\u0590-\u05FF]/.test(text[offset - 1] ?? '') ? m.slice(1) : m);
     return `⟨${tokens.length - 1}⟩`;
   });
   return { key: key.replace(/\s+/g, ' ').trim(), tokens };

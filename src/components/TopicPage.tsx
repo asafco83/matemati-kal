@@ -152,7 +152,7 @@ function Learn({ topic, color, onNext }: { topic: Topic; color: string; onNext: 
             <ol className="mt-1 flex flex-col rounded-2xl bg-paper px-4 py-2 sm:px-6">
               {s.detail.map((d, j) => (
                 <li key={j} className={`flex items-baseline gap-4 py-3.5 text-[19px] leading-loose ${j ? 'border-t border-line' : ''}`}>
-                  <span className="w-6 shrink-0 text-center font-display text-lg font-semibold" style={{ color }}>
+                  <span dir="ltr" className="min-w-6 shrink-0 whitespace-nowrap text-center font-display text-lg font-semibold" style={{ color }}>
                     {i + 1}.{j + 1}
                   </span>
                   <div className="min-w-0 flex-1">
