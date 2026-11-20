@@ -165,6 +165,19 @@ function InkLayer({ tool, color, strokes, bump }: { tool: Tool; color: string; s
   );
 }
 
+/**
+ * עוזר AI שמפעיל את הדפדפן (כמו Claude in Chrome) קיים רק בדפדפני מחשב.
+ * בטלפונים ובטאבלטים אין תוספים כאלה, ולכן שם לא מציגים את "מורה פרטי AI".
+ */
+function browserAssistantDevice() {
+  const nav = navigator as Navigator & { userAgentData?: { mobile?: boolean } };
+  if (nav.userAgentData?.mobile) return false;
+  if (/Android|iPhone|iPad|iPod|Mobile|Tablet|Silk|Kindle/i.test(nav.userAgent)) return false;
+  // iPad מציג את עצמו כ-Mac, אבל יש לו מסך מגע
+  if (/Macintosh/.test(nav.userAgent) && nav.maxTouchPoints > 1) return false;
+  return true;
+}
+
 /* ---------- הדף ---------- */
 
 const PEN_COLORS = [INK, '#1c7ed6', '#c92a2a', '#2f9e44'];
@@ -183,12 +196,14 @@ export function Sheet() {
   const [tool, setTool] = useState<Tool>('pen');
   const [color, setColor] = useState(INK);
   const [extra, setExtra] = useState(0);
+  const [showFig, setShowFig] = useState(true);
   const [bump, setBump] = useState(0);
   const strokes = useRef<Stroke[]>([]);
 
   useEffect(() => {
     strokes.current = [];
     setExtra(0);
+    setShowFig(true);
     setBump((b) => b + 1);
   }, [s.inkKey]);
   useEffect(() => {
@@ -201,10 +216,12 @@ export function Sheet() {
     return (
       <>
         <div className="fixed bottom-3 left-3 z-40 flex flex-wrap gap-2 print:hidden">
-          <button type="button" onClick={() => setTutorDialog(true)} className="flex h-11 items-center gap-2 rounded-full bg-ink px-4 font-display text-[15px] font-semibold text-white shadow-lg">
-            <span aria-hidden="true">🎓</span>
-            {T('מורה פרטי AI')}
-          </button>
+          {browserAssistantDevice() && (
+            <button type="button" onClick={() => setTutorDialog(true)} className="flex h-11 items-center gap-2 rounded-full bg-ink px-4 font-display text-[15px] font-semibold text-white shadow-lg">
+              <span aria-hidden="true">🎓</span>
+              {T('מורה פרטי AI')}
+            </button>
+          )}
           <button type="button" onClick={openSheet} className="flex h-11 items-center gap-2 rounded-full bg-white px-4 font-display text-[15px] font-semibold text-ink shadow-lg ring-2 ring-ink">
             <span aria-hidden="true">✏️</span>
             {T('דף טיוטה')}
@@ -276,8 +293,19 @@ export function Sheet() {
                       <Tex tex={s.question.latex} display />
                     </div>
                   )}
-                  {s.question.figure && (
-                    <div className="mt-2 max-w-[300px]">
+                </section>
+              )}
+              {s.question?.figure && (
+                <section className="rounded-2xl border-2 border-ink bg-white/85 p-4">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-muted">
+                    {T('השרטוט')}
+                    {/* מעל שכבת הכתיבה, כדי שאפשר יהיה ללחוץ עליו גם במצב עט */}
+                    <button type="button" onClick={() => setShowFig((v) => !v)} aria-expanded={showFig} className="relative z-10 ms-auto min-h-9 rounded-full bg-sand px-3 font-semibold text-ink">
+                      {showFig ? T('הסתרת השרטוט') : T('הצגת השרטוט')}
+                    </button>
+                  </p>
+                  {showFig && (
+                    <div className="sheet-figure mx-auto mt-2 max-w-[520px]">
                       <FigureView fig={s.question.figure} />
                     </div>
                   )}

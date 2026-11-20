@@ -228,3 +228,9 @@ html[lang="am"] {
     padding-left: 50vw;
   }
 }
+
+/* בדף הטיוטה השרטוט של התרגיל גדול, כדי שיהיה נוח לכתוב עליו */
+.sheet-figure svg {
+  width: 100%;
+  max-width: 100% !important;
+}
