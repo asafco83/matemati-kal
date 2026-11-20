@@ -1,6 +1,7 @@
 import { useEffect, useRef, useSyncExternalStore, type ReactNode } from 'react';
 import { calcFor, evaluate, formatResult, type CalcKind } from '../lib/calc';
 import { getLocale, localizeNumber, T } from '../i18n';
+import { activeProfile, getState } from '../lib/store';
 
 /**
  * מחשבון בחלון צף: אפשר להזיז אותו, למזער ולסגור. החישוב נשמר גם כשממזערים,
@@ -53,7 +54,7 @@ const useCalc = () =>
 export const toggleCalc = () => set(st.open ? { open: false } : { open: true, min: false });
 export const useCalcOpen = () => useCalc().open;
 /** סוג המחשבון שמותר בעמוד הנוכחי */
-export const currentCalcKind = (): CalcKind => calcFor(location.hash.match(/^#\/topic\/([\w-]+)/)?.[1]);
+export const currentCalcKind = (): CalcKind => calcFor(location.hash.match(/^#\/topic\/([\w-]+)/)?.[1], activeProfile(getState())?.grade);
 
 const FN_INSERT: Record<string, string> = { sin: 'sin(', cos: 'cos(', tan: 'tan(', 'sin⁻¹': 'sin⁻¹(', 'cos⁻¹': 'cos⁻¹(', 'tan⁻¹': 'tan⁻¹(', ln: 'ln(', log: 'log(', '√': '√(', eˣ: 'e^(', '10ˣ': '10^(' };
 const TOKENS = ['sin⁻¹(', 'cos⁻¹(', 'tan⁻¹(', 'sin(', 'cos(', 'tan(', 'ln(', 'log(', '√(', 'Ans'];

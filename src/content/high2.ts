@@ -22,7 +22,7 @@ const similarity: Topic = {
   id: 'similarity',
   track: 'geometry',
   title: 'דמיון משולשים',
-  grades: [9, 10],
+  grades: [8, 10],
   icon: '🔍',
   units: [3, 4, 5],
   summary: 'משולשים באותה צורה ובגודל אחר: יחס הדמיון, צלעות ושטחים.',

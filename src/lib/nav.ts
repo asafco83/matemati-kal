@@ -1,6 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { soonTopics, topicById, topics, tracks } from '../content';
-import type { SoonTopic, Topic, Units } from './types';
+import { teaches, type SoonTopic, type Topic, type Units } from './types';
 
 /**
  * מצב הניווט של המסך (לא נשמר בין ביקורים):
@@ -50,9 +50,9 @@ export function syncProfile(id: string | null, grade: number | null, units?: Uni
 /** האם יש משמעות לסינון לפי יח"ל בכיתה הזו */
 export const hasUnits = (g: GradeFilter) => g !== 'all' && g >= 10;
 
-/** נושא מוצג אם הוא בטווח הכיתה, ובתיכון גם ברמת היח"ל שנבחרה */
-export const inGrade = (t: { grades: [number, number]; units?: Units[] }, g: GradeFilter, u: UnitsFilter = nav.units) =>
-  g === 'all' || (t.grades[0] <= g && g <= t.grades[1] && (!hasUnits(g) || u === 'all' || !t.units || t.units.includes(u)));
+/** נושא מוצג אם הוא נלמד בכיתה, ובתיכון גם ברמת היח"ל שנבחרה */
+export const inGrade = (t: { grades: [number, number]; taught?: number[]; units?: Units[] }, g: GradeFilter, u: UnitsFilter = nav.units) =>
+  g === 'all' || (teaches(t, g) && (!hasUnits(g) || u === 'all' || !t.units || t.units.includes(u)));
 
 export type AnyTopic = Topic | SoonTopic;
 export const isSoon = (t: AnyTopic): t is SoonTopic => 'soon' in t;

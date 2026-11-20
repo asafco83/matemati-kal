@@ -691,7 +691,7 @@ const probability: Topic = {
   id: 'probability',
   track: 'data',
   title: 'הסתברות',
-  grades: [8, 9],
+  grades: [7, 9],
   icon: '🎲',
   units: [3, 4, 5],
   summary: 'מחשבים סיכוי של מאורע, מאורע משלים ושני מאורעות ברצף.',

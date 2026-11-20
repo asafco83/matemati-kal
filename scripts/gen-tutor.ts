@@ -14,6 +14,7 @@ const list = topics.map((t) => ({
   title: t.title,
   track: tracks.find((x) => x.id === t.track)?.title ?? t.track,
   grades: t.grades,
+  ...(t.taught ? { taught: t.taught } : {}),
   units: t.units ?? null,
   summary: t.summary,
   levels: t.levels,
@@ -25,7 +26,7 @@ writeFileSync('public/curriculum.json', JSON.stringify({ site: SITE, language: '
 
 const rows = [...list]
   .sort((a, b) => a.grades[0] - b.grades[0] || a.grades[1] - b.grades[1])
-  .map((t) => `| \`${t.id}\` | ${t.title} | ${G[t.grades[0]]}–${G[t.grades[1]]}${t.units ? ` (${t.units.join('/')} יח"ל)` : ''} | ${t.track} | ${t.levels.join(' · ')} |`)
+  .map((t) => `| \`${t.id}\` | ${t.title} | ${t.taught ? t.taught.map((g) => G[g]).join(', ') : `${G[t.grades[0]]}–${G[t.grades[1]]}`}${t.units ? ` (${t.units.join('/')} יח"ל)` : ''} | ${t.track} | ${t.levels.join(' · ')} |`)
   .join('\n');
 
 const md = `# מתמטי-קל: guide for an AI private tutor ("מורה פרטי AI")
@@ -49,7 +50,7 @@ ${API_HELP}
 
 Each topic page has three tabs: "למידה" (lesson: full and short explanation), "דוגמאות פתורות" (worked examples) and "תרגול" (practice in three levels; five correct answers in a row earn a star).
 
-For open requests such as "איך אני ניגש לבעיות מילוליות": the topics \`word-problems-basic\` (grades 2-6) and \`word-problems\` (grades 7-10) teach a fixed method. Teach the method, then practice together.
+For open requests such as "איך אני ניגש לבעיות מילוליות": the topics \`word-problems-basic\` (grades 1-6) and \`word-problems\` (grades 7-10) teach a fixed method. Teach the method, then practice together.
 
 ## Board examples
 

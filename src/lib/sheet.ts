@@ -7,7 +7,7 @@
  */
 import { useSyncExternalStore } from 'react';
 import { topicById, topics, tracks } from '../content';
-import type { Figure, Level, Pt, Question, Shape, Step } from './types';
+import { teaches, type Figure, type Level, type Pt, type Question, type Shape, type Step } from './types';
 export type { Pt, Shape };
 import { activeProfile, getState } from './store';
 import { API_HELP, TUTOR_RULES } from './tutorGuide';
@@ -111,7 +111,7 @@ const sectionText = (s: Step): string => (typeof s === 'string' ? s : 'figure' i
 const topicInfo = (id: string) => {
   const t = topicById(id);
   if (!t) return null;
-  return { id: t.id, title: t.title, grades: t.grades, units: t.units ?? null, track: tracks.find((x) => x.id === t.track)?.title ?? t.track, summary: t.summary, levels: t.levels, sections: t.lesson.sections.map((s) => s.title), url: `${location.origin}/#/topic/${t.id}` };
+  return { id: t.id, title: t.title, grades: t.grades, taught: t.taught ?? null, units: t.units ?? null, track: tracks.find((x) => x.id === t.track)?.title ?? t.track, summary: t.summary, levels: t.levels, sections: t.lesson.sections.map((s) => s.title), url: `${location.origin}/#/topic/${t.id}` };
 };
 
 let nextId = 1;
@@ -137,7 +137,7 @@ export const tutorApi = {
       topic: onTopic && ctx.topicId ? topicInfo(ctx.topicId) : null,
       tab: onTopic ? ctx.tab : null,
       level: onTopic && ctx.tab === 'practice' ? ctx.level : null,
-      calculator: onTopic ? calcFor(ctx.topicId) : 'none',
+      calculator: onTopic ? calcFor(ctx.topicId, p?.grade) : 'none',
       exercise: onTopic && ctx.tab === 'practice' && q ? { text: q.text, latex: q.latex ?? null, figure: q.figure ?? null, answerKind: q.answer.type, attempts: ctx.attempts, status: ctx.status } : null,
       reminder: 'Do not give the answer to this exercise. Guide the student to it.',
     };
@@ -145,7 +145,7 @@ export const tutorApi = {
   curriculum(f: { grade?: number; units?: number; query?: string } = {}) {
     const q = f.query?.trim();
     return topics
-      .filter((t) => (f.grade == null || (t.grades[0] <= f.grade && f.grade <= t.grades[1])) && (f.units == null || !t.units || t.units.includes(f.units as 3)))
+      .filter((t) => (f.grade == null || teaches(t, f.grade)) && (f.units == null || !t.units || t.units.includes(f.units as 3)))
       .filter((t) => !q || [t.title, t.summary, ...t.levels, ...t.lesson.sections.map((s) => s.title)].some((s) => s.includes(q)))
       .map((t) => topicInfo(t.id));
   },

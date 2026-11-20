@@ -16,7 +16,7 @@ const factoring: Topic = {
   id: 'factoring',
   track: 'algebra',
   title: 'פירוק לגורמים',
-  grades: [8, 9],
+  grades: [9, 9],
   icon: '🧩',
   summary: 'הופכים סכום למכפלה: הוצאת גורם משותף, נוסחאות הכפל המקוצר ופירוק טרינום.',
   levels: ['גורם משותף', 'נוסחאות הכפל המקוצר', 'טרינום'],

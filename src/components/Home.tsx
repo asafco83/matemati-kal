@@ -2,7 +2,7 @@ import { Rich } from './Tex';
 import { topics, tracks } from '../content';
 import { inGrade, isSoon, trackTopics, useNav, type GradeFilter } from '../lib/nav';
 import { activeProfile, stars, useStore, type State } from '../lib/store';
-import { gradeLabel, gradeName, type Topic } from '../lib/types';
+import { gradeLabel, gradeName, teaches, type Topic } from '../lib/types';
 import { StarIcon, tc } from './ui';
 import { T } from '../i18n';
 
@@ -22,11 +22,13 @@ const gname = (g: GradeFilter) => (g === 'all' ? T('כל הכיתות') : T`כי
 /** הנושא הבא שכדאי ללמוד: מתאים לכיתה ועדיין לא הושלם */
 function recommend(state: State, grade: number): Topic | null {
   const open = topics.filter((t) => stars(state, t.id) < 3);
-  const fits = open.filter((t) => t.grades[0] <= grade && grade <= t.grades[1]);
+  const fits = open.filter((t) => teaches(t, grade));
   const seen = fits.find((t) => state.activeId && state.progress[state.activeId]?.[t.id]?.seen);
   if (seen) return seen;
   if (fits.length) return fits[0];
-  const below = open.filter((t) => t.grades[1] < grade).sort((a, b) => b.grades[1] - a.grades[1]);
+  // הכיתה האחרונה לפני כיתת התלמיד שבה הנושא נלמד (0 אם אין)
+  const last = (t: Topic) => Math.max(0, ...(t.taught ?? [t.grades[1]]).filter((g) => g < grade));
+  const below = open.filter((t) => last(t) > 0).sort((a, b) => last(b) - last(a));
   return below[0] ?? open[0] ?? null;
 }
 
@@ -126,7 +128,7 @@ export function TrackPage({ id }: { id: string }) {
                 {T(t.title)}
                 <span className="shrink-0 rounded-full bg-sand px-2 py-0.5 font-sans text-xs font-bold">{T('בקרוב')}</span>
               </span>
-              <span className="text-sm">{gradeLabel(t.grades)}</span>
+              <span className="text-sm">{gradeLabel(t)}</span>
             </div>
           ) : (
             <a key={t.id} href={`#/topic/${t.id}`} className="flex flex-col gap-1 rounded-2xl bg-[#f6f4ee] p-4 text-ink no-underline hover:bg-sand">
@@ -141,7 +143,7 @@ export function TrackPage({ id }: { id: string }) {
                 </span>
               </span>
               <span className="flex-1 text-[15px] text-muted"><Rich text={t.summary} /></span>
-              <span className="mt-2 self-start rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-muted">{gradeLabel(t.grades)}</span>
+              <span className="mt-2 self-start rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-muted">{gradeLabel(t)}</span>
             </a>
           ),
         )}

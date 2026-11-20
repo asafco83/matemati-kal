@@ -474,7 +474,7 @@ const perimeterArea: Topic = {
   id: 'perimeter-area',
   track: 'geometry',
   title: 'היקף ושטח של מלבן',
-  grades: [3, 4],
+  grades: [2, 4],
   icon: '📐',
   summary: 'ההבדל בין היקף לשטח, ואיך מחשבים כל אחד מהם במלבן.',
   levels: ['היקף', 'שטח', 'מוצאים צלע חסרה'],

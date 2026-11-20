@@ -45,7 +45,7 @@ export function TopicPage({ topic }: { topic: Topic }) {
             <p className="flex flex-wrap items-center gap-2 font-semibold" style={{ color }}>
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />
               {T(track.title)}
-              <span className="rounded-full bg-sand px-2.5 py-0.5 text-[13px] text-muted">{gradeLabel(topic.grades)}</span>
+              <span className="rounded-full bg-sand px-2.5 py-0.5 text-[13px] text-muted">{gradeLabel(topic)}</span>
             </p>
             <h1 className="mt-1 font-display text-[34px] font-semibold leading-tight sm:text-[40px]">{T(topic.title)}</h1>
           </div>

@@ -9,6 +9,7 @@
  * - תיכון: בכל שאלוני הבגרות מותר מחשבון לא גרפי, ולכן מחשבון מדעי.
  */
 import { topicById } from '../content';
+import { teaches } from './types';
 
 export type CalcKind = 'none' | 'basic' | 'scientific';
 
@@ -17,10 +18,11 @@ const GRADE6_ALLOWED = new Set(['scale', 'circle', 'percent', 'ratio', 'speed', 
 /** נושאים של חטיבת הביניים שבהם מתרגלים את החישוב או את הטכניקה עצמה */
 const MIDDLE_NONE = new Set(['negatives', 'like-terms', 'patterns', 'expand', 'powers-roots', 'factoring', 'short-mult', 'algebraic-fractions', 'congruence', 'order-of-ops', 'divisibility', 'fractions-mult']);
 
-export function calcFor(topicId: string | null | undefined): CalcKind {
+/** grade: הכיתה של התלמיד. אם הנושא נלמד בכיתה שלו קובעים לפיה, אחרת לפי הכיתה הראשונה שבה הנושא נלמד */
+export function calcFor(topicId: string | null | undefined, grade?: number | null): CalcKind {
   const t = topicId ? topicById(topicId) : undefined;
   if (!t) return 'none';
-  const g = t.grades[0];
+  const g = grade != null && teaches(t, grade) ? grade : t.grades[0];
   if (g >= 10) return 'scientific';
   if (g >= 7) return MIDDLE_NONE.has(t.id) ? 'none' : 'basic';
   if (g === 6) return GRADE6_ALLOWED.has(t.id) ? 'basic' : 'none';

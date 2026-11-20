@@ -130,7 +130,7 @@ function SearchDialog({ onClose }: { onClose: () => void }) {
                   <span className="flex flex-wrap items-center gap-2 font-display text-xl font-semibold">
                     <span className="h-2.5 w-2.5 rounded-full" style={{ background: track?.color }} />
                     {T(h.topic.title)}
-                    <span className="rounded-full bg-white px-2 py-0.5 text-[13px] font-medium text-muted ring-1 ring-line">{gradeLabel(h.topic.grades)}</span>
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[13px] font-medium text-muted ring-1 ring-line">{gradeLabel(h.topic)}</span>
                   </span>
                   <span className="text-base text-muted"><Rich text={h.where ?? h.topic.summary} /></span>
                 </button>
