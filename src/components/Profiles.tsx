@@ -5,6 +5,8 @@ import { addProfile, deleteProfile, PROFILE_COLORS, profileColor, selectProfile,
 import { GRADE_NAMES, gradeName, UNITS, type Units } from '../lib/types';
 import { Avatar, LanguageSwitch, Logo, PencilIcon, StarIcon, StepNum, Tick } from './ui';
 import { LOCALES, N, T } from '../i18n';
+import { topics } from '../content';
+import { browserAssistantDevice } from '../lib/device';
 
 function BareHeader({ end }: { end?: React.ReactNode }) {
   return (
@@ -53,6 +55,50 @@ function Frac({ n, d }: { n: number; d: number }) {
   );
 }
 
+/** מה יש באפליקציה: מספרים אמיתיים, שמחושבים מהתוכן עצמו */
+function Highlights() {
+  const facts: [string, string][] = [
+    [String(topics.length), T('נושאים, מכיתה א\' ועד י"ב')],
+    [String(topics.length * 3), T('רמות תרגול, מקל למאתגר')],
+    ['∞', T('שאלות: כל תרגיל נוצר מחדש, עם פתרון מלא')],
+    [String(LOCALES.length), T('שפות, עם תרגום לכל הסבר')],
+  ];
+  const tutor = browserAssistantDevice();
+  const features: [string, string, string][] = [
+    ['📘', T('כמו במחברת'), T('כל תרגיל כתוב כמו שכותבים בכיתה: שברים כשברים, תרגילים במאונך שלב אחר שלב, והפעולה ליד השורה.')],
+    ['✏️', T('דף טיוטה'), T('פותחים דף משבצות מעל התרגיל ומחשבים ביד, באצבע, בעט או בעכבר. אפשר לשמור אותו כתמונה.')],
+    ['🧮', T('מחשבון רק כשמותר'), T('מחשבון פשוט או מדעי מופיע רק בנושאים שבהם מותר להשתמש בו בבית הספר.')],
+    ['🎓', T('מורה פרטי AI'), tutor ? T('עוזר AI בדפדפן מסביר, שואל שאלות מכוונות ומשרטט על דף הטיוטה, אבל לא פותר במקומכם.') : T('במחשב: עוזר AI בדפדפן מסביר, שואל שאלות מכוונות ומשרטט על דף הטיוטה, אבל לא פותר במקומכם.')],
+    ['⭐', T('התקדמות לכל ילד'), T('פרופיל נפרד לכל ילד, כוכבים על כל רמה, והמלצה מה ללמוד עכשיו.')],
+    ['🎯', T('לפי תוכנית הלימודים'), T('הנושאים מסודרים לפי כיתה ולפי תוכנית משרד החינוך, ובתיכון גם לפי 3, 4 או 5 יח"ל.')],
+  ];
+  return (
+    <section className="card flex flex-col gap-7 sm:p-10">
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {facts.map(([n, label]) => (
+          <li key={label} className="flex flex-col items-center gap-1 rounded-2xl bg-[#f6f4ee] px-3 py-4 text-center">
+            <span className="font-display text-[40px] font-semibold leading-none">{n}</span>
+            <span className="text-[15px] leading-snug text-muted">{label}</span>
+          </li>
+        ))}
+      </ul>
+      <ul className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+        {features.map(([icon, title, text]) => (
+          <li key={title} className="flex items-start gap-3">
+            <span aria-hidden="true" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-sand text-[22px]">
+              {icon}
+            </span>
+            <span className="flex flex-col gap-0.5">
+              <span className="font-display text-xl font-semibold">{title}</span>
+              <span className="text-[16px] leading-relaxed text-muted">{text}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function Welcome() {
   const auth = useAuth();
   const pink = '#db2777';
@@ -97,6 +143,7 @@ export function Welcome() {
             </p>
           </div>
         </section>
+        <Highlights />
         <section className="card flex flex-wrap items-center gap-x-12 gap-y-6 sm:px-10 sm:py-8">
           <div className="flex flex-[1_1_360px] flex-col gap-1.5">
             <h2 className="font-display text-[26px] font-semibold">{T('מתחילים')}</h2>
