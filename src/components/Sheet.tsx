@@ -60,10 +60,16 @@ function BlockView({ block }: { block: Block }) {
 type Stroke = { color: string; w: number; pts: [number, number, number][] };
 type Tool = 'pen' | 'erase' | 'scroll';
 
-function InkLayer({ tool, color, strokes, bump, onBefore }: { tool: Tool; color: string; strokes: { current: Stroke[] }; bump: number; /** נקרא לפני כל שינוי, כדי לשמור מצב ל"ביטול" */ onBefore: () => void }) {
+function InkLayer({ tool, color, strokes, bump, onBefore, onCancel }: { tool: Tool; color: string; strokes: { current: Stroke[] }; bump: number; /** נקרא לפני כל שינוי, כדי לשמור מצב ל"ביטול" */ onBefore: () => void; /** מבטל את השמירה האחרונה, כשקו שהתחיל התברר כגלילה בשתי אצבעות */ onCancel: () => void }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const cur = useRef<Stroke | null>(null);
   const penSeen = useRef(false);
+  /** האצבע או העט שמציירים עכשיו. מצביעים אחרים לא מוסיפים נקודות לאותו קו */
+  const drawId = useRef<number | null>(null);
+  /** אצבעות שנוגעות במסך. שתיים ומעלה: גוללים את הדף במקום לצייר */
+  const touches = useRef(new Map<number, number>());
+  const panY = useRef<number | null>(null);
+  const meanY = () => [...touches.current.values()].reduce((a, b) => a + b, 0) / touches.current.size;
 
   const redraw = () => {
     const c = ref.current;
@@ -129,10 +135,26 @@ function InkLayer({ tool, color, strokes, bump, onBefore }: { tool: Tool; color:
   };
   const down = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (e.pointerType === 'pen') penSeen.current = true;
-    // כשכותבים בעט, כף היד שנוגעת במסך לא משאירה סימנים
-    if (e.pointerType === 'touch' && penSeen.current) return;
-    if (e.button !== 0) return;
+    if (e.pointerType === 'touch') {
+      touches.current.set(e.pointerId, e.clientY);
+      if (touches.current.size >= 2) {
+        // אצבע שנייה: מה שהאצבע הראשונה התחילה לצייר מתבטל, ומכאן גוללים
+        if (cur.current && drawId.current !== null && tool !== 'erase') {
+          strokes.current = strokes.current.filter((s) => s !== cur.current);
+          onCancel();
+          redraw();
+        }
+        cur.current = null;
+        drawId.current = null;
+        panY.current = meanY();
+        return;
+      }
+      // כשכותבים בעט, כף היד שנוגעת במסך לא משאירה סימנים
+      if (penSeen.current) return;
+    }
+    if (e.button !== 0 || drawId.current !== null) return;
     e.currentTarget.setPointerCapture(e.pointerId);
+    drawId.current = e.pointerId;
     const p = pos(e);
     if (tool === 'erase') {
       erased.current = false;
@@ -146,7 +168,16 @@ function InkLayer({ tool, color, strokes, bump, onBefore }: { tool: Tool; color:
     redraw();
   };
   const move = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!cur.current) return;
+    if (e.pointerType === 'touch' && touches.current.has(e.pointerId)) {
+      touches.current.set(e.pointerId, e.clientY);
+      if (touches.current.size >= 2 && panY.current !== null) {
+        const y = meanY();
+        ref.current?.closest('.overflow-y-auto')?.scrollBy(0, panY.current - y);
+        panY.current = y;
+        return;
+      }
+    }
+    if (!cur.current || e.pointerId !== drawId.current) return;
     const events = e.nativeEvent.getCoalescedEvents?.() ?? [];
     for (const ev of events.length ? events : [e.nativeEvent]) {
       const p = pos(ev);
@@ -155,8 +186,13 @@ function InkLayer({ tool, color, strokes, bump, onBefore }: { tool: Tool; color:
     }
     if (tool !== 'erase') redraw();
   };
-  const up = () => {
-    cur.current = null;
+  const up = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    touches.current.delete(e.pointerId);
+    panY.current = touches.current.size >= 2 ? meanY() : null;
+    if (e.pointerId === drawId.current) {
+      cur.current = null;
+      drawId.current = null;
+    }
   };
 
   return (
@@ -285,6 +321,11 @@ export function Sheet() {
     setCanRedo(false);
   };
 
+  const forget = () => {
+    history.current.pop();
+    setCanUndo(history.current.length > 0);
+  };
+
   useEffect(() => {
     strokes.current = [];
     history.current = [];
@@ -359,8 +400,9 @@ export function Sheet() {
 
   return (
     <aside className={`sheet fixed inset-y-0 left-0 z-50 flex flex-col bg-[#fbfaf5] shadow-2xl ${s.half ? 'w-full lg:w-1/2 lg:border-r-2 lg:border-ink' : 'w-full'}`} aria-label={T('דף טיוטה')}>
-      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 border-b-2 border-ink bg-sand px-3 py-2">
-        <div className="flex items-center gap-2">
+      <div className="@container border-b-2 border-ink bg-sand">
+      <div className="flex flex-col-reverse items-center gap-x-2 gap-y-2 px-3 py-2 @min-[820px]:flex-row @min-[820px]:justify-between">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           {PEN_COLORS.map((c) => (
             <button
               key={c}
@@ -386,7 +428,7 @@ export function Sheet() {
             <Icon d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-1V4.5a1.5 1.5 0 0 1 3 0V11m0-4.5a1.5 1.5 0 0 1 3 0V12m0-2.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.9-2.6L4.4 14a1.6 1.6 0 0 1 2.5-2L8 13" />
           </ToolBtn>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           {browserAssistantDevice() && (
             <ToolBtn onClick={() => setTutorDialog(true)} label={T('מורה פרטי AI')}>
               <span aria-hidden="true">🎓</span>
@@ -413,6 +455,7 @@ export function Sheet() {
             <Icon d="M6 6l12 12M18 6 6 18" />
           </ToolBtn>
         </div>
+      </div>
       </div>
       {confirmNew && (
         <div className="absolute inset-0 z-20 flex items-start justify-center bg-ink/40 p-4 pt-24" onClick={() => setConfirmNew(false)}>
@@ -487,7 +530,7 @@ export function Sheet() {
               )}
             </div>
           </NotationContext.Provider>
-          <InkLayer tool={tool} color={color} strokes={strokes} bump={bump} onBefore={remember} />
+          <InkLayer tool={tool} color={color} strokes={strokes} bump={bump} onBefore={remember} onCancel={forget} />
         </div>
         <div className="flex justify-center p-3">
           <button type="button" onClick={() => setExtra((e) => Math.min(e + 1, 8))} className="min-h-11 rounded-full bg-sand px-5 font-semibold">
