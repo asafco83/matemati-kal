@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { topics, tracks } from '../content';
 import { activeProfile, getState } from '../lib/store';
 import { gradeLabel, type Topic } from '../lib/types';
@@ -76,7 +77,7 @@ export function SearchButton({ className = '', compact = false }: { className?: 
         </svg>
         {!compact && <span className="hidden sm:inline">{T('חיפוש')}</span>}
       </button>
-      {open && <SearchDialog onClose={() => setOpen(false)} />}
+      {open && createPortal(<SearchDialog onClose={() => setOpen(false)} />, document.body)}
     </>
   );
 }

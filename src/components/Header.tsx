@@ -127,16 +127,16 @@ export function Header({ route }: { route: Route }) {
     <>
       {/* רק השורה העליונה נצמדת למעלה; שורת הנושאים נגללת עם הדף כדי לא לתפוס חצי מסך */}
       <header className="sticky top-0 z-30 shadow-md">
-        <div className="bg-ink text-white">
+        <div className="@container bg-ink text-white">
           <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-3 px-4 sm:gap-x-4 sm:px-6">
             <div className="order-1 flex min-h-14 items-center">
               <Logo />
             </div>
-            <span aria-hidden="true" className="order-3 h-0 basis-full lg:hidden" />
-            <div className="order-4 lg:order-2">
+            <span aria-hidden="true" className="order-3 h-0 basis-full @5xl:hidden" />
+            <div className="order-4 @5xl:order-2">
               <ModeSwitch />
             </div>
-            <Scroller label={nav.mode === 'grade' ? T('כיתות') : T('מסלולים')} className="order-5 lg:order-3" watch={`${nav.mode}|${nav.grade}|${currentTrack}`} onFit={setCompact} compact={compact}>
+            <Scroller label={nav.mode === 'grade' ? T('כיתות') : T('מסלולים')} className="order-5 @5xl:order-3" watch={`${nav.mode}|${nav.grade}|${currentTrack}`} onFit={setCompact} compact={compact}>
               {nav.mode === 'grade'
                 ? GRADE_NAMES.slice(1).map((g, i) => {
                     const on = nav.grade === i + 1;
@@ -171,7 +171,7 @@ export function Header({ route }: { route: Route }) {
               type="button"
               onClick={() => selectProfile(null)}
               title={T('החלפת פרופיל')}
-              className="order-2 ms-auto flex shrink-0 items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-[15px] font-semibold text-white hover:bg-white/25 lg:order-4 lg:ms-0"
+              className="order-2 ms-auto flex shrink-0 items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-[15px] font-semibold text-white hover:bg-white/25 @5xl:order-4 @5xl:ms-0"
             >
               {profile.name}
               <span className="flex items-center gap-0.5 text-sun">
@@ -179,8 +179,8 @@ export function Header({ route }: { route: Route }) {
                 {t.stars}
               </span>
             </button>
-            <SearchButton className="order-2 lg:order-4" compact={compact} />
-            <LanguageSwitch className="order-3 lg:order-5" compact={compact} />
+            <SearchButton className="order-2 @5xl:order-4" compact={compact} />
+            <LanguageSwitch className="order-2 @5xl:order-5" compact={compact} />
           </div>
         </div>
       </header>
@@ -250,7 +250,7 @@ function Scroller({ label, className, watch, compact, onFit, children }: { label
   );
 
   return (
-    <div className={`relative flex min-w-[200px] flex-1 basis-0 ${className}`}>
+    <div className={`relative flex min-w-0 flex-1 basis-0 ${className}`}>
       {edge.start && arrow(false)}
       <nav
         ref={ref}
