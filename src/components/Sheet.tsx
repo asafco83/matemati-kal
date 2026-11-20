@@ -343,21 +343,27 @@ export function Sheet() {
   }, [s.open, s.half]);
 
   if (!profile) return null;
+  /** הכפתורים הצפים. "מורה פרטי AI" נשאר גם מעל דף הטיוטה הפתוח */
+  const floating = (
+    <div className="fixed bottom-3 left-3 z-[55] flex flex-wrap gap-2 print:hidden">
+      {!s.open && (
+        <button type="button" onClick={openSheet} className="flex h-11 items-center gap-2 rounded-full bg-white px-4 font-display text-[15px] font-semibold text-ink shadow-lg ring-2 ring-ink">
+          <span aria-hidden="true">✏️</span>
+          {T('דף טיוטה')}
+        </button>
+      )}
+      {browserAssistantDevice() && (
+        <button type="button" onClick={() => setTutorDialog(true)} className="flex h-11 items-center gap-2 rounded-full bg-ink px-4 font-display text-[15px] font-semibold text-white shadow-lg">
+          <span aria-hidden="true">🎓</span>
+          {T('מורה פרטי AI')}
+        </button>
+      )}
+    </div>
+  );
   if (!s.open)
     return (
       <>
-        <div className="fixed bottom-3 left-3 z-40 flex flex-wrap gap-2 print:hidden">
-          {browserAssistantDevice() && (
-            <button type="button" onClick={() => setTutorDialog(true)} className="flex h-11 items-center gap-2 rounded-full bg-ink px-4 font-display text-[15px] font-semibold text-white shadow-lg">
-              <span aria-hidden="true">🎓</span>
-              {T('מורה פרטי AI')}
-            </button>
-          )}
-          <button type="button" onClick={openSheet} className="flex h-11 items-center gap-2 rounded-full bg-white px-4 font-display text-[15px] font-semibold text-ink shadow-lg ring-2 ring-ink">
-            <span aria-hidden="true">✏️</span>
-            {T('דף טיוטה')}
-          </button>
-        </div>
+        {floating}
         {s.tutorDialog && <TutorDialog />}
       </>
     );
@@ -399,6 +405,8 @@ export function Sheet() {
   const sep = <span aria-hidden="true" className="mx-1 h-8 w-px bg-[#c9c4b6]" />;
 
   return (
+    <>
+    {floating}
     <aside className={`sheet fixed inset-y-0 left-0 z-50 flex flex-col bg-[#fbfaf5] shadow-2xl ${s.half ? 'w-full lg:w-1/2 lg:border-r-2 lg:border-ink' : 'w-full'}`} aria-label={T('דף טיוטה')}>
       <div className="@container border-b-2 border-ink bg-sand">
       <div className="flex flex-col-reverse items-center gap-x-2 gap-y-2 px-3 py-2 @min-[820px]:flex-row @min-[820px]:justify-between">
@@ -429,11 +437,6 @@ export function Sheet() {
           </ToolBtn>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
-          {browserAssistantDevice() && (
-            <ToolBtn onClick={() => setTutorDialog(true)} label={T('מורה פרטי AI')}>
-              <span aria-hidden="true">🎓</span>
-            </ToolBtn>
-          )}
           <ToolBtn onClick={undo} disabled={!canUndo} label={T('ביטול הפעולה האחרונה')}>
             <Icon d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" />
           </ToolBtn>
@@ -539,6 +542,7 @@ export function Sheet() {
         </div>
       </div>
     </aside>
+    </>
   );
 }
 
