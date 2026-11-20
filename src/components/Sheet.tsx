@@ -3,6 +3,7 @@ import { topicById } from '../content';
 import { clearBlocks, closeSheet, openSheet, setTutorDialog, sheetContext, toggleHalf, useSheet, type Block } from '../lib/sheet';
 import { activeProfile, useStore } from '../lib/store';
 import { gradeName } from '../lib/types';
+import { currentCalcKind, toggleCalc, useCalcOpen } from './Calculator';
 import { DrawBlock } from './Draw';
 import { FigureView } from './FigureView';
 import { StepView } from './StepView';
@@ -58,7 +59,26 @@ function BlockView({ block }: { block: Block }) {
 /* ---------- כתיבה ביד ---------- */
 
 type Stroke = { color: string; w: number; pts: [number, number, number][] };
-type Tool = 'pen' | 'erase' | 'scroll';
+type Tool = 'pen' | 'line' | 'erase' | 'scroll';
+type P = [number, number, number];
+
+/** קו כמעט אופקי או אנכי (עד 4°) מתיישר לגמרי, כמו עם סרגל על דף משבצות */
+function snapEnd(a: P, b: P): P {
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  const deg = (Math.atan2(Math.abs(dy), Math.abs(dx)) * 180) / Math.PI;
+  if (deg < 4) return [b[0], a[1], b[2]];
+  if (deg > 86) return [a[0], b[1], b[2]];
+  return b;
+}
+/** מרחק בריבוע מנקודה לקטע */
+function segDist2(x: number, y: number, a: P, b: P) {
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  const len = dx * dx + dy * dy;
+  const t = len ? Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / len)) : 0;
+  return (a[0] + t * dx - x) ** 2 + (a[1] + t * dy - y) ** 2;
+}
+/** כמה זמן משאירים את העט במקום כדי שהקו יתיישר */
+const HOLD_MS = 550;
 
 function InkLayer({ tool, color, strokes, bump, onBefore, onCancel }: { tool: Tool; color: string; strokes: { current: Stroke[] }; bump: number; /** נקרא לפני כל שינוי, כדי לשמור מצב ל"ביטול" */ onBefore: () => void; /** מבטל את השמירה האחרונה, כשקו שהתחיל התברר כגלילה בשתי אצבעות */ onCancel: () => void }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -69,6 +89,11 @@ function InkLayer({ tool, color, strokes, bump, onBefore, onCancel }: { tool: To
   /** אצבעות שנוגעות במסך. שתיים ומעלה: גוללים את הדף במקום לצייר */
   const touches = useRef(new Map<number, number>());
   const panY = useRef<number | null>(null);
+  /** ליישור קו בהשארת העט במקום: הנקודה האחרונה שבה זז, וטיימר */
+  const anchor = useRef<P | null>(null);
+  const holdTimer = useRef<number | undefined>(undefined);
+  /** הקו הנוכחי כבר ישר: מכאן העט רק מזיז את הקצה שלו */
+  const straight = useRef(false);
   const meanY = () => [...touches.current.values()].reduce((a, b) => a + b, 0) / touches.current.size;
 
   const redraw = () => {
@@ -125,7 +150,8 @@ function InkLayer({ tool, color, strokes, bump, onBefore, onCancel }: { tool: To
   };
   const erased = useRef(false);
   const eraseAt = (x: number, y: number) => {
-    const left = strokes.current.filter((s) => !s.pts.some(([px, py]) => (px - x) ** 2 + (py - y) ** 2 < 16 ** 2));
+    const near = (s: Stroke) => s.pts.some((p, i) => (i === 0 ? (p[0] - x) ** 2 + (p[1] - y) ** 2 : segDist2(x, y, s.pts[i - 1], p)) < 16 ** 2);
+    const left = strokes.current.filter((s) => !near(s));
     if (left.length === strokes.current.length) return;
     // כל תנועת מחיקה היא צעד אחד ב"ביטול"
     if (!erased.current) onBefore();
@@ -144,6 +170,7 @@ function InkLayer({ tool, color, strokes, bump, onBefore, onCancel }: { tool: To
           onCancel();
           redraw();
         }
+        clearTimeout(holdTimer.current);
         cur.current = null;
         drawId.current = null;
         panY.current = meanY();
@@ -163,8 +190,21 @@ function InkLayer({ tool, color, strokes, bump, onBefore, onCancel }: { tool: To
       return;
     }
     onBefore();
-    cur.current = { color, w: 3, pts: [p] };
+    straight.current = tool === 'line';
+    cur.current = { color, w: 3, pts: tool === 'line' ? [p, p] : [p] };
     strokes.current = [...strokes.current, cur.current];
+    anchor.current = p;
+    clearTimeout(holdTimer.current);
+    redraw();
+  };
+  /** העט נשאר במקום: הקו שצויר עד עכשיו הופך לקו ישר מההתחלה עד כאן */
+  const straighten = () => {
+    const s = cur.current;
+    if (!s || straight.current || tool !== 'pen' || s.pts.length < 6) return;
+    const a = s.pts[0], b = s.pts[s.pts.length - 1];
+    if ((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2 < 30 ** 2) return;
+    straight.current = true;
+    s.pts = [a, snapEnd(a, b)];
     redraw();
   };
   const move = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -182,7 +222,17 @@ function InkLayer({ tool, color, strokes, bump, onBefore, onCancel }: { tool: To
     for (const ev of events.length ? events : [e.nativeEvent]) {
       const p = pos(ev);
       if (tool === 'erase') eraseAt(p[0], p[1]);
-      else cur.current.pts.push(p);
+      else if (straight.current) cur.current.pts = [cur.current.pts[0], snapEnd(cur.current.pts[0], p)];
+      else {
+        cur.current.pts.push(p);
+        // זז יותר מכמה פיקסלים: מתחילים לספור מחדש את זמן ההשארה במקום
+        const a = anchor.current;
+        if (!a || (p[0] - a[0]) ** 2 + (p[1] - a[1]) ** 2 > 5 ** 2) {
+          anchor.current = p;
+          clearTimeout(holdTimer.current);
+          holdTimer.current = window.setTimeout(straighten, HOLD_MS);
+        }
+      }
     }
     if (tool !== 'erase') redraw();
   };
@@ -190,8 +240,10 @@ function InkLayer({ tool, color, strokes, bump, onBefore, onCancel }: { tool: To
     touches.current.delete(e.pointerId);
     panY.current = touches.current.size >= 2 ? meanY() : null;
     if (e.pointerId === drawId.current) {
+      clearTimeout(holdTimer.current);
       cur.current = null;
       drawId.current = null;
+      straight.current = false;
     }
   };
 
@@ -224,6 +276,15 @@ function browserAssistantDevice() {
 /* ---------- הדף ---------- */
 
 const PEN_COLORS = [INK, '#1c7ed6', '#c92a2a', '#2f9e44'];
+/** הצבע החמישי: כל תלמיד בוחר לעצמו, ונשמר במכשיר */
+const CUSTOM_KEY = 'matemati-kal:pen5';
+const loadCustom = () => {
+  try {
+    return localStorage.getItem(CUSTOM_KEY) || '#7c3aed';
+  } catch {
+    return '#7c3aed';
+  }
+};
 
 /** Ctrl במחשב, ⌘ במק ובאייפד */
 const MOD = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? '⌘' : 'Ctrl+';
@@ -303,7 +364,16 @@ export function Sheet() {
   const s = useSheet();
   const profile = activeProfile(useStore());
   const [tool, setTool] = useState<Tool>('pen');
-  const [color, setColor] = useState(INK);
+  const [colorIdx, setColorIdx] = useState(0);
+  const [custom, setCustom] = useState(loadCustom);
+  const palette = [...PEN_COLORS, custom];
+  const color = palette[colorIdx];
+  const customInput = useRef<HTMLInputElement>(null);
+  const pickColor = (i: number) => {
+    setColorIdx(i);
+    // צבע חדש לסרגל נשאר בסרגל; מכל כלי אחר חוזרים לעט
+    setTool((t) => (t === 'line' ? 'line' : 'pen'));
+  };
   const [extra, setExtra] = useState(0);
   const [showFig, setShowFig] = useState(true);
   const [bump, setBump] = useState(0);
@@ -358,7 +428,8 @@ export function Sheet() {
       else if (k === 'KeyE') act = 'erase';
       else if (k === 'KeyH') act = 'scroll';
       else if (k === 'KeyN') act = 'new';
-      else if (/^Digit[1-4]$/.test(k)) act = `color${k.slice(5)}`;
+      else if (k === 'KeyL') act = 'line';
+      else if (/^Digit[1-5]$/.test(k)) act = `color${k.slice(5)}`;
       else if (k === 'Space') {
         if (!e.repeat && beforeSpace === null) {
           beforeSpace = toolRef.current;
@@ -402,6 +473,8 @@ export function Sheet() {
   }, [s.open, s.half]);
 
   if (!profile) return null;
+  const calcOpen = useCalcOpen();
+  const calcKind = currentCalcKind();
   /** הכפתורים הצפים. "מורה פרטי AI" נשאר גם מעל דף הטיוטה הפתוח */
   const floating = (
     <div className="fixed bottom-3 left-3 z-[55] flex flex-wrap gap-2 print:hidden">
@@ -409,6 +482,18 @@ export function Sheet() {
         <button type="button" onClick={openSheet} className="flex h-11 items-center gap-2 rounded-full bg-white px-4 font-display text-[15px] font-semibold text-ink shadow-lg ring-2 ring-ink">
           <span aria-hidden="true">✏️</span>
           {T('דף טיוטה')}
+        </button>
+      )}
+      {calcKind !== 'none' && (
+        <button
+          type="button"
+          onClick={toggleCalc}
+          aria-pressed={calcOpen}
+          title={calcKind === 'scientific' ? T('מחשבון מדעי') : T('מחשבון')}
+          className={`flex h-11 items-center gap-2 rounded-full px-4 font-display text-[15px] font-semibold shadow-lg ring-2 ring-ink ${calcOpen ? 'bg-sand text-ink' : 'bg-white text-ink'}`}
+        >
+          <span aria-hidden="true">🧮</span>
+          {T('מחשבון')}
         </button>
       )}
       {browserAssistantDevice() && (
@@ -474,15 +559,8 @@ export function Sheet() {
     new: askNew,
     cancelNew: () => setConfirmNew(false),
     confirmNew: newSheet,
-    ...Object.fromEntries(
-      PEN_COLORS.map((c, i) => [
-        `color${i + 1}`,
-        () => {
-          setColor(c);
-          setTool('pen');
-        },
-      ]),
-    ),
+    line: () => setTool('line'),
+    ...Object.fromEntries([1, 2, 3, 4, 5].map((n) => [`color${n}`, () => pickColor(n - 1)])),
   };
 
   return (
@@ -492,25 +570,59 @@ export function Sheet() {
       <div className="@container border-b-2 border-ink bg-sand">
       <div className="flex flex-col-reverse items-center gap-x-2 gap-y-2 px-3 py-2 @min-[820px]:flex-row @min-[820px]:justify-between">
         <div className="flex flex-wrap items-center justify-center gap-2">
-          {PEN_COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              aria-label={T('צבע')}
-              title={`${T('צבע')} (${PEN_COLORS.indexOf(c) + 1})`}
-              aria-keyshortcuts={String(PEN_COLORS.indexOf(c) + 1)}
-              aria-pressed={tool === 'pen' && color === c}
-              onClick={() => {
-                setColor(c);
-                setTool('pen');
-              }}
-              className="h-10 w-10 rounded-full border-[3px] border-white"
-              style={{ background: c, boxShadow: tool === 'pen' && color === c ? `0 0 0 3px ${INK}` : `0 0 0 1px #c9c4b6` }}
-            />
-          ))}
+          {/* הצבעים משמאל לימין, כמו המקשים 1–5 במקלדת */}
+          <div dir="ltr" className="flex items-center gap-2">
+            {palette.map((c, i) => {
+              const on = (tool === 'pen' || tool === 'line') && colorIdx === i;
+              const isCustom = i === PEN_COLORS.length;
+              return (
+                <span key={i} className="relative">
+                  <button
+                    type="button"
+                    aria-label={isCustom ? T('צבע לבחירה') : T('צבע')}
+                    title={isCustom ? `${T('צבע לבחירה')} (5) · ${T('לחיצה נוספת משנה את הצבע')}` : `${T('צבע')} (${i + 1})`}
+                    aria-keyshortcuts={String(i + 1)}
+                    aria-pressed={on}
+                    onClick={() => (isCustom && on ? customInput.current?.click() : pickColor(i))}
+                    className="block h-10 w-10 rounded-full border-[3px] border-white"
+                    style={{ background: c, boxShadow: on ? `0 0 0 3px ${INK}` : `0 0 0 1px #c9c4b6` }}
+                  />
+                  {isCustom && (
+                    <>
+                      {/* סימן קטן שאומר שאפשר לשנות את הצבע הזה */}
+                      <span aria-hidden="true" className="pointer-events-none absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] leading-none shadow ring-1 ring-[#c9c4b6]">
+                        +
+                      </span>
+                      {/* בוחר הצבעים של המכשיר. בצבע שכבר נבחר הוא מכסה את הכפתור, כדי שנגיעה תפתח אותו גם באייפד */}
+                      <input
+                        ref={customInput}
+                        type="color"
+                        value={custom}
+                        aria-label={T('בחירת צבע')}
+                        onChange={(e) => {
+                          setCustom(e.target.value);
+                          setColorIdx(PEN_COLORS.length);
+                          try {
+                            localStorage.setItem(CUSTOM_KEY, e.target.value);
+                          } catch {
+                            /* שמירה במכשיר לא חובה */
+                          }
+                        }}
+                        className="absolute inset-0 h-10 w-10 cursor-pointer rounded-full opacity-0"
+                        style={{ pointerEvents: on ? 'auto' : 'none' }}
+                      />
+                    </>
+                  )}
+                </span>
+              );
+            })}
+          </div>
           {sep}
           <ToolBtn on={tool === 'pen'} onClick={() => setTool('pen')} label={T('עט')} kbd="P">
             <Icon d="M4 20l1-4.5L16.5 4a2.1 2.1 0 0 1 3 3L8 18.5 4 20zM14.5 6l3 3" />
+          </ToolBtn>
+          <ToolBtn on={tool === 'line'} onClick={() => setTool('line')} label={T('סרגל: קו ישר')} kbd="L">
+            <Icon d="M3 16.5 16.5 3 21 7.5 7.5 21zM7 12.5l2 2M10 9.5l2 2M13 6.5l2 2" />
           </ToolBtn>
           <ToolBtn on={tool === 'erase'} onClick={() => setTool('erase')} label={T('מחק')} kbd="E">
             <Icon d="M20 20H10l-5.6-5.6a2 2 0 0 1 0-2.8l7.2-7.2a2 2 0 0 1 2.8 0l5.2 5.2a2 2 0 0 1 0 2.8L12 20M8.5 8.5l7 7" />

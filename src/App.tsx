@@ -3,6 +3,7 @@ import { setLocale } from './i18n';
 import { Header } from './components/Header';
 import { Home, TrackPage } from './components/Home';
 import { EditProfile, NewProfile, ProfileList, Welcome } from './components/Profiles';
+import { Calculator } from './components/Calculator';
 import { Sheet } from './components/Sheet';
 import { TopicPage } from './components/TopicPage';
 import { installTutorApi } from './lib/sheet';
@@ -53,6 +54,7 @@ function Screens() {
         {route.name === 'topic' ? <TopicPage key={route.topic.id} topic={route.topic} /> : route.name === 'track' ? <TrackPage id={route.id} /> : <Home />}
       </main>
       <Sheet />
+      <Calculator />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import type { Figure, Level, Pt, Question, Shape, Step } from './types';
 export type { Pt, Shape };
 import { activeProfile, getState } from './store';
 import { API_HELP, TUTOR_RULES } from './tutorGuide';
+import { calcFor } from './calc';
 
 /* ---------- בלוקים שהמורה מוסיף לדף ---------- */
 
@@ -136,6 +137,7 @@ export const tutorApi = {
       topic: onTopic && ctx.topicId ? topicInfo(ctx.topicId) : null,
       tab: onTopic ? ctx.tab : null,
       level: onTopic && ctx.tab === 'practice' ? ctx.level : null,
+      calculator: onTopic ? calcFor(ctx.topicId) : 'none',
       exercise: onTopic && ctx.tab === 'practice' && q ? { text: q.text, latex: q.latex ?? null, figure: q.figure ?? null, answerKind: q.answer.type, attempts: ctx.attempts, status: ctx.status } : null,
       reminder: 'Do not give the answer to this exercise. Guide the student to it.',
     };
