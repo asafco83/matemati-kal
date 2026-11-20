@@ -225,9 +225,12 @@ function browserAssistantDevice() {
 
 const PEN_COLORS = [INK, '#1c7ed6', '#c92a2a', '#2f9e44'];
 
-function ToolBtn({ on, onClick, label, disabled, children }: { on?: boolean; onClick: () => void; label: string; disabled?: boolean; children: ReactNode }) {
+/** Ctrl במחשב, ⌘ במק ובאייפד */
+const MOD = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? '⌘' : 'Ctrl+';
+
+function ToolBtn({ on, onClick, label, disabled, kbd, children }: { on?: boolean; onClick: () => void; label: string; disabled?: boolean; /** קיצור מקלדת, מוצג ברמז */ kbd?: string; children: ReactNode }) {
   return (
-    <button type="button" onClick={onClick} disabled={disabled} aria-pressed={on} aria-label={label} title={label} className={`flex h-11 min-w-11 items-center justify-center rounded-full px-3 text-[15px] font-bold disabled:opacity-40 ${on ? 'bg-ink text-white' : 'bg-white text-ink hover:bg-[#f3efe4]'}`}>
+    <button type="button" onClick={onClick} disabled={disabled} aria-pressed={on} aria-label={label} aria-keyshortcuts={kbd} title={kbd ? `${label} (${kbd})` : label} className={`flex h-11 min-w-11 items-center justify-center rounded-full px-3 text-[15px] font-bold disabled:opacity-40 ${on ? 'bg-ink text-white' : 'bg-white text-ink hover:bg-[#f3efe4]'}`}>
       {children}
     </button>
   );
@@ -326,6 +329,62 @@ export function Sheet() {
     setCanUndo(history.current.length > 0);
   };
 
+  /** הפעולות של הסרגל, לקיצורי המקלדת. מתעדכן בכל ציור של הרכיב */
+  const keys = useRef<Record<string, () => void>>({});
+  const confirmRef = useRef(confirmNew);
+  confirmRef.current = confirmNew;
+  const toolRef = useRef(tool);
+  toolRef.current = tool;
+  useEffect(() => {
+    if (!s.open) return;
+    /** כלי שהיה לפני שהחזיקו רווח (גלילה זמנית) */
+    let beforeSpace: Tool | null = null;
+    const down = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
+      // חלון אחר פתוח מעל הדף (חיפוש, מורה פרטי): לא מפריעים לו
+      if (!confirmRef.current && document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+      const mod = e.ctrlKey || e.metaKey;
+      // לפי מיקום המקש ולא לפי האות, כדי שיעבוד גם במקלדת בעברית
+      const k = e.code;
+      let act: string | null = null;
+      if (mod && k === 'KeyA') act = 'none';
+      else if (mod && k === 'KeyZ') act = e.shiftKey ? 'redo' : 'undo';
+      else if (mod && k === 'KeyY') act = 'redo';
+      else if (mod && k === 'KeyS') act = 'save';
+      else if (mod || e.altKey) return;
+      else if (confirmRef.current) act = k === 'Escape' ? 'cancelNew' : k === 'Enter' ? 'confirmNew' : null;
+      else if (k === 'KeyP') act = 'pen';
+      else if (k === 'KeyE') act = 'erase';
+      else if (k === 'KeyH') act = 'scroll';
+      else if (k === 'KeyN') act = 'new';
+      else if (/^Digit[1-4]$/.test(k)) act = `color${k.slice(5)}`;
+      else if (k === 'Space') {
+        if (!e.repeat && beforeSpace === null) {
+          beforeSpace = toolRef.current;
+          keys.current.scroll();
+        }
+        e.preventDefault();
+        return;
+      }
+      if (!act) return;
+      e.preventDefault();
+      keys.current[act]?.();
+    };
+    const up = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && beforeSpace !== null) {
+        keys.current[beforeSpace]?.();
+        beforeSpace = null;
+      }
+    };
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    return () => {
+      window.removeEventListener('keydown', down);
+      window.removeEventListener('keyup', up);
+    };
+  }, [s.open]);
+
   useEffect(() => {
     strokes.current = [];
     history.current = [];
@@ -403,11 +462,33 @@ export function Sheet() {
     }
   };
   const sep = <span aria-hidden="true" className="mx-1 h-8 w-px bg-[#c9c4b6]" />;
+  const askNew = () => (strokes.current.length ? setConfirmNew(true) : newSheet());
+  keys.current = {
+    none: () => {},
+    undo,
+    redo,
+    save: () => void save(),
+    pen: () => setTool('pen'),
+    erase: () => setTool('erase'),
+    scroll: () => setTool('scroll'),
+    new: askNew,
+    cancelNew: () => setConfirmNew(false),
+    confirmNew: newSheet,
+    ...Object.fromEntries(
+      PEN_COLORS.map((c, i) => [
+        `color${i + 1}`,
+        () => {
+          setColor(c);
+          setTool('pen');
+        },
+      ]),
+    ),
+  };
 
   return (
     <>
     {floating}
-    <aside className={`sheet fixed inset-y-0 left-0 z-50 flex flex-col bg-[#fbfaf5] shadow-2xl ${s.half ? 'w-full lg:w-1/2 lg:border-r-2 lg:border-ink' : 'w-full'}`} aria-label={T('דף טיוטה')}>
+    <aside className={`sheet fixed inset-y-0 left-0 z-50 flex select-none flex-col bg-[#fbfaf5] shadow-2xl [-webkit-touch-callout:none] ${s.half ? 'w-full lg:w-1/2 lg:border-r-2 lg:border-ink' : 'w-full'}`} aria-label={T('דף טיוטה')}>
       <div className="@container border-b-2 border-ink bg-sand">
       <div className="flex flex-col-reverse items-center gap-x-2 gap-y-2 px-3 py-2 @min-[820px]:flex-row @min-[820px]:justify-between">
         <div className="flex flex-wrap items-center justify-center gap-2">
@@ -416,6 +497,8 @@ export function Sheet() {
               key={c}
               type="button"
               aria-label={T('צבע')}
+              title={`${T('צבע')} (${PEN_COLORS.indexOf(c) + 1})`}
+              aria-keyshortcuts={String(PEN_COLORS.indexOf(c) + 1)}
               aria-pressed={tool === 'pen' && color === c}
               onClick={() => {
                 setColor(c);
@@ -426,27 +509,27 @@ export function Sheet() {
             />
           ))}
           {sep}
-          <ToolBtn on={tool === 'pen'} onClick={() => setTool('pen')} label={T('עט')}>
+          <ToolBtn on={tool === 'pen'} onClick={() => setTool('pen')} label={T('עט')} kbd="P">
             <Icon d="M4 20l1-4.5L16.5 4a2.1 2.1 0 0 1 3 3L8 18.5 4 20zM14.5 6l3 3" />
           </ToolBtn>
-          <ToolBtn on={tool === 'erase'} onClick={() => setTool('erase')} label={T('מחק')}>
+          <ToolBtn on={tool === 'erase'} onClick={() => setTool('erase')} label={T('מחק')} kbd="E">
             <Icon d="M20 20H10l-5.6-5.6a2 2 0 0 1 0-2.8l7.2-7.2a2 2 0 0 1 2.8 0l5.2 5.2a2 2 0 0 1 0 2.8L12 20M8.5 8.5l7 7" />
           </ToolBtn>
-          <ToolBtn on={tool === 'scroll'} onClick={() => setTool('scroll')} label={T('גלילה')}>
+          <ToolBtn on={tool === 'scroll'} onClick={() => setTool('scroll')} label={T('גלילה')} kbd="H">
             <Icon d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-1V4.5a1.5 1.5 0 0 1 3 0V11m0-4.5a1.5 1.5 0 0 1 3 0V12m0-2.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.9-2.6L4.4 14a1.6 1.6 0 0 1 2.5-2L8 13" />
           </ToolBtn>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <ToolBtn onClick={undo} disabled={!canUndo} label={T('ביטול הפעולה האחרונה')}>
+          <ToolBtn onClick={undo} disabled={!canUndo} label={T('ביטול הפעולה האחרונה')} kbd={`${MOD}Z`}>
             <Icon d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" />
           </ToolBtn>
-          <ToolBtn onClick={redo} disabled={!canRedo} label={T('ביצוע מחדש')}>
+          <ToolBtn onClick={redo} disabled={!canRedo} label={T('ביצוע מחדש')} kbd={`${MOD}Shift+Z`}>
             <Icon d="m15 14 5-5-5-5M20 9H10a6 6 0 0 0 0 12h3" />
           </ToolBtn>
-          <ToolBtn onClick={() => (strokes.current.length ? setConfirmNew(true) : newSheet())} label={T('דף חדש')}>
+          <ToolBtn onClick={askNew} label={T('דף חדש')} kbd="N">
             {T('דף חדש')}
           </ToolBtn>
-          <ToolBtn onClick={save} disabled={saving} label={T('שמירה כתמונה')}>
+          <ToolBtn onClick={save} disabled={saving} label={T('שמירה כתמונה')} kbd={`${MOD}S`}>
             <Icon d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14" />
           </ToolBtn>
           <span className="hidden lg:inline-flex">
