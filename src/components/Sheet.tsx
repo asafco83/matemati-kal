@@ -1,7 +1,7 @@
 import { browserAssistantDevice } from '../lib/device';
 import { Component, useEffect, useRef, useState, type ReactNode } from 'react';
 import { topicById } from '../content';
-import { clearBlocks, closeSheet, openSheet, setTutorDialog, sheetContext, toggleHalf, useSheet, type Block } from '../lib/sheet';
+import { clearBlocks, closeSheet, openSheet, setTutorDialog, sheetContext, toggleHalf, useScreen, useSheet, type Block } from '../lib/sheet';
 import { activeProfile, useStore } from '../lib/store';
 import { gradeName } from '../lib/types';
 import { currentCalcKind, toggleCalc, useCalcOpen } from './Calculator';
@@ -461,8 +461,9 @@ export function Sheet() {
     return () => document.documentElement.classList.remove('sheet-half');
   }, [s.open, s.half]);
 
-  if (!profile) return null;
   const calcOpen = useCalcOpen();
+  useScreen();
+  if (!profile) return null;
   const calcKind = currentCalcKind();
   /** הכפתורים הצפים. "מורה פרטי AI" נשאר גם מעל דף הטיוטה הפתוח */
   const floating = (

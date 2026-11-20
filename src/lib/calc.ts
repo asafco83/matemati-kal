@@ -1,32 +1,145 @@
 /**
  * המחשבון: מתי מותר להשתמש בו, וחישוב של ביטוי (בלי eval).
  *
- * הכללים, לפי משרד החינוך:
- * - יסודי: תוכנית הלימודים לכיתות א'–ו' מגבילה את המחשבון לכיתה ו', כדי שהתלמידים
- *   יגיעו קודם לשליטה בחשבון. גם בכיתה ו' לא בנושאים שבהם החישוב הוא מה שמתרגלים.
- * - חטיבת ביניים: במבחני המיצ"ב לכיתה ח' מותר מחשבון (בחלק מהשנים חלק מהמבחן בלעדיו).
- *   מחשבון פשוט, חוץ מנושאים שבהם החישוב או הטכניקה האלגברית הם העיקר.
- * - תיכון: בכל שאלוני הבגרות מותר מחשבון לא גרפי, ולכן מחשבון מדעי.
+ * שני תנאים, ושניהם צריכים להתקיים:
+ * 1. הכיתה (כללי משרד החינוך) קובעת אם מותר מחשבון ואיזה:
+ *    - יסודי: תוכנית הלימודים לכיתות א'–ו' מגבילה את המחשבון לכיתה ו', כדי שהתלמידים
+ *      יגיעו קודם לשליטה בחשבון.
+ *    - חטיבת ביניים: מחשבון פשוט (במיצ"ב לכיתה ח' מותר מחשבון).
+ *    - תיכון: בכל שאלוני הבגרות מותר מחשבון לא גרפי, ולכן מחשבון מדעי.
+ * 2. הנושא והרמה: מחשבון מופיע רק כשיש בתרגיל חישוב שהוא לא מה שמתרגלים.
+ *    בתרגול חשבון, בטכניקה אלגברית, בערכים מיוחדים, או כשהמספרים קטנים והחישוב
+ *    בעל-פה הוא חלק מהמיומנות, אין מחשבון גם בכיתה שבה הוא מותר.
  */
 import { topicById } from '../content';
-import { teaches } from './types';
+import { teaches, type Level } from './types';
 
 export type CalcKind = 'none' | 'basic' | 'scientific';
 
-/** נושאים של כיתה ו' שבהם החישוב הוא לא העיקר */
-const GRADE6_ALLOWED = new Set(['scale', 'circle', 'percent', 'ratio', 'speed', 'volume']);
-/** נושאים של חטיבת הביניים שבהם מתרגלים את החישוב או את הטכניקה עצמה */
-const MIDDLE_NONE = new Set(['negatives', 'like-terms', 'patterns', 'expand', 'powers-roots', 'factoring', 'short-mult', 'algebraic-fractions', 'congruence', 'order-of-ops', 'divisibility', 'fractions-mult']);
+type Allow = 0 | 1;
+/** לכל נושא: האם יש טעם במחשבון ברמה 1, 2, 3. כל נושא חייב להופיע כאן (נבדק ב-npm test) */
+export const CALC_LEVELS: Record<string, [Allow, Allow, Allow]> = {
+  // יסודי: תרגול החשבון עצמו
+  'add-sub': [0, 0, 0],
+  'mult-table': [0, 0, 0],
+  'place-value': [0, 0, 0],
+  'long-mult': [0, 0, 0],
+  'long-division': [0, 0, 0],
+  divisibility: [0, 0, 0],
+  'order-of-ops': [0, 0, 0],
+  rounding: [0, 0, 0],
+  'compare-numbers': [0, 0, 0],
+  'fractions-intro': [0, 0, 0],
+  'fractions-add': [0, 0, 0],
+  'mixed-numbers': [0, 0, 0],
+  'fractions-mult': [0, 0, 0],
+  decimals: [0, 0, 0],
+  measures: [0, 0, 0],
+  clock: [0, 0, 0],
+  charts: [0, 0, 0],
+  'word-problems-basic': [0, 0, 0],
+  // יסודי: גאומטריה עם מספרים קטנים
+  'perimeter-area': [0, 0, 0],
+  shapes: [0, 0, 0],
+  symmetry: [0, 0, 0],
+  'angles-basic': [0, 0, 0],
+  'triangle-area': [0, 0, 0],
+  // כיתה ו' ואילך: חישוב עם π ועם מספרים גדולים, כשהעיקר הוא הנוסחה. מקצוע חסר בתיבה הוא חילוק פשוט
+  volume: [1, 1, 0],
+  circle: [1, 1, 1],
+  // מהירות וקנה מידה: מספרים עגולים, והמרת היחידות היא המיומנות.
+  speed: [0, 0, 0],
+  scale: [0, 0, 0],
+  // אחוזים: בונים כל אחוז מ-10% ומ-1% בעל-פה; רק בהנחה, בהתייקרות ובמציאת האחוז יש מחשבון.
+  // יחס: השלמה וחלוקה בעל-פה; פרופורציה (כפל בהצלבה) עם מחשבון
+  percent: [0, 0, 1],
+  ratio: [0, 0, 1],
+  // ממוצע של מעט מספרים קטנים, חציון ושכיח (סידור וספירה)
+  averages: [0, 0, 0],
+  // חטיבת ביניים: טכניקה אלגברית וחשבון במספרים מכוונים
+  negatives: [0, 0, 0],
+  'like-terms': [0, 0, 0],
+  patterns: [0, 0, 0],
+  expand: [0, 0, 0],
+  'powers-roots': [0, 0, 0],
+  'short-mult': [0, 0, 0],
+  factoring: [0, 0, 0],
+  'linear-eq': [0, 0, 0],
+  inequalities: [0, 0, 0],
+  systems: [0, 0, 0],
+  'linear-function': [0, 0, 0],
+  probability: [0, 0, 0],
+  // בעיות מילוליות: בונים משוואה, והמספרים קטנים
+  'word-problems': [0, 0, 0],
+  // חטיבת ביניים: גאומטריה
+  'angles-triangle': [0, 0, 0],
+  'parallel-lines': [0, 0, 0],
+  congruence: [0, 0, 0],
+  pythagoras: [1, 1, 1],
+  // אלכסון המלבן (פיתגורס)
+  quadrilaterals: [0, 0, 1],
+  // יחס השטחים: ריבוע של יחס דמיון עשרוני
+  similarity: [0, 0, 1],
+  // ט' ותיכון: אלגברה
+  quadratics: [0, 0, 1],
+  parabola: [0, 0, 0],
+  'algebraic-fractions': [0, 0, 0],
+  'quadratic-inequalities': [0, 0, 0],
+  sequences: [0, 1, 0],
+  'infinite-geometric': [0, 0, 0],
+  exponential: [0, 1, 0],
+  // סדרות: סכום של איברים רבים. מעריכית: גדילה ודעיכה באחוזים. לוגריתמים ומשוואות מעריכיות: המיומנות היא החוקים
+  logarithms: [0, 0, 0],
+  induction: [0, 0, 0],
+  complex: [0, 1, 0],
+  'linear-programming': [0, 0, 0],
+  'quadratic-model': [0, 0, 0],
+  // חשבון דיפרנציאלי ואינטגרלי: טכניקה עם מספרים שלמים; שטח בין גרף לציר יוצא שבר לעיגול
+  derivatives: [0, 0, 0],
+  'derivative-rules': [0, 0, 0],
+  'derivatives-special': [0, 0, 0],
+  investigation: [0, 0, 0],
+  optimization: [0, 0, 0],
+  integrals: [0, 0, 1],
+  // ט' ותיכון: גאומטריה וטריגונומטריה
+  'circle-angles': [0, 0, 0],
+  thales: [0, 0, 0],
+  analytic: [0, 1, 0],
+  'circle-equation': [0, 1, 0],
+  conics: [1, 1, 0],
+  vectors: [1, 0, 0],
+  solids: [1, 1, 1],
+  'trig-right': [1, 1, 1],
+  'sine-cosine-law': [1, 1, 1],
+  'trig-3d': [1, 1, 1],
+  'trig-equations': [0, 0, 0],
+  // ערכים מיוחדים, זהויות ומשוואות טריגונומטריות בזוויות מיוחדות לומדים בלי מחשבון
+  'unit-circle': [0, 0, 0],
+  // סטטיסטיקה והסתברות בתיכון
+  'tree-diagram': [1, 1, 1],
+  binomial: [0, 1, 1],
+  statistics: [1, 0, 1],
+  regression: [0, 0, 1],
+  normal: [0, 0, 0],
+};
 
-/** grade: הכיתה של התלמיד. אם הנושא נלמד בכיתה שלו קובעים לפיה, אחרת לפי הכיתה הראשונה שבה הנושא נלמד */
-export function calcFor(topicId: string | null | undefined, grade?: number | null): CalcKind {
+/** איזה מחשבון מותר בכיתה הזו */
+function kindForGrade(g: number): CalcKind {
+  if (g >= 10) return 'scientific';
+  if (g >= 6) return 'basic';
+  return 'none';
+}
+
+/**
+ * grade: הכיתה של התלמיד. אם הנושא נלמד בכיתה שלו קובעים לפיה, אחרת לפי הכיתה הראשונה שבה הנושא נלמד.
+ * level: הרמה שמתרגלים עכשיו. בלי רמה (למידה, דוגמאות) המחשבון מופיע אם הוא שימושי באחת הרמות.
+ */
+export function calcFor(topicId: string | null | undefined, grade?: number | null, level?: Level | null): CalcKind {
   const t = topicId ? topicById(topicId) : undefined;
   if (!t) return 'none';
-  const g = grade != null && teaches(t, grade) ? grade : t.grades[0];
-  if (g >= 10) return 'scientific';
-  if (g >= 7) return MIDDLE_NONE.has(t.id) ? 'none' : 'basic';
-  if (g === 6) return GRADE6_ALLOWED.has(t.id) ? 'basic' : 'none';
-  return 'none';
+  const allow = CALC_LEVELS[t.id];
+  if (!allow || !(level ? allow[level - 1] : allow.some(Boolean))) return 'none';
+  return kindForGrade(grade != null && teaches(t, grade) ? grade : t.grades[0]);
 }
 
 /* ---------- חישוב ---------- */

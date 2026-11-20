@@ -13,7 +13,7 @@ export const API_HELP = `${TUTOR_RULES}
 
 API (call from the page's JavaScript context):
 - mathTutor.context()  → where the student is now: grade, topic, tab, level, the current exercise (text only, no answer), attempts, status.
-  calculator: 'none' | 'basic' | 'scientific' is what the student may use on this topic, following school rules (none in grades 1-5 and where the calculation itself is being practiced). Don't do calculations for the student that the calculator rule forbids.
+  calculator: 'none' | 'basic' | 'scientific' is what the student may use on this topic, for the current level, following school rules (none in grades 1-5) and the exercise itself (none where the calculation is what is being practiced, or the numbers are meant for mental math). Don't do calculations for the student that the calculator rule forbids.
 - mathTutor.curriculum({ grade?, units?, query? })  → topics: id, title, grades, units, track, summary, levels, section titles.
 - mathTutor.lesson(topicId)  → the full lesson: intro, prerequisites, sections (short + step-by-step), method, worked examples, tips.
 - mathTutor.open(topicId, tab?)  → go to a topic. tab: 'learn' | 'examples' | 'practice'.

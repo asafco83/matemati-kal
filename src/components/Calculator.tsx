@@ -1,7 +1,8 @@
 import { useEffect, useRef, useSyncExternalStore, type ReactNode } from 'react';
 import { calcFor, evaluate, formatResult, type CalcKind } from '../lib/calc';
 import { getLocale, localizeNumber, T } from '../i18n';
-import { activeProfile, getState } from '../lib/store';
+import { activeProfile, getState, useStore } from '../lib/store';
+import { sheetContext, useScreen } from '../lib/sheet';
 
 /**
  * מחשבון בחלון צף: אפשר להזיז אותו, למזער ולסגור. החישוב נשמר גם כשממזערים,
@@ -54,7 +55,10 @@ const useCalc = () =>
 export const toggleCalc = () => set(st.open ? { open: false } : { open: true, min: false });
 export const useCalcOpen = () => useCalc().open;
 /** סוג המחשבון שמותר בעמוד הנוכחי */
-export const currentCalcKind = (): CalcKind => calcFor(location.hash.match(/^#\/topic\/([\w-]+)/)?.[1], activeProfile(getState())?.grade);
+export const currentCalcKind = (): CalcKind => {
+  const c = sheetContext();
+  return calcFor(location.hash.match(/^#\/topic\/([\w-]+)/)?.[1], activeProfile(getState())?.grade, c.tab === 'practice' ? c.level : null);
+};
 
 const FN_INSERT: Record<string, string> = { sin: 'sin(', cos: 'cos(', tan: 'tan(', 'sin⁻¹': 'sin⁻¹(', 'cos⁻¹': 'cos⁻¹(', 'tan⁻¹': 'tan⁻¹(', ln: 'ln(', log: 'log(', '√': '√(', eˣ: 'e^(', '10ˣ': '10^(' };
 const TOKENS = ['sin⁻¹(', 'cos⁻¹(', 'tan⁻¹(', 'sin(', 'cos(', 'tan(', 'ln(', 'log(', '√(', 'Ans'];
@@ -114,6 +118,9 @@ function Key({ k, label, kind = 'num', wide, aria }: { k: string; label?: ReactN
 
 export function Calculator() {
   const s = useCalc();
+  // מתעדכן כשעוברים רמה, לשונית או פרופיל
+  useScreen();
+  useStore();
   const kind = currentCalcKind();
   const box = useRef<HTMLDivElement>(null);
   const drag = useRef<{ dx: number; dy: number } | null>(null);
