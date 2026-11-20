@@ -275,15 +275,22 @@ export function Sheet() {
   const [confirmNew, setConfirmNew] = useState(false);
   const [saving, setSaving] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
+  /** מצבים שבוטלו, ל"ביצוע מחדש". פעולה חדשה מוחקת אותם */
+  const future = useRef<Stroke[][]>([]);
+  const [canRedo, setCanRedo] = useState(false);
   const remember = () => {
     history.current = [...history.current.slice(-59), strokes.current];
+    future.current = [];
     setCanUndo(true);
+    setCanRedo(false);
   };
 
   useEffect(() => {
     strokes.current = [];
     history.current = [];
+    future.current = [];
     setCanUndo(false);
+    setCanRedo(false);
     setConfirmNew(false);
     setExtra(0);
     setShowFig(true);
@@ -317,8 +324,19 @@ export function Sheet() {
   const undo = () => {
     const prev = history.current.pop();
     if (!prev) return;
+    future.current.push(strokes.current);
     strokes.current = prev;
     setCanUndo(history.current.length > 0);
+    setCanRedo(true);
+    setBump((b) => b + 1);
+  };
+  const redo = () => {
+    const next = future.current.pop();
+    if (!next) return;
+    history.current.push(strokes.current);
+    strokes.current = next;
+    setCanUndo(true);
+    setCanRedo(future.current.length > 0);
     setBump((b) => b + 1);
   };
   const newSheet = () => {
@@ -337,7 +355,7 @@ export function Sheet() {
       setSaving(false);
     }
   };
-  const sep = <span aria-hidden="true" className="mx-1 hidden h-8 w-px bg-[#c9c4b6] sm:block" />;
+  const sep = <span aria-hidden="true" className="mx-1 h-8 w-px bg-[#c9c4b6]" />;
 
   return (
     <aside className={`sheet fixed inset-y-0 left-0 z-50 flex flex-col bg-[#fbfaf5] shadow-2xl ${s.half ? 'w-full lg:w-1/2 lg:border-r-2 lg:border-ink' : 'w-full'}`} aria-label={T('דף טיוטה')}>
@@ -357,9 +375,7 @@ export function Sheet() {
               style={{ background: c, boxShadow: tool === 'pen' && color === c ? `0 0 0 3px ${INK}` : `0 0 0 1px #c9c4b6` }}
             />
           ))}
-        </div>
-        {sep}
-        <div className="flex items-center gap-2">
+          {sep}
           <ToolBtn on={tool === 'pen'} onClick={() => setTool('pen')} label={T('עט')}>
             <Icon d="M4 20l1-4.5L16.5 4a2.1 2.1 0 0 1 3 3L8 18.5 4 20zM14.5 6l3 3" />
           </ToolBtn>
@@ -370,10 +386,17 @@ export function Sheet() {
             <Icon d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-1V4.5a1.5 1.5 0 0 1 3 0V11m0-4.5a1.5 1.5 0 0 1 3 0V12m0-2.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.9-2.6L4.4 14a1.6 1.6 0 0 1 2.5-2L8 13" />
           </ToolBtn>
         </div>
-        {sep}
         <div className="flex items-center gap-2">
+          {browserAssistantDevice() && (
+            <ToolBtn onClick={() => setTutorDialog(true)} label={T('מורה פרטי AI')}>
+              <span aria-hidden="true">🎓</span>
+            </ToolBtn>
+          )}
           <ToolBtn onClick={undo} disabled={!canUndo} label={T('ביטול הפעולה האחרונה')}>
             <Icon d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" />
+          </ToolBtn>
+          <ToolBtn onClick={redo} disabled={!canRedo} label={T('ביצוע מחדש')}>
+            <Icon d="m15 14 5-5-5-5M20 9H10a6 6 0 0 0 0 12h3" />
           </ToolBtn>
           <ToolBtn onClick={() => (strokes.current.length ? setConfirmNew(true) : newSheet())} label={T('דף חדש')}>
             {T('דף חדש')}
@@ -407,8 +430,9 @@ export function Sheet() {
           </div>
         </div>
       )}
+      {s.tutorDialog && <TutorDialog />}
       <div className="flex-1 overflow-y-auto overscroll-contain">
-        <div ref={paper} className="sheet-paper relative" style={{ minHeight: `calc(100% + ${extra * 600}px)` }}>
+        <div ref={paper} className="sheet-paper relative" style={{ minHeight: `calc(100% - 68px + ${extra * 600}px)` }}>
           <NotationContext.Provider value={notationForGrade(profile.grade)}>
             <div className="flex flex-col gap-5 p-5 sm:p-7">
               {s.question && (
@@ -506,7 +530,7 @@ function TutorDialog() {
   };
   if (!s.tutorDialog) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/50 p-3 sm:items-center" onClick={() => setTutorDialog(false)}>
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 p-3 sm:items-center" onClick={() => setTutorDialog(false)}>
       <div role="dialog" aria-modal="true" aria-label={T('מורה פרטי AI')} className="card flex max-h-[92vh] w-full max-w-[620px] flex-col gap-4 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start gap-3">
           <h2 className="me-auto font-display text-[28px] font-semibold">🎓 {T('מורה פרטי AI')}</h2>
