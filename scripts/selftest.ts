@@ -75,6 +75,7 @@ for (const t of [...topics, ...soonTopics]) {
   ids.add(t.id);
   if (!tracks.some((tr) => tr.id === t.track)) fail(t.id, `מסלול לא קיים: ${t.track}`);
   if (t.grades[0] > t.grades[1] || t.grades[0] < 1 || t.grades[1] > 12) fail(t.id, 'טווח כיתות שגוי');
+  if (t.taught && (t.taught[0] !== t.grades[0] || t.taught.at(-1) !== t.grades[1] || t.taught.some((g, i) => i && g <= t.taught![i - 1]))) fail(t.id, 'taught לא תואם ל-grades');
 }
 
 let count = 0;

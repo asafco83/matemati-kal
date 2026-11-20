@@ -161,6 +161,8 @@ export interface Topic {
   title: string;
   /** טווח כיתות: 1 = א', 12 = י"ב */
   grades: [number, number];
+  /** כשהנושא לא נלמד בכל כיתה בטווח: הכיתות שבהן הוא נלמד בפועל, לפי תוכנית הלימודים (הראשונה והאחרונה = grades) */
+  taught?: number[];
   summary: string;
   icon: string;
   /** בתיכון: באילו רמות (יח"ל) הנושא נלמד, לפי תוכנית הלימודים של משרד החינוך. חסר = בכל הרמות */
@@ -176,6 +178,7 @@ export interface SoonTopic {
   track: string;
   title: string;
   grades: [number, number];
+  taught?: number[];
   soon: true;
 }
 
@@ -202,10 +205,14 @@ export const STAGES: { id: Stage; title: string; range: [number, number] }[] = [
 /** שם הכיתה: בעברית באות (ז'), ובשאר השפות במספר (7) */
 export const gradeName = (g: number) => (getLocale().code === 'he' ? GRADE_NAMES[g] : String(g));
 
-export function gradeLabel([a, b]: [number, number]): string {
+export function gradeLabel({ grades: [a, b], taught }: { grades: [number, number]; taught?: number[] }): string {
+  if (taught) return T`כיתות ${taught.map(gradeName).join(', ')}`;
   return a === b ? T`כיתה ${gradeName(a)}` : T`כיתות ${gradeName(a)}–${gradeName(b)}`;
 }
 
 export function stageOfGrade(g: number): Stage {
   return g <= 6 ? 'elementary' : g <= 9 ? 'middle' : 'high';
 }
+
+/** האם הנושא נלמד בכיתה g לפי תוכנית הלימודים */
+export const teaches = (t: { grades: [number, number]; taught?: number[] }, g: number) => (t.taught ? t.taught.includes(g) : t.grades[0] <= g && g <= t.grades[1]);
