@@ -1,6 +1,6 @@
 import { Component, useEffect, useRef, useState, type ReactNode } from 'react';
 import { topicById } from '../content';
-import { clearBlocks, clearInk, closeSheet, openSheet, setTutorDialog, toggleHalf, useSheet, type Block } from '../lib/sheet';
+import { clearBlocks, closeSheet, openSheet, setTutorDialog, sheetContext, toggleHalf, useSheet, type Block } from '../lib/sheet';
 import { activeProfile, useStore } from '../lib/store';
 import { gradeName } from '../lib/types';
 import { DrawBlock } from './Draw';
@@ -60,7 +60,7 @@ function BlockView({ block }: { block: Block }) {
 type Stroke = { color: string; w: number; pts: [number, number, number][] };
 type Tool = 'pen' | 'erase' | 'scroll';
 
-function InkLayer({ tool, color, strokes, bump }: { tool: Tool; color: string; strokes: { current: Stroke[] }; bump: number }) {
+function InkLayer({ tool, color, strokes, bump, onBefore }: { tool: Tool; color: string; strokes: { current: Stroke[] }; bump: number; /** נקרא לפני כל שינוי, כדי לשמור מצב ל"ביטול" */ onBefore: () => void }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const cur = useRef<Stroke | null>(null);
   const penSeen = useRef(false);
@@ -117,10 +117,15 @@ function InkLayer({ tool, color, strokes, bump }: { tool: Tool; color: string; s
     const r = ref.current!.getBoundingClientRect();
     return [e.clientX - r.left, e.clientY - r.top, e.pointerType === 'pen' ? e.pressure || 0.5 : 0.5];
   };
+  const erased = useRef(false);
   const eraseAt = (x: number, y: number) => {
-    const before = strokes.current.length;
-    strokes.current = strokes.current.filter((s) => !s.pts.some(([px, py]) => (px - x) ** 2 + (py - y) ** 2 < 16 ** 2));
-    if (strokes.current.length !== before) redraw();
+    const left = strokes.current.filter((s) => !s.pts.some(([px, py]) => (px - x) ** 2 + (py - y) ** 2 < 16 ** 2));
+    if (left.length === strokes.current.length) return;
+    // כל תנועת מחיקה היא צעד אחד ב"ביטול"
+    if (!erased.current) onBefore();
+    erased.current = true;
+    strokes.current = left;
+    redraw();
   };
   const down = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (e.pointerType === 'pen') penSeen.current = true;
@@ -130,12 +135,14 @@ function InkLayer({ tool, color, strokes, bump }: { tool: Tool; color: string; s
     e.currentTarget.setPointerCapture(e.pointerId);
     const p = pos(e);
     if (tool === 'erase') {
+      erased.current = false;
       cur.current = { color: '', w: 0, pts: [] };
       eraseAt(p[0], p[1]);
       return;
     }
+    onBefore();
     cur.current = { color, w: 3, pts: [p] };
-    strokes.current.push(cur.current);
+    strokes.current = [...strokes.current, cur.current];
     redraw();
   };
   const move = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -182,12 +189,75 @@ function browserAssistantDevice() {
 
 const PEN_COLORS = [INK, '#1c7ed6', '#c92a2a', '#2f9e44'];
 
-function ToolBtn({ on, onClick, label, children }: { on?: boolean; onClick: () => void; label: string; children: ReactNode }) {
+function ToolBtn({ on, onClick, label, disabled, children }: { on?: boolean; onClick: () => void; label: string; disabled?: boolean; children: ReactNode }) {
   return (
-    <button type="button" onClick={onClick} aria-pressed={on} aria-label={label} title={label} className={`flex h-11 min-w-11 items-center justify-center rounded-full px-3 text-[15px] font-bold ${on ? 'bg-ink text-white' : 'bg-white text-ink hover:bg-sand'}`}>
+    <button type="button" onClick={onClick} disabled={disabled} aria-pressed={on} aria-label={label} title={label} className={`flex h-11 min-w-11 items-center justify-center rounded-full px-3 text-[15px] font-bold disabled:opacity-40 ${on ? 'bg-ink text-white' : 'bg-white text-ink hover:bg-[#f3efe4]'}`}>
       {children}
     </button>
   );
+}
+
+const Icon = ({ d }: { d: string }) => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d={d} />
+  </svg>
+);
+
+/** שם הקובץ: תלמיד - נושא - רמה */
+function sheetFileName(student: string) {
+  const { topicId, level, tab } = sheetContext();
+  const topic = topicId ? topicById(topicId) : undefined;
+  const parts = [student, topic ? T(topic.title) : T('דף טיוטה'), topic && tab === 'practice' && level ? T(topic.levels[level - 1]) : ''];
+  return (
+    parts
+      .map((p) => p.replace(/\$/g, '').replace(/[\\/:*?"<>|]/g, '').trim())
+      .filter(Boolean)
+      .join(' - ') + '.png'
+  );
+}
+
+/** שומר את הדף (התרגיל, ההסברים והכתיבה ביד) כתמונה: שיתוף במכשירי מגע, הורדה במחשב */
+async function saveSheetImage(el: HTMLElement, name: string) {
+  let blob: Blob | null = null;
+  try {
+    const { toBlob } = await import('html-to-image');
+    const opts = { backgroundColor: '#fbfaf5', pixelRatio: el.offsetHeight > 3000 ? 1 : 2, filter: (n: HTMLElement) => !(n instanceof HTMLElement && 'noexport' in n.dataset) };
+    // ב-Safari הציור הראשון יוצא לפעמים בלי גופנים ותמונות, ולכן מציירים פעמיים
+    if (/AppleWebKit/.test(navigator.userAgent) && !/Chrome\//.test(navigator.userAgent)) await toBlob(el, opts).catch(() => null);
+    blob = await toBlob(el, opts);
+  } catch {
+    blob = null;
+  }
+  if (!blob) {
+    // גיבוי: רק הכתיבה ביד, על רקע הדף
+    const ink = el.querySelector('canvas');
+    if (!ink) return;
+    const c = document.createElement('canvas');
+    c.width = ink.width;
+    c.height = ink.height;
+    const g = c.getContext('2d')!;
+    g.fillStyle = '#fbfaf5';
+    g.fillRect(0, 0, c.width, c.height);
+    g.drawImage(ink, 0, 0);
+    blob = await new Promise<Blob | null>((r) => c.toBlob(r, 'image/png'));
+    if (!blob) return;
+  }
+  const file = new File([blob], name, { type: 'image/png' });
+  if (navigator.maxTouchPoints > 0 && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: name.replace(/\.png$/, '') });
+      return;
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return;
+    }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
 
 export function Sheet() {
@@ -199,9 +269,22 @@ export function Sheet() {
   const [showFig, setShowFig] = useState(true);
   const [bump, setBump] = useState(0);
   const strokes = useRef<Stroke[]>([]);
+  /** מצבים קודמים של הכתיבה, ל"ביטול". גם "דף חדש" הוא צעד שאפשר לבטל */
+  const history = useRef<Stroke[][]>([]);
+  const paper = useRef<HTMLDivElement>(null);
+  const [confirmNew, setConfirmNew] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [canUndo, setCanUndo] = useState(false);
+  const remember = () => {
+    history.current = [...history.current.slice(-59), strokes.current];
+    setCanUndo(true);
+  };
 
   useEffect(() => {
     strokes.current = [];
+    history.current = [];
+    setCanUndo(false);
+    setConfirmNew(false);
     setExtra(0);
     setShowFig(true);
     setBump((b) => b + 1);
@@ -232,54 +315,100 @@ export function Sheet() {
     );
 
   const undo = () => {
-    strokes.current.pop();
+    const prev = history.current.pop();
+    if (!prev) return;
+    strokes.current = prev;
+    setCanUndo(history.current.length > 0);
     setBump((b) => b + 1);
   };
+  const newSheet = () => {
+    setConfirmNew(false);
+    if (!strokes.current.length) return;
+    remember();
+    strokes.current = [];
+    setBump((b) => b + 1);
+  };
+  const save = async () => {
+    if (!paper.current || saving) return;
+    setSaving(true);
+    try {
+      await saveSheetImage(paper.current, sheetFileName(profile.name));
+    } finally {
+      setSaving(false);
+    }
+  };
+  const sep = <span aria-hidden="true" className="mx-1 hidden h-8 w-px bg-[#c9c4b6] sm:block" />;
 
   return (
     <aside className={`sheet fixed inset-y-0 left-0 z-50 flex flex-col bg-[#fbfaf5] shadow-2xl ${s.half ? 'w-full lg:w-1/2 lg:border-r-2 lg:border-ink' : 'w-full'}`} aria-label={T('דף טיוטה')}>
-      <div className="flex flex-wrap items-center gap-2 border-b-2 border-ink bg-sand px-3 py-2">
-        <strong className="me-auto font-display text-lg">{s.title ? <Rich text={s.title} /> : T('דף טיוטה')}</strong>
-        <ToolBtn on={tool === 'pen'} onClick={() => setTool('pen')} label={T('עט')}>
-          ✏️
-        </ToolBtn>
-        {PEN_COLORS.map((c) => (
-          <button
-            key={c}
-            type="button"
-            aria-label={T('צבע')}
-            aria-pressed={tool === 'pen' && color === c}
-            onClick={() => {
-              setColor(c);
-              setTool('pen');
-            }}
-            className="h-9 w-9 rounded-full border-2 border-white"
-            style={{ background: c, boxShadow: tool === 'pen' && color === c ? `0 0 0 3px ${INK}` : `0 0 0 1px #c9c4b6` }}
-          />
-        ))}
-        <ToolBtn on={tool === 'erase'} onClick={() => setTool('erase')} label={T('מחק')}>
-          {T('מחק')}
-        </ToolBtn>
-        <ToolBtn on={tool === 'scroll'} onClick={() => setTool('scroll')} label={T('גלילה')}>
-          ✋
-        </ToolBtn>
-        <ToolBtn onClick={undo} label={T('ביטול הקו האחרון')}>
-          ↶
-        </ToolBtn>
-        <ToolBtn onClick={clearInk} label={T('דף חדש')}>
-          {T('דף חדש')}
-        </ToolBtn>
-        <span className="hidden lg:inline-flex">
-          <ToolBtn onClick={toggleHalf} label={s.half ? T('מסך מלא') : T('חצי מסך')}>
-            {s.half ? '⤢' : '◧'}
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 border-b-2 border-ink bg-sand px-3 py-2">
+        <div className="flex items-center gap-2">
+          {PEN_COLORS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              aria-label={T('צבע')}
+              aria-pressed={tool === 'pen' && color === c}
+              onClick={() => {
+                setColor(c);
+                setTool('pen');
+              }}
+              className="h-10 w-10 rounded-full border-[3px] border-white"
+              style={{ background: c, boxShadow: tool === 'pen' && color === c ? `0 0 0 3px ${INK}` : `0 0 0 1px #c9c4b6` }}
+            />
+          ))}
+        </div>
+        {sep}
+        <div className="flex items-center gap-2">
+          <ToolBtn on={tool === 'pen'} onClick={() => setTool('pen')} label={T('עט')}>
+            <Icon d="M4 20l1-4.5L16.5 4a2.1 2.1 0 0 1 3 3L8 18.5 4 20zM14.5 6l3 3" />
           </ToolBtn>
-        </span>
-        <ToolBtn onClick={closeSheet} label={T('סגירה')}>
-          ✕
-        </ToolBtn>
+          <ToolBtn on={tool === 'erase'} onClick={() => setTool('erase')} label={T('מחק')}>
+            <Icon d="M20 20H10l-5.6-5.6a2 2 0 0 1 0-2.8l7.2-7.2a2 2 0 0 1 2.8 0l5.2 5.2a2 2 0 0 1 0 2.8L12 20M8.5 8.5l7 7" />
+          </ToolBtn>
+          <ToolBtn on={tool === 'scroll'} onClick={() => setTool('scroll')} label={T('גלילה')}>
+            <Icon d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-1V4.5a1.5 1.5 0 0 1 3 0V11m0-4.5a1.5 1.5 0 0 1 3 0V12m0-2.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.9-2.6L4.4 14a1.6 1.6 0 0 1 2.5-2L8 13" />
+          </ToolBtn>
+        </div>
+        {sep}
+        <div className="flex items-center gap-2">
+          <ToolBtn onClick={undo} disabled={!canUndo} label={T('ביטול הפעולה האחרונה')}>
+            <Icon d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" />
+          </ToolBtn>
+          <ToolBtn onClick={() => (strokes.current.length ? setConfirmNew(true) : newSheet())} label={T('דף חדש')}>
+            {T('דף חדש')}
+          </ToolBtn>
+          <ToolBtn onClick={save} disabled={saving} label={T('שמירה כתמונה')}>
+            <Icon d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14" />
+          </ToolBtn>
+          <span className="hidden lg:inline-flex">
+            <ToolBtn onClick={toggleHalf} label={s.half ? T('מסך מלא') : T('חצי מסך')}>
+              <Icon d={s.half ? 'M14 10l6-6m0 0h-5m5 0v5M10 14l-6 6m0 0h5m-5 0v-5' : 'M20 4l-6 6m0 0h5m-5 0V5M4 20l6-6m0 0H5m5 0v5'} />
+            </ToolBtn>
+          </span>
+          <ToolBtn onClick={closeSheet} label={T('סגירה')}>
+            <Icon d="M6 6l12 12M18 6 6 18" />
+          </ToolBtn>
+        </div>
       </div>
+      {confirmNew && (
+        <div className="absolute inset-0 z-20 flex items-start justify-center bg-ink/40 p-4 pt-24" onClick={() => setConfirmNew(false)}>
+          <div role="alertdialog" aria-modal="true" aria-label={T('דף חדש')} className="card flex w-full max-w-[420px] flex-col gap-4" onClick={(e) => e.stopPropagation()}>
+            <p className="font-display text-xl font-semibold">{T('לפתוח דף חדש?')}</p>
+            <p className="text-lg">{T('כל מה שכתבתם על הדף יימחק. אפשר להחזיר אותו בכפתור הביטול.')}</p>
+            <div className="flex gap-2">
+              <button type="button" onClick={newSheet} className="min-h-12 flex-1 rounded-full bg-ink px-4 font-display text-lg font-semibold text-white">
+                {T('דף חדש')}
+              </button>
+              <button type="button" onClick={() => setConfirmNew(false)} className="min-h-12 flex-1 rounded-full bg-sand px-4 font-display text-lg font-semibold">
+                {T('להשאיר')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto overscroll-contain">
-        <div className="sheet-paper relative" style={{ minHeight: `calc(100% + ${extra * 600}px)` }}>
+        <div ref={paper} className="sheet-paper relative" style={{ minHeight: `calc(100% + ${extra * 600}px)` }}>
           <NotationContext.Provider value={notationForGrade(profile.grade)}>
             <div className="flex flex-col gap-5 p-5 sm:p-7">
               {s.question && (
@@ -300,7 +429,7 @@ export function Sheet() {
                   <p className="flex items-center gap-2 text-sm font-semibold text-muted">
                     {T('השרטוט')}
                     {/* מעל שכבת הכתיבה, כדי שאפשר יהיה ללחוץ עליו גם במצב עט */}
-                    <button type="button" onClick={() => setShowFig((v) => !v)} aria-expanded={showFig} className="relative z-10 ms-auto min-h-9 rounded-full bg-sand px-3 font-semibold text-ink">
+                    <button type="button" data-noexport onClick={() => setShowFig((v) => !v)} aria-expanded={showFig} className="relative z-10 ms-auto min-h-9 rounded-full bg-sand px-3 font-semibold text-ink">
                       {showFig ? T('הסתרת השרטוט') : T('הצגת השרטוט')}
                     </button>
                   </p>
@@ -316,7 +445,12 @@ export function Sheet() {
                   <p className="flex items-center gap-2 text-sm font-semibold text-[#c92a2a]">
                     <span aria-hidden="true">🎓</span>
                     {T('המורה הפרטי')}
-                    <button type="button" onClick={clearBlocks} className="relative z-10 ms-auto min-h-9 underline">
+                    {s.title && (
+                      <strong className="text-ink">
+                        <Rich text={s.title} />
+                      </strong>
+                    )}
+                    <button type="button" data-noexport onClick={clearBlocks} className="relative z-10 ms-auto min-h-9 underline">
                       {T('ניקוי')}
                     </button>
                   </p>
@@ -329,7 +463,7 @@ export function Sheet() {
               )}
             </div>
           </NotationContext.Provider>
-          <InkLayer tool={tool} color={color} strokes={strokes} bump={bump} />
+          <InkLayer tool={tool} color={color} strokes={strokes} bump={bump} onBefore={remember} />
         </div>
         <div className="flex justify-center p-3">
           <button type="button" onClick={() => setExtra((e) => Math.min(e + 1, 8))} className="min-h-11 rounded-full bg-sand px-5 font-semibold">

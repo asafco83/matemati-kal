@@ -76,6 +76,8 @@ interface Ctx {
 }
 let ctx: Ctx = { topicId: null, tab: null, level: null, question: null, status: null, attempts: 0 };
 
+export const sheetContext = () => ({ topicId: ctx.topicId, level: ctx.level, tab: ctx.tab });
+
 /** המסכים מדווחים על המצב שלהם. תרגיל חדש מנקה את הכתיבה ביד */
 export function reportContext(patch: Partial<Ctx>) {
   const newQuestion = 'question' in patch && patch.question !== ctx.question;

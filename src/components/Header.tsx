@@ -21,6 +21,8 @@ export function Header({ route }: { route: Route }) {
   const currentTopic = route.name === 'topic' ? route.topic.id : null;
   const track = tracks.find((t) => t.id === currentTrack);
 
+  /** כשהמסלולים לא נכנסים בשורה, החיפוש והשפה מצטמצמים לסמל בלבד */
+  const [compact, setCompact] = useState(false);
   const [showSoon, setShowSoon] = useState(false);
   useEffect(() => setShowSoon(false), [nav.mode, nav.grade, currentTrack]);
   /** נושאים מוכנים קודם, ונושאים שבהכנה מתקפלים לכפתור אחד */
@@ -126,7 +128,7 @@ export function Header({ route }: { route: Route }) {
       {/* רק השורה העליונה נצמדת למעלה; שורת הנושאים נגללת עם הדף כדי לא לתפוס חצי מסך */}
       <header className="sticky top-0 z-30 shadow-md">
         <div className="bg-ink text-white">
-          <div className="mx-auto flex max-w-[1240px] flex-wrap items-center gap-x-3 px-4 sm:gap-x-4 sm:px-6">
+          <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-3 px-4 sm:gap-x-4 sm:px-6">
             <div className="order-1 flex min-h-14 items-center">
               <Logo />
             </div>
@@ -134,7 +136,7 @@ export function Header({ route }: { route: Route }) {
             <div className="order-4 lg:order-2">
               <ModeSwitch />
             </div>
-            <nav aria-label={nav.mode === 'grade' ? T('כיתות') : T('מסלולים')} className="hide-scrollbar order-5 flex min-w-0 flex-1 basis-0 overflow-x-auto lg:order-3">
+            <Scroller label={nav.mode === 'grade' ? T('כיתות') : T('מסלולים')} className="order-5 lg:order-3" watch={`${nav.mode}|${nav.grade}|${currentTrack}`} onFit={setCompact} compact={compact}>
               {nav.mode === 'grade'
                 ? GRADE_NAMES.slice(1).map((g, i) => {
                     const on = nav.grade === i + 1;
@@ -164,7 +166,7 @@ export function Header({ route }: { route: Route }) {
                       </a>
                     );
                   })}
-            </nav>
+            </Scroller>
             <button
               type="button"
               onClick={() => selectProfile(null)}
@@ -177,16 +179,109 @@ export function Header({ route }: { route: Route }) {
                 {t.stars}
               </span>
             </button>
-            <SearchButton className="order-2 lg:order-4" />
-            <LanguageSwitch className="order-3 lg:order-5" />
+            <SearchButton className="order-2 lg:order-4" compact={compact} />
+            <LanguageSwitch className="order-3 lg:order-5" compact={compact} />
           </div>
         </div>
       </header>
       <div className="relative z-20 shadow-md" style={{ background: row2bg }}>
-        <div className="hide-scrollbar mx-auto flex max-w-[1240px] items-center gap-2 overflow-x-auto px-4 py-2.5 sm:flex-wrap sm:overflow-visible sm:px-6">{row2}</div>
+        <div className="hide-scrollbar mx-auto flex max-w-[1400px] items-center gap-2 overflow-x-auto px-4 py-2.5 sm:flex-wrap sm:overflow-visible sm:px-6">{row2}</div>
       </div>
       {auth.error && <div className="bg-red-700 px-4 py-1 text-center text-sm text-white">{T(auth.error)}</div>}
     </>
+  );
+}
+
+/** כמה רוחב מתפנה כשהחיפוש והשפה מצטמצמים לסמל. משמש כדי לא לקפוץ הלוך ושוב בין שני המצבים */
+const LABELS_WIDTH = 240;
+
+/**
+ * שורת המסלולים (או הכיתות): נגללת לרוחב כשאין מקום, בגרירה או בחיצים.
+ * מדווחת ב-onFit אם צריך לצמצם את הכפתורים שלידה כדי לפנות מקום.
+ */
+function Scroller({ label, className, watch, compact, onFit, children }: { label: string; className: string; watch: string; compact: boolean; onFit: (compact: boolean) => void; children: React.ReactNode }) {
+  const ref = useRef<HTMLElement>(null);
+  const [edge, setEdge] = useState({ start: false, end: false });
+  const drag = useRef({ x: 0, left: 0, active: false, moved: false });
+  const compactRef = useRef(compact);
+  compactRef.current = compact;
+
+  useEffect(() => {
+    const el = ref.current!;
+    const measure = () => {
+      const content = [...el.children].reduce((w, c) => w + (c as HTMLElement).offsetWidth, 0);
+      const free = el.clientWidth - content;
+      if (!compactRef.current && free < 0) onFit(true);
+      else if (compactRef.current && free > LABELS_WIDTH) onFit(false);
+      const max = el.scrollWidth - el.clientWidth;
+      const pos = Math.abs(el.scrollLeft);
+      setEdge({ start: pos > 2, end: pos < max - 2 });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    el.addEventListener('scroll', measure, { passive: true });
+    return () => {
+      ro.disconnect();
+      el.removeEventListener('scroll', measure);
+    };
+  }, [watch, compact, onFit]);
+  // הפריט הנבחר תמיד נראה
+  useEffect(() => {
+    ref.current?.querySelector('[aria-current="page"], [aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [watch]);
+
+  const step = (toEnd: boolean) => {
+    const el = ref.current!;
+    const rtl = getComputedStyle(el).direction === 'rtl';
+    el.scrollBy({ left: (toEnd ? 1 : -1) * (rtl ? -1 : 1) * Math.max(el.clientWidth * 0.7, 120), behavior: 'smooth' });
+  };
+  const arrow = (toEnd: boolean) => (
+    <button
+      type="button"
+      onClick={() => step(toEnd)}
+      aria-label={toEnd ? T('הבא') : T('הקודם')}
+      className={`absolute inset-y-0 z-10 flex w-10 items-center from-ink from-60% to-transparent text-white ${toEnd ? 'end-0 justify-end bg-linear-to-l rtl:bg-linear-to-r' : 'start-0 justify-start bg-linear-to-r rtl:bg-linear-to-l'}`}
+    >
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={toEnd ? 'rtl:rotate-180' : 'rotate-180 rtl:rotate-0'}>
+        <path d="m9 6 6 6-6 6" />
+      </svg>
+    </button>
+  );
+
+  return (
+    <div className={`relative flex min-w-[200px] flex-1 basis-0 ${className}`}>
+      {edge.start && arrow(false)}
+      <nav
+        ref={ref}
+        aria-label={label}
+        className="hide-scrollbar flex min-w-0 flex-1 overflow-x-auto"
+        onPointerDown={(e) => {
+          if (e.pointerType !== 'mouse' || e.button !== 0) return;
+          drag.current = { x: e.clientX, left: ref.current!.scrollLeft, active: true, moved: false };
+        }}
+        onPointerMove={(e) => {
+          const d = drag.current;
+          if (!d.active) return;
+          if (Math.abs(e.clientX - d.x) > 5) d.moved = true;
+          if (d.moved) ref.current!.scrollLeft = d.left - (e.clientX - d.x);
+        }}
+        onPointerUp={() => (drag.current.active = false)}
+        onPointerLeave={() => (drag.current.active = false)}
+        onClickCapture={(e) => {
+          // גרירה היא לא לחיצה על מסלול
+          if (drag.current.moved) {
+            e.preventDefault();
+            e.stopPropagation();
+            drag.current.moved = false;
+          }
+        }}
+        onDragStart={(e) => e.preventDefault()}
+      >
+        {children}
+      </nav>
+      {edge.end && arrow(true)}
+    </div>
   );
 }
 

@@ -124,7 +124,7 @@ export function PrimaryButton({ color, children, onClick, href }: { color: strin
 
 /* ---------- בחירת שפה: מהכותרת, מכל מסך ---------- */
 
-export function LanguageSwitch({ className = '' }: { className?: string }) {
+export function LanguageSwitch({ className = '', compact = false }: { className?: string; /** רק הסמל, בלי שם השפה */ compact?: boolean }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const cur = getLocale();
@@ -144,13 +144,14 @@ export function LanguageSwitch({ className = '' }: { className?: string }) {
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-label={T('שפה')}
+        title={compact ? cur.name : undefined}
         className="flex min-h-10 items-center gap-1.5 rounded-full bg-white/15 px-3 text-[15px] font-semibold text-white hover:bg-white/25"
       >
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
           <circle cx="12" cy="12" r="9" />
           <path d="M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9M12 3C9.5 5.5 8.2 8.5 8.2 12s1.3 6.5 3.8 9" />
         </svg>
-        <span lang={cur.code}>{cur.name}</span>
+        {!compact && <span lang={cur.code}>{cur.name}</span>}
       </button>
       {open && (
         <ul role="listbox" aria-label={T('שפה')} className="absolute end-0 top-full z-50 mt-2 grid max-h-[70vh] w-56 overflow-y-auto rounded-2xl bg-white p-1.5 text-ink shadow-xl">

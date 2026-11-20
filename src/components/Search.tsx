@@ -54,7 +54,7 @@ function search(query: string): Hit[] {
   return hits.sort((a, b) => b.score - Math.min(far(b.topic), 6) - (a.score - Math.min(far(a.topic), 6)) || a.topic.grades[0] - b.topic.grades[0]).slice(0, 12);
 }
 
-export function SearchButton({ className = '' }: { className?: string }) {
+export function SearchButton({ className = '', compact = false }: { className?: string; /** רק הסמל, בלי המילה */ compact?: boolean }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
@@ -69,12 +69,12 @@ export function SearchButton({ className = '' }: { className?: string }) {
   }, []);
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} aria-label={T('חיפוש')} title={T('חיפוש')} className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-white/15 px-3 text-[15px] font-semibold text-white hover:bg-white/25 ${className}`}>
+      <button type="button" onClick={() => setOpen(true)} aria-label={T('חיפוש')} title={T('חיפוש')} className={`flex h-10 min-w-10 shrink-0 items-center justify-center gap-1.5 rounded-full bg-white/15 px-3 text-[15px] font-semibold text-white hover:bg-white/25 ${className}`}>
         <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
           <circle cx="10.5" cy="10.5" r="6.5" />
           <path d="M20 20l-4.6-4.6" />
         </svg>
-        <span className="hidden sm:inline">{T('חיפוש')}</span>
+        {!compact && <span className="hidden sm:inline">{T('חיפוש')}</span>}
       </button>
       {open && <SearchDialog onClose={() => setOpen(false)} />}
     </>
@@ -131,7 +131,7 @@ function SearchDialog({ onClose }: { onClose: () => void }) {
                     {T(h.topic.title)}
                     <span className="rounded-full bg-white px-2 py-0.5 text-[13px] font-medium text-muted ring-1 ring-line">{gradeLabel(h.topic.grades)}</span>
                   </span>
-                  <span className="text-base text-muted">{h.where ? <Rich text={h.where} /> : T(h.topic.summary)}</span>
+                  <span className="text-base text-muted"><Rich text={h.where ?? h.topic.summary} /></span>
                 </button>
               </li>
             );

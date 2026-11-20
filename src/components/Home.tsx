@@ -1,3 +1,4 @@
+import { Rich } from './Tex';
 import { topics, tracks } from '../content';
 import { inGrade, isSoon, trackTopics, useNav, type GradeFilter } from '../lib/nav';
 import { activeProfile, stars, useStore, type State } from '../lib/store';
@@ -50,7 +51,7 @@ export function Home() {
                 {seen ? T('ממשיכים מאיפה שעצרנו') : T('מומלץ בשבילך')} · {T(nextTrack.title)}
               </span>
               <span className="font-display text-[30px] font-semibold">{T(next.title)}</span>
-              <span className="text-[17px] text-muted">{nextStars > 0 ? T(`השלמת ${nextStars} מתוך 3 רמות.`) : T(next.summary)}</span>
+              <span className="text-[17px] text-muted">{nextStars > 0 ? T(`השלמת ${nextStars} מתוך 3 רמות.`) : <Rich text={next.summary} />}</span>
             </span>
             <span className="rounded-full px-7 py-3.5 font-display text-lg font-semibold text-white" style={{ background: nextTrack.color }}>
               {seen ? T('ממשיכים ←') : T('מתחילים ←')}
@@ -139,7 +140,7 @@ export function TrackPage({ id }: { id: string }) {
                   ))}
                 </span>
               </span>
-              <span className="flex-1 text-[15px] text-muted">{T(t.summary)}</span>
+              <span className="flex-1 text-[15px] text-muted"><Rich text={t.summary} /></span>
               <span className="mt-2 self-start rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-muted">{gradeLabel(t.grades)}</span>
             </a>
           ),
