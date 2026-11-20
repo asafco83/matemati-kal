@@ -47,7 +47,7 @@ function Screens() {
   if (route.name === 'edit-profile') return <EditProfile id={route.id} />;
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-dvh pb-24">
       <Header route={route} />
       <main className="mx-auto max-w-[960px] px-3 pt-6 sm:px-6 sm:pt-7">
         {route.name === 'topic' ? <TopicPage key={route.topic.id} topic={route.topic} /> : route.name === 'track' ? <TrackPage id={route.id} /> : <Home />}
