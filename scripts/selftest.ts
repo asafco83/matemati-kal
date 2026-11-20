@@ -6,6 +6,7 @@ import katex from 'katex';
 import { soonTopics, topics, tracks } from '../src/content';
 import type { Level, Question, Step } from '../src/lib/types';
 import { checkAnswer } from '../src/lib/util';
+import { CALC_LEVELS } from '../src/lib/calc';
 
 let errors = 0;
 const seen = new Set<string>();
@@ -75,6 +76,7 @@ for (const t of [...topics, ...soonTopics]) {
   ids.add(t.id);
   if (!tracks.some((tr) => tr.id === t.track)) fail(t.id, `מסלול לא קיים: ${t.track}`);
   if (t.grades[0] > t.grades[1] || t.grades[0] < 1 || t.grades[1] > 12) fail(t.id, 'טווח כיתות שגוי');
+  if (!('soon' in t) && !CALC_LEVELS[t.id]) fail(t.id, 'חסר ב-CALC_LEVELS (src/lib/calc.ts)');
   if (t.taught && (t.taught[0] !== t.grades[0] || t.taught.at(-1) !== t.grades[1] || t.taught.some((g, i) => i && g <= t.taught![i - 1]))) fail(t.id, 'taught לא תואם ל-grades');
 }
 

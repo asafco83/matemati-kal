@@ -79,10 +79,29 @@ let ctx: Ctx = { topicId: null, tab: null, level: null, question: null, status: 
 
 export const sheetContext = () => ({ topicId: ctx.topicId, level: ctx.level, tab: ctx.tab });
 
+/** מתעדכן כשהנושא, הלשונית או הרמה משתנים (למשל כדי להראות או להסתיר את המחשבון) */
+let screenKey = '';
+const screenListeners = new Set<() => void>();
+export const useScreen = () =>
+  useSyncExternalStore(
+    (l) => {
+      screenListeners.add(l);
+      return () => {
+        screenListeners.delete(l);
+      };
+    },
+    () => screenKey,
+  );
+
 /** המסכים מדווחים על המצב שלהם. תרגיל חדש מנקה את הכתיבה ביד */
 export function reportContext(patch: Partial<Ctx>) {
   const newQuestion = 'question' in patch && patch.question !== ctx.question;
   ctx = { ...ctx, ...patch };
+  const key = `${ctx.topicId}|${ctx.tab}|${ctx.level}`;
+  if (key !== screenKey) {
+    screenKey = key;
+    screenListeners.forEach((l) => l());
+  }
   if (newQuestion) {
     const q = ctx.question;
     set({ question: q ? { text: q.text, latex: q.latex, figure: q.figure } : null, inkKey: state.inkKey + 1 });
@@ -137,7 +156,7 @@ export const tutorApi = {
       topic: onTopic && ctx.topicId ? topicInfo(ctx.topicId) : null,
       tab: onTopic ? ctx.tab : null,
       level: onTopic && ctx.tab === 'practice' ? ctx.level : null,
-      calculator: onTopic ? calcFor(ctx.topicId, p?.grade) : 'none',
+      calculator: onTopic ? calcFor(ctx.topicId, p?.grade, ctx.tab === 'practice' ? ctx.level : null) : 'none',
       exercise: onTopic && ctx.tab === 'practice' && q ? { text: q.text, latex: q.latex ?? null, figure: q.figure ?? null, answerKind: q.answer.type, attempts: ctx.attempts, status: ctx.status } : null,
       reminder: 'Do not give the answer to this exercise. Guide the student to it.',
     };
