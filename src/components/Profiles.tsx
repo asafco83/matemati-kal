@@ -168,6 +168,15 @@ export function Welcome() {
           </div>
         </section>
       </main>
+      <footer className="mx-auto flex max-w-[1040px] flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 pb-10 text-[15px] text-muted sm:px-6">
+        <a href="/privacy.html" className="text-muted underline-offset-4 hover:text-ink hover:underline">
+          {T('מדיניות פרטיות')}
+        </a>
+        <span aria-hidden="true">·</span>
+        <a href="/terms.html" className="text-muted underline-offset-4 hover:text-ink hover:underline">
+          {T('תנאי שימוש')}
+        </a>
+      </footer>
     </>
   );
 }

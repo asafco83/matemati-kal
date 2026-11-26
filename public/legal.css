@@ -1,0 +1,23 @@
+/* עיצוב משותף לדפי מדיניות הפרטיות ותנאי השימוש */
+* { box-sizing: border-box; }
+html { background: #f6f4ee; color: #1d2433; }
+body { margin: 0; font-family: Assistant, 'Arial Hebrew', Arial, sans-serif; font-size: 18px; line-height: 1.65; }
+a { color: #4f46e5; }
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 20px; background: #1d2433; }
+.bar a { color: #fff; text-decoration: none; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: Fredoka, Assistant, sans-serif; font-weight: 600; font-size: 22px; }
+.lang { border-radius: 999px; background: rgba(255, 255, 255, 0.15); padding: 6px 14px; font-weight: 600; font-size: 15px; }
+main { max-width: 820px; margin: 0 auto; padding: 24px 16px 8px; }
+article { background: #fff; border-radius: 18px; padding: 28px 32px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(29, 36, 51, 0.12); }
+h1 { font-family: Fredoka, Assistant, sans-serif; font-weight: 600; font-size: 36px; line-height: 1.2; margin: 0 0 4px; }
+h2 { font-size: 22px; margin: 28px 0 6px; }
+.updated { color: #5b6478; margin: 0 0 8px; }
+ul { padding-inline-start: 24px; }
+li { margin-bottom: 8px; }
+.contact { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.email-btn { font: inherit; font-weight: 700; color: #fff; background: #1d2433; border: 0; border-radius: 999px; padding: 10px 22px; cursor: pointer; }
+.email-btn:focus-visible { outline: 3px solid #f5b400; outline-offset: 2px; }
+.email-out { font-weight: 600; direction: ltr; }
+.foot { text-align: center; color: #5b6478; font-size: 15px; padding: 8px 16px 32px; }
+.foot a { color: #5b6478; }
+@media (max-width: 600px) { article { padding: 20px 18px; } h1 { font-size: 30px; } }
